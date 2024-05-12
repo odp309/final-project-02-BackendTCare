@@ -3,7 +3,7 @@ package com.bni.finalproject01webservice.dto;
 import lombok.Data;
 
 @Data
-public class RoleDTO {
+public class RoleRequestDTO {
 
     private String roleName;
     private String roleDescription;

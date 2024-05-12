@@ -1,6 +1,6 @@
 package com.bni.finalproject01webservice.controller;
 
-import com.bni.finalproject01webservice.dto.RoleDTO;
+import com.bni.finalproject01webservice.dto.RoleRequestDTO;
 import com.bni.finalproject01webservice.interfaces.RoleInterface;
 import com.bni.finalproject01webservice.model.Role;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ public class RoleController {
     private RoleInterface roleService;
 
     @PostMapping("/create")
-    public Role createNewRole(@RequestBody RoleDTO roleDTO) {
-        return roleService.createNewRole(roleDTO);
+    public Role createNewRole(@RequestBody RoleRequestDTO roleRequestDTO) {
+        return roleService.createNewRole(roleRequestDTO);
     }
 }

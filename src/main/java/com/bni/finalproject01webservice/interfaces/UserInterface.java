@@ -1,13 +1,11 @@
 package com.bni.finalproject01webservice.interfaces;
 
-import com.bni.finalproject01webservice.dto.LoginRequestDTO;
-import com.bni.finalproject01webservice.dto.LoginResponseDTO;
-import com.bni.finalproject01webservice.dto.RegisterRequestDTO;
-import com.bni.finalproject01webservice.dto.RegisterResponseDTO;
+import com.bni.finalproject01webservice.dto.*;
+import org.springframework.http.ResponseEntity;
 
 public interface UserInterface {
 
-    void initRoleAndUser();
+    InitResponseDTO initRoleAndUser();
 
     LoginResponseDTO login(LoginRequestDTO request);
 

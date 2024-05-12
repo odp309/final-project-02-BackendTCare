@@ -1,9 +1,6 @@
 package com.bni.finalproject01webservice.controller;
 
-import com.bni.finalproject01webservice.dto.LoginRequestDTO;
-import com.bni.finalproject01webservice.dto.LoginResponseDTO;
-import com.bni.finalproject01webservice.dto.RegisterRequestDTO;
-import com.bni.finalproject01webservice.dto.RegisterResponseDTO;
+import com.bni.finalproject01webservice.dto.*;
 import com.bni.finalproject01webservice.interfaces.UserInterface;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,8 +20,9 @@ public class UserController {
     private UserInterface userService;
 
     @PostMapping("/init")
-    public void initRoleAndUser() {
-        userService.initRoleAndUser();
+    public ResponseEntity<InitResponseDTO> initRoleAndUser() {
+        InitResponseDTO result = userService.initRoleAndUser();
+        return ResponseEntity.ok(result);
     }
 
     @PostMapping("/login")
