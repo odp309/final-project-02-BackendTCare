@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 @Service
@@ -30,27 +31,37 @@ public class UserService implements UserInterface {
 
     @Override
     public void initRoleAndUser() {
+        User currUser = userRepository.findByEmail("admin@bni.co.id");
+        Role currAdminRole = roleRepository.findByRoleName("Admin");
+        Role currUserRole = roleRepository.findByRoleName("User");
 
         Role adminRole = new Role();
-        adminRole.setRoleName("Admin");
-        adminRole.setRoleDescription("Admin role");
-        roleRepository.save(adminRole);
-
         Role userRole = new Role();
-        userRole.setRoleName("User");
-        userRole.setRoleDescription("Default role for newly created record");
-        roleRepository.save(userRole);
 
-        Set<Role> role = new HashSet<>();
-        role.add(adminRole);
-        User user = new User();
-        user.setEmail("admin@bni.co.id");
-        user.setPassword(passwordEncoder.encode("admin"));
-        user.setFirstName("admin");
-        user.setLastName("admin");
-        user.setRole(role);
+        if (currAdminRole == null) {
+            adminRole.setRoleName("Admin");
+            adminRole.setRoleDescription("Admin role");
+            roleRepository.save(adminRole);
+        }
 
-        userRepository.save(user);
+        if (currUserRole == null) {
+            userRole.setRoleName("User");
+            userRole.setRoleDescription("Default role for newly created record");
+            roleRepository.save(userRole);
+        }
+
+        if (currUser == null) {
+            Set<Role> role = new HashSet<>();
+            role.add(Objects.requireNonNullElse(currAdminRole, adminRole));
+            User user = new User();
+            user.setEmail("admin@bni.co.id");
+            user.setPassword(passwordEncoder.encode("admin"));
+            user.setFirstName("admin");
+            user.setLastName("admin");
+            user.setRole(role);
+
+            userRepository.save(user);
+        }
     }
 
     @Override

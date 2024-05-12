@@ -22,10 +22,10 @@ public class UserController {
     @Autowired
     private UserInterface userService;
 
-//    @PostConstruct
-//    public void initRoleAndUser() {
-//        userService.initRoleAndUser();
-//    }
+    @PostMapping("/init")
+    public void initRoleAndUser() {
+        userService.initRoleAndUser();
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponseDTO> login(@RequestBody LoginRequestDTO request) {
