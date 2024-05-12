@@ -5,12 +5,10 @@ import com.bni.finalproject01webservice.interfaces.UserInterface;
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/public/user")
@@ -37,5 +35,17 @@ public class UserController {
     public ResponseEntity<RegisterResponseDTO> register(@RequestBody RegisterRequestDTO request) {
         RegisterResponseDTO result = userService.register(request);
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping({"/forAdmin"})
+    @PreAuthorize("hasRole('Admin')")
+    public String forAdmin(){
+        return "This URL is only accessible to the admin";
+    }
+
+    @GetMapping({"/forUser"})
+    @PreAuthorize("hasRole('User')")
+    public String forUser(){
+        return "This URL is only accessible to the user";
     }
 }

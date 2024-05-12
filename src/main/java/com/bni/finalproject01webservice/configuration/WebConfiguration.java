@@ -34,6 +34,9 @@ public class WebConfiguration {
                 HttpHeaders.CONTENT_TYPE,
                 HttpHeaders.ACCEPT));
 
+        // custom headers backend must accept
+        config.addAllowedHeader("No-Auth");
+
         // methods backend must accept
         config.setAllowedMethods(Arrays.asList(
                 HttpMethod.GET.name(),
