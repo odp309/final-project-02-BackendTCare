@@ -9,7 +9,7 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.bni</groupId>
-	<artifactId>final-project-01-webservice</artifactId>
+	<artifactId>finpro-aju-backend</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name>final-project-01-webservice</name>
 	<description>Final project 01 backend</description>
