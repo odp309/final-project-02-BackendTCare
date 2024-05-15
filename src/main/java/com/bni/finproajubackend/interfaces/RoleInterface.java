@@ -8,7 +8,7 @@ import org.springframework.security.core.Authentication;
 import java.util.List;
 
 public interface RoleInterface {
-    List<RoleResponseDTO> getRoles(Authentication authentication);
+    List<RoleResponseDTO> getRoles();
 
     RoleResponseDTO createNewRole(RoleRequestDTO request);
 

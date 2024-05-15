@@ -24,8 +24,8 @@ public class RoleController {
 
     @RequirePermission("getRoles")
     @GetMapping(value = "", produces = "application/json")
-    public ResponseEntity getRoles(Authentication authentication){
-        List<RoleResponseDTO> result = roleService.getRoles(authentication);
+    public ResponseEntity getRoles(){
+        List<RoleResponseDTO> result = roleService.getRoles();
         return ResponseEntity.ok(responseService.apiSuccess(result));
     }
 
