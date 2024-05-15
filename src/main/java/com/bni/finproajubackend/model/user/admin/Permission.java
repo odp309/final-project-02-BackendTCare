@@ -19,6 +19,6 @@ public class Permission {
     private String permissionName;
     @Column(name = "permission_description")
     private String permissionDescription;
-    @ManyToMany(mappedBy = "permission")
+    @ManyToMany(mappedBy = "permissions")
     private List<Role> roles;
 }
