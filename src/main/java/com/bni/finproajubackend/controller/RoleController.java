@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.controller;
 
+import com.bni.finproajubackend.annotation.RequirePermission;
 import com.bni.finproajubackend.dto.role.RoleRequestDTO;
 import com.bni.finproajubackend.dto.role.RoleResponseDTO;
 import com.bni.finproajubackend.interfaces.RoleInterface;
@@ -21,18 +22,21 @@ public class RoleController {
     @Autowired
     private TemplateResInterface responseService;
 
+    @RequirePermission("getRoles")
     @GetMapping(value = "", produces = "application/json")
     public ResponseEntity getRoles(Authentication authentication){
         List<RoleResponseDTO> result = roleService.getRoles(authentication);
         return ResponseEntity.ok(responseService.apiSuccess(result));
     }
 
+    @RequirePermission("addRoles")
     @PostMapping(value = "", produces = "application/json")
     public ResponseEntity createNewRole(@RequestBody RoleRequestDTO roleRequestDTO) {
         RoleResponseDTO result = roleService.createNewRole(roleRequestDTO);
         return ResponseEntity.ok(responseService.apiSuccess(result));
     }
 
+    @RequirePermission("updateRoles")
     @PutMapping(value = "", produces = "application/json")
     public ResponseEntity updateRole(@RequestBody RoleRequestDTO roleRequestDTO) {
         RoleResponseDTO result = roleService.updateRole(roleRequestDTO);
