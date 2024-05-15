@@ -1,6 +1,6 @@
 package com.bni.finproajubackend.dto.user;
 
-import com.bni.finproajubackend.model.Gender;
+import com.bni.finproajubackend.model.enumobject.Gender;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

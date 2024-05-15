@@ -1,7 +1,7 @@
 package com.bni.finproajubackend.model.user;
 
 import com.bni.finproajubackend.model.user.admin.Admin;
-import com.bni.finproajubackend.model.Gender;
+import com.bni.finproajubackend.model.enumobject.Gender;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
 import jakarta.persistence.*;
 import lombok.Getter;
