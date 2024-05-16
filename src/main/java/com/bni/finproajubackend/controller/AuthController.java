@@ -12,6 +12,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/public/auth")
 public class AuthController {
@@ -26,12 +29,7 @@ public class AuthController {
     private TemplateResInterface responseService;
     @Autowired
     private TokenRevocationListService tokenRevocationListService;
-
-//    @PostMapping("/init")
-//    public ResponseEntity<InitResponseDTO> initRoleAndUser() {
-//        InitResponseDTO result = userService.initRoleAndUser();
-//        return ResponseEntity.ok(result);
-//    }
+    private Map<String, Object> errorDetails = new HashMap<>();
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody LoginRequestDTO request) {
@@ -39,9 +37,11 @@ public class AuthController {
             LoginResponseDTO result = authService.login(request);
             return ResponseEntity.ok(responseService.apiSuccess(result));
         } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(e));
+            errorDetails.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiFailed(e));
+            errorDetails.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiFailed(errorDetails));
         }
     }
 
@@ -51,7 +51,8 @@ public class AuthController {
             RefreshTokenResponseDTO result = authService.refreshToken(refreshTokenReq);
             return ResponseEntity.ok(responseService.apiSuccess(result));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(e.getMessage()));
+            errorDetails.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
         }
     }
 
