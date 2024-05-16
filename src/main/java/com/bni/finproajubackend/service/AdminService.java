@@ -4,8 +4,6 @@ import com.bni.finproajubackend.dto.admin.AdminResponseDTO;
 import com.bni.finproajubackend.interfaces.AdminInterface;
 import com.bni.finproajubackend.model.user.Person;
 import com.bni.finproajubackend.model.user.User;
-import com.bni.finproajubackend.model.user.admin.Admin;
-import com.bni.finproajubackend.repository.AdminRepository;
 import com.bni.finproajubackend.repository.PersonRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,9 +34,16 @@ public class AdminService implements AdminInterface {
         }
 
         return AdminResponseDTO.builder()
-                .person(person)
-                .role(person.getAdmin().getRole())
-                .npp(person.getAdmin().getNpp())
+                .id(person.getId())
+                .email(person.getEmail())
+                .noHP(person.getNoHP())
+                .firstName(person.getFirstName())
+                .lastName(person.getLastName())
+                .gender(person.getGender())
+                .age(person.getAge())
+                .address(person.getAddress())
+                .npp(person.getAdmin().getNpp())  // Include npp here
+                .role(person.getAdmin().getRole())  // Include RoleDTO here
                 .build();
     }
 }

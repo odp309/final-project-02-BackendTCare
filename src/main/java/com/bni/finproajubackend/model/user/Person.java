@@ -19,6 +19,7 @@ public class Person {
     private Long id;
     @OneToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", referencedColumnName = "id")
+    @JsonIgnore
     private User user;
     @Column(unique = true)
     private String email;

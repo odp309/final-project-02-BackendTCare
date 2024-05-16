@@ -21,7 +21,6 @@ public class Role {
     @Column(name = "role_description")
     private String roleDescription;
     @ManyToMany
-    @JsonIgnore
     @JoinTable(name = "role_permission",
             joinColumns = @JoinColumn(name = "role_id"),
             inverseJoinColumns = @JoinColumn(name = "permission_id"))
