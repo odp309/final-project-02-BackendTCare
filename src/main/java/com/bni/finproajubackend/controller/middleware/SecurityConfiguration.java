@@ -28,7 +28,9 @@ public class SecurityConfiguration {
     public AuthenticationManager authenticationManager(HttpSecurity http)
             throws Exception {
         AuthenticationManagerBuilder authenticationManagerBuilder = http.getSharedObject(AuthenticationManagerBuilder.class);
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder());
+        authenticationManagerBuilder
+                .userDetailsService(userDetailsService)
+                .passwordEncoder(bCryptPasswordEncoder());
         return authenticationManagerBuilder.build();
     }
 

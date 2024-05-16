@@ -57,9 +57,8 @@ public class AuthController {
 
     @PostMapping(value = "/logout", produces = "application/json")
     public ResponseEntity logout(@RequestHeader(name = "Authorization") String token) {
-        if (token != null && token.startsWith("Bearer ")) {
+        if (token != null && token.startsWith("Bearer "))
             tokenRevocationListService.addToRevocationList(token.substring(7));
-        }
         String result = "Logged Out Successfully";
         return ResponseEntity.ok(responseService.apiSuccess(result));
     }

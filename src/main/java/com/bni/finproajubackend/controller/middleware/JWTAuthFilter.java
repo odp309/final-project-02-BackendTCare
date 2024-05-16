@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.controller.middleware;
 
 import com.bni.finproajubackend.interfaces.JWTInterface;
+import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.service.JWTService;
 import com.bni.finproajubackend.service.TokenRevocationListService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,11 +29,13 @@ public class JWTAuthFilter extends OncePerRequestFilter {
     private final JWTInterface jwtService;
     private final ObjectMapper mapper;
     private TokenRevocationListService tokenRevocationListService;
+    private TemplateResInterface responseService;
 
-    public JWTAuthFilter(JWTService jwtUtil, JWTInterface jwtService, ObjectMapper mapper, TokenRevocationListService tokenRevocationListService) {
+    public JWTAuthFilter(JWTService jwtUtil, JWTInterface jwtService, ObjectMapper mapper, TokenRevocationListService tokenRevocationListService, TemplateResInterface responseService) {
         this.jwtService = jwtService;
         this.mapper = mapper;
         this.tokenRevocationListService = tokenRevocationListService;
+        this.responseService = responseService;
     }
 
     @Override
@@ -49,20 +52,27 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             if (accessToken != null && tokenRevocationListService.isTokenRevoked(accessToken)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token Has Been Revoked");
+                response.getWriter().flush();
                 return;
             }
 
-            if (jwtService.isTokenValid(accessToken)) {
-                Claims claims = jwtService.extractAllClaims(accessToken);
-                String username = claims.getSubject();
-
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(username, "", new ArrayList<>());
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-                filterChain.doFilter(request, response);
+            if (!jwtService.isTokenValid(accessToken)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.getWriter().write("Token Expired");
+                response.getWriter().flush();
+                return;
             }
+
+            Claims claims = jwtService.extractAllClaims(accessToken);
+            String username = claims.getSubject();
+
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(username, "", new ArrayList<>());
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             errorDetails.put("message", "Authentication Error");
             errorDetails.put("details", e.getMessage());

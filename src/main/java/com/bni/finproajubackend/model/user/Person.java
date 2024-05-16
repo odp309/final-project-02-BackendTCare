@@ -3,6 +3,7 @@ package com.bni.finproajubackend.model.user;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.enumobject.Gender;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -33,7 +34,9 @@ public class Person {
     private String address;
 
     @OneToOne(mappedBy = "person")
+    @JsonIgnore
     private Admin admin;
     @OneToOne(mappedBy = "person")
+    @JsonIgnore
     private Nasabah nasabah;
 }
