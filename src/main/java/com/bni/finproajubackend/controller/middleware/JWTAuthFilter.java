@@ -50,17 +50,19 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (accessToken != null && tokenRevocationListService.isTokenRevoked(accessToken)) {
+            if (tokenRevocationListService.isTokenRevoked(accessToken)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token Has Been Revoked");
-                response.getWriter().flush();
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                errorDetails.put("message", "Token Expired");
+                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
                 return;
             }
 
             if (!jwtService.isTokenValid(accessToken)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.getWriter().write("Token Expired");
-                response.getWriter().flush();
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                errorDetails.put("message", "Token Expired");
+                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
                 return;
             }
 

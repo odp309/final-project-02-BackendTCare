@@ -51,7 +51,7 @@ public class AuthController {
             RefreshTokenResponseDTO result = authService.refreshToken(refreshTokenReq);
             return ResponseEntity.ok(responseService.apiSuccess(result));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(e));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(e.getMessage()));
         }
     }
 
