@@ -77,8 +77,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (Exception e) {
-            errorDetails.put("message", e.getMessage().contains("JWT") ? "Token Expired" : getFirstTwoWords(e.getMessage()));
-            errorDetails.put("cause", e.getCause());
+            errorDetails.put("message", e.getCause() == null ? getFirstTwoWords(e.getMessage()) : e.getCause().getCause().getMessage());
             errorDetails.put("details", e.getMessage());
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
@@ -97,6 +96,6 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             return input.trim();
         }
 
-        return words[0] + " " + words[1];
+        return words[0] + " " + words[1] + " " + words[2];
     }
 }
