@@ -33,7 +33,7 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed("Data not Found"));
             return ResponseEntity.ok(responseService.apiSuccess(adminResponseDTO));
         } catch (Exception e) {
-            errorDetails.put("message", e.getMessage());
+            errorDetails.put("message", e.getCause() == null ? "Not Permitted" : e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
         }
     }
