@@ -10,6 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/v1/private/admin")
 public class AdminController {
@@ -18,6 +21,8 @@ public class AdminController {
     private AdminInterface adminService;
     @Autowired
     private TemplateResInterface responseService;
+
+    private Map<String, Object> errorDetails = new HashMap<>();
 
     @RequiresPermission("getAdminProfile")
     @GetMapping(value = "/profile", produces = "application/json")
@@ -28,7 +33,8 @@ public class AdminController {
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed("Data not Found"));
             return ResponseEntity.ok(responseService.apiSuccess(adminResponseDTO));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(e));
+            errorDetails.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
         }
     }
 }
