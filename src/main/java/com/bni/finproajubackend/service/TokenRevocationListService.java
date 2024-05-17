@@ -30,7 +30,7 @@ public class TokenRevocationListService {
     }
 
     public boolean isTokenRevoked(String token) {
-        return tokenRevocationRepository.isTokenRevoked(token);
+        return tokenRevocationRepository.findByToken(token).isPresent();
     }
 
     public void removeToken(String token) {
