@@ -61,8 +61,8 @@ public class AuthService implements AuthInterface {
         User user = refreshToken.getUser();
 
         return RefreshTokenResponseDTO.builder()
+                .message("Access Token Granted")
                 .accessToken(jwtService.generateToken(user))
-                .token(request.getToken())
                 .build();
     }
 
