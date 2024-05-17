@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.controller;
 
+import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.user.UserRequestDTO;
 import com.bni.finproajubackend.dto.user.UserResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
@@ -22,6 +23,7 @@ public class UserController {
     @Autowired
     private TemplateResInterface responseService;
 
+    @RequiresPermission("getAllUser")
     @GetMapping(value = "", produces = "application/json")
     public ResponseEntity getUser() {
         List<User> listUser = userService.getUsers();
@@ -37,6 +39,7 @@ public class UserController {
         return ResponseEntity.ok(responseService.apiSuccess(userDetails));
     }
 
+    @RequiresPermission("addUser")
     @PostMapping(value = "", produces = "application/json")
     public ResponseEntity addUser(@RequestBody UserRequestDTO req, Authentication authentication) {
         try {
@@ -47,6 +50,7 @@ public class UserController {
         }
     }
 
+    @RequiresPermission("updateUser")
     @PutMapping(value = "/{username}", produces = "application/json")
     public ResponseEntity<User> editUser(@PathVariable String username, @RequestBody UserRequestDTO req) {
         User result = userService.editUser(username, req);

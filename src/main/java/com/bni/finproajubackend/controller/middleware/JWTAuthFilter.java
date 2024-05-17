@@ -1,6 +1,8 @@
 package com.bni.finproajubackend.controller.middleware;
 
 import com.bni.finproajubackend.interfaces.JWTInterface;
+import com.bni.finproajubackend.interfaces.TemplateResInterface;
+import com.bni.finproajubackend.interfaces.TokenRevocationListInterface;
 import com.bni.finproajubackend.service.JWTService;
 import com.bni.finproajubackend.service.TokenRevocationListService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,12 +29,14 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     private final JWTInterface jwtService;
     private final ObjectMapper mapper;
-    private TokenRevocationListService tokenRevocationListService;
+    private TokenRevocationListInterface tokenRevocationListService;
+    private TemplateResInterface responseService;
 
-    public JWTAuthFilter(JWTService jwtUtil, JWTInterface jwtService, ObjectMapper mapper, TokenRevocationListService tokenRevocationListService) {
+    public JWTAuthFilter(JWTService jwtUtil, JWTInterface jwtService, ObjectMapper mapper, TokenRevocationListService tokenRevocationListService, TemplateResInterface responseService) {
         this.jwtService = jwtService;
         this.mapper = mapper;
         this.tokenRevocationListService = tokenRevocationListService;
+        this.responseService = responseService;
     }
 
     @Override
@@ -47,29 +51,39 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 return;
             }
 
-            if (accessToken != null && tokenRevocationListService.isTokenRevoked(accessToken)) {
+            if (tokenRevocationListService.isTokenRevoked(accessToken)) {
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                errorDetails.put("message", "Token Expired");
+                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
                 return;
             }
 
-            if (jwtService.isTokenValid(accessToken)) {
-                Claims claims = jwtService.extractAllClaims(accessToken);
-                String username = claims.getSubject();
-
-                UsernamePasswordAuthenticationToken authenticationToken =
-                        new UsernamePasswordAuthenticationToken(username, "", new ArrayList<>());
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
-
-                filterChain.doFilter(request, response);
+            if (!jwtService.isTokenValid(accessToken)) {
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+                errorDetails.put("message", "Token Expired");
+                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
+                return;
             }
+
+            Claims claims = jwtService.extractAllClaims(accessToken);
+            String username = claims.getSubject();
+
+            UsernamePasswordAuthenticationToken authenticationToken =
+                    new UsernamePasswordAuthenticationToken(username, "", new ArrayList<>());
+            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+
+            filterChain.doFilter(request, response);
         } catch (Exception e) {
             errorDetails.put("message", "Authentication Error");
+            errorDetails.put("cause", e.getCause());
             errorDetails.put("details", e.getMessage());
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-            mapper.writeValue(response.getWriter(), errorDetails);
+            mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
         }
     }
 }

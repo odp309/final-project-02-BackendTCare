@@ -1,33 +1,38 @@
 package com.bni.finproajubackend.controller.middleware;
 
+import com.bni.finproajubackend.interfaces.JWTInterface;
+import com.bni.finproajubackend.model.TokenRevocation;
+import com.bni.finproajubackend.repository.TokenRevocationRepository;
 import com.bni.finproajubackend.service.TokenRevocationListService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class TokenCleanupTask {
+
+    @Autowired
+    private TokenRevocationRepository tokenRevocationRepository;
+
     @Autowired
     private TokenRevocationListService tokenRevocationListService;
 
-    public TokenCleanupTask(TokenRevocationListService tokenRevocationListService) {
-        this.tokenRevocationListService = tokenRevocationListService;
-    }
-
-    @Scheduled(fixedRate = 60 * 10) // Run every hour
+    @Scheduled(fixedRate = 900000)
     public void cleanupExpiredTokens() {
-        Map<String, Long> revokedTokens = (Map<String, Long>) tokenRevocationListService.getRevokedTokens();
-        long currentTime = System.currentTimeMillis();
+        List<TokenRevocation> expiredTokens = tokenRevocationRepository.findAll()
+                .stream()
+                .filter(tokenRevocation -> tokenRevocation.getExpirationTime().before(new Date()))
+                .toList();
 
-        for (Map.Entry<String, Long> entry : revokedTokens.entrySet()) {
-            String token = entry.getKey();
-            long expirationTime = entry.getValue();
-
-            if (expirationTime < currentTime) {
-                tokenRevocationListService.removeToken(token);
-            }
+        for (TokenRevocation tokenRevocation : expiredTokens) {
+            tokenRevocationListService.removeToken(tokenRevocation.getToken());
         }
+        System.out.println("Cleanup Success");
     }
 }

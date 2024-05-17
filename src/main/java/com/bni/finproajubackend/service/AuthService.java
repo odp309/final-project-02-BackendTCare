@@ -46,12 +46,10 @@ public class AuthService implements AuthInterface {
         RefreshToken refreshToken = refreshTokenService.createRefreshToken(request.getUsername());
         User user = userRepository.findByUsername(username);
 
-        LoginResponseDTO loginRes = LoginResponseDTO.builder()
+        return LoginResponseDTO.builder()
                 .accessToken(jwtService.generateToken(user))
                 .token(refreshToken.getToken())
                 .build();
-
-        return loginRes;
     }
 
     @Override
@@ -62,12 +60,10 @@ public class AuthService implements AuthInterface {
         refreshTokenService.verifyExpiration(refreshToken);
         User user = refreshToken.getUser();
 
-        RefreshTokenResponseDTO result = RefreshTokenResponseDTO.builder()
+        return RefreshTokenResponseDTO.builder()
                 .accessToken(jwtService.generateToken(user))
                 .token(request.getToken())
                 .build();
-
-        return result;
     }
 
 

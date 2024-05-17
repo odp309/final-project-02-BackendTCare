@@ -10,7 +10,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name = "admin")
+@Table(name = "nasabah")
 public class Nasabah {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

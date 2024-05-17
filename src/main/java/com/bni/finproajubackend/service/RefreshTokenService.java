@@ -35,7 +35,7 @@ public class RefreshTokenService implements RefreshTokenInterface {
             RefreshToken refreshToken = RefreshToken.builder()
                     .user(userRepository.findByUsername(username))
                     .token(UUID.randomUUID().toString())
-                    .expiryDate(Instant.now().plusMillis(60 * 15)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
+                    .expiryDate(Instant.now().plusSeconds(900000)) // set expiry of refresh token to 10 minutes - you can configure it application.properties file
                     .build();
             return refreshTokenRepository.save(refreshToken);
         }
@@ -45,7 +45,7 @@ public class RefreshTokenService implements RefreshTokenInterface {
 //        if (existingToken.getExpiryDate().compareTo(Instant.now()) > 0) return existingToken;
 
         existingToken.setToken(UUID.randomUUID().toString());
-        existingToken.setExpiryDate(Instant.now().plusMillis(600000));
+        existingToken.setExpiryDate(Instant.now().plusSeconds(900000));
         return refreshTokenRepository.save(existingToken);
     }
 
