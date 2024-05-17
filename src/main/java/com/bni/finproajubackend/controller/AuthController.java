@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
+import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +39,7 @@ public class AuthController {
             LoginResponseDTO result = authService.login(request);
             return ResponseEntity.ok(responseService.apiSuccess(result));
         } catch (Exception e) {
-            errorDetails.put("message", e.getMessage());
+            errorDetails.put("message", e.getCause() == null ? "Bad Credentials" : e.getMessage());
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
         }
     }
