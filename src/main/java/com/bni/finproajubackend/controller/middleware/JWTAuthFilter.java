@@ -43,9 +43,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         Map<String, Object> errorDetails = new HashMap<>();
 
         try {
-            System.out.println(request);
             String accessToken = jwtService.resolveToken(request);
-            System.out.println(accessToken);
 
             if (accessToken == null) {
                 filterChain.doFilter(request, response);
@@ -70,6 +68,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             Claims claims = jwtService.extractAllClaims(accessToken);
             String username = claims.getSubject();
+
 
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(username, "", new ArrayList<>());
