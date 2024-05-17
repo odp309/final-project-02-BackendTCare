@@ -43,7 +43,9 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         Map<String, Object> errorDetails = new HashMap<>();
 
         try {
+            System.out.println(request);
             String accessToken = jwtService.resolveToken(request);
+            System.out.println(accessToken);
 
             if (accessToken == null) {
                 filterChain.doFilter(request, response);
@@ -81,7 +83,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             response.setStatus(HttpStatus.FORBIDDEN.value());
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-            mapper.writeValue(response.getWriter(), errorDetails);
+            mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
         }
     }
 }
