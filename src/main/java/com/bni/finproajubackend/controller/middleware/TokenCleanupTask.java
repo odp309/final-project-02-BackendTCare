@@ -23,7 +23,7 @@ public class TokenCleanupTask {
     @Autowired
     private TokenRevocationListService tokenRevocationListService;
 
-    @Scheduled(fixedRate = 900000) // Run every hour
+    @Scheduled(fixedRate = 900000)
     public void cleanupExpiredTokens() {
         List<TokenRevocation> expiredTokens = tokenRevocationRepository.findAll()
                 .stream()
@@ -33,5 +33,6 @@ public class TokenCleanupTask {
         for (TokenRevocation tokenRevocation : expiredTokens) {
             tokenRevocationListService.removeToken(tokenRevocation.getToken());
         }
+        System.out.println("Cleanup Success");
     }
 }
