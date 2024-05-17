@@ -1,38 +1,37 @@
 package com.bni.finproajubackend.controller.middleware;
 
 import com.bni.finproajubackend.interfaces.JWTInterface;
+import com.bni.finproajubackend.model.TokenRevocation;
+import com.bni.finproajubackend.repository.TokenRevocationRepository;
 import com.bni.finproajubackend.service.TokenRevocationListService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Component
 public class TokenCleanupTask {
+
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private TokenRevocationRepository tokenRevocationRepository;
 
     @Autowired
     private TokenRevocationListService tokenRevocationListService;
 
-    @Autowired
-    private JWTInterface jwtService;
-
     @Scheduled(fixedRate = 900000) // Run every hour
     public void cleanupExpiredTokens() {
-        Map<Object, Object> revokedTokens = redisTemplate.opsForHash().entries("tokenRevoked");
-        long currentTime = System.currentTimeMillis();
+        List<TokenRevocation> expiredTokens = tokenRevocationRepository.findAll()
+                .stream()
+                .filter(tokenRevocation -> tokenRevocation.getExpirationTime().before(new Date()))
+                .toList();
 
-        for (Map.Entry<Object, Object> entry : revokedTokens.entrySet()) {
-            String token = (String) entry.getKey();
-            long expirationTime = jwtService.extractExpiration(String.valueOf(entry.getValue())).getTime();
-
-            if (expirationTime < currentTime) {
-                tokenRevocationListService.removeToken(token);
-                redisTemplate.opsForHash().delete("revokedTokens", token);
-            }
+        for (TokenRevocation tokenRevocation : expiredTokens) {
+            tokenRevocationListService.removeToken(tokenRevocation.getToken());
         }
     }
 }
