@@ -10,7 +10,6 @@ import java.util.Optional;
 @Repository
 public interface TokenRevocationRepository extends JpaRepository<TokenRevocation, Long> {
     Optional<TokenRevocation> findByToken(String token);
-    boolean isTokenRevoked(String token);
     @Transactional
     boolean deleteByToken(String token);
 }
