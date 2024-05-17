@@ -1,5 +1,8 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.interfaces.JWTInterface;
+import com.bni.finproajubackend.model.TokenRevocation;
+import com.bni.finproajubackend.repository.TokenRevocationRepository;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -13,17 +16,24 @@ import java.util.concurrent.ConcurrentHashMap;
 public class TokenRevocationListService {
 
     @Autowired
-    private RedisTemplate<String, Object> redisTemplate;
+    private TokenRevocationRepository tokenRevocationRepository;
+
+    @Autowired
+    private JWTInterface jwtService;
 
     public void addToRevocationList(String token) {
-        redisTemplate.opsForValue().set(token, "revoked");
+        TokenRevocation tokenRevocation = TokenRevocation.builder()
+                .token(token)
+                .expirationTime(jwtService.extractExpiration(token))
+                .build();
+        tokenRevocationRepository.save(tokenRevocation);
     }
 
     public boolean isTokenRevoked(String token) {
-        return redisTemplate.hasKey(token);
+        return tokenRevocationRepository.isTokenRevoked(token);
     }
 
     public void removeToken(String token) {
-        redisTemplate.delete(token);
+        tokenRevocationRepository.deleteByToken(token);
     }
 }
