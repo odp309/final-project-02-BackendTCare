@@ -6,6 +6,7 @@ import com.bni.finproajubackend.dto.refreshToken.RefreshTokenRequestDTO;
 import com.bni.finproajubackend.dto.refreshToken.RefreshTokenResponseDTO;
 import com.bni.finproajubackend.interfaces.*;
 import com.bni.finproajubackend.service.TokenRevocationListService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +29,7 @@ public class AuthController {
     @Autowired
     private TemplateResInterface responseService;
     @Autowired
-    private TokenRevocationListService tokenRevocationListService;
+    private TokenRevocationListInterface tokenRevocationListService;
     private Map<String, Object> errorDetails = new HashMap<>();
 
     @PostMapping("/login")
@@ -36,12 +37,9 @@ public class AuthController {
         try {
             LoginResponseDTO result = authService.login(request);
             return ResponseEntity.ok(responseService.apiSuccess(result));
-        } catch (BadCredentialsException e) {
-            errorDetails.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
         } catch (Exception e) {
             errorDetails.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiFailed(errorDetails));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
         }
     }
 
@@ -58,9 +56,14 @@ public class AuthController {
 
     @PostMapping(value = "/logout", produces = "application/json")
     public ResponseEntity logout(@RequestHeader(name = "Authorization") String token) {
-        if (token != null && token.startsWith("Bearer "))
-            tokenRevocationListService.addToRevocationList(token.substring(7));
-        String result = "Logged Out Successfully";
-        return ResponseEntity.ok(responseService.apiSuccess(result));
+        try {
+            if (token != null && token.startsWith("Bearer "))
+                tokenRevocationListService.addToRevocationList(token.substring(7));
+            String result = "Logged Out Successfully";
+            return ResponseEntity.ok(responseService.apiSuccess(result));
+        } catch (RuntimeException | BadRequestException e) {
+            errorDetails.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
+        }
     }
 }
