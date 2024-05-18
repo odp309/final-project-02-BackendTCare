@@ -28,10 +28,7 @@ public class RoleService implements RoleInterface {
 
     @Override
     public List<RoleResponseDTO> getRoles() {
-//        User currUser = userRepository.findByUsername(authentication.getName());
-//        if (!currUser.getPerson().getAdmin().getRole().getPermissions().contains("getRoles"))
-//            throw new NotFoundException("User Not Permit To See Roles");
-        List<Role> roles = roleRepository.findAll(Sort.by(Sort.Direction.ASC, "role_name"));
+        List<Role> roles = roleRepository.findAll(Sort.by(Sort.Direction.ASC, "roleName"));
         return roles.stream()
                 .map(role -> {
                     return RoleResponseDTO.builder()

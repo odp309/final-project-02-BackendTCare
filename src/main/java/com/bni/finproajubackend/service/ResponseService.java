@@ -11,31 +11,31 @@ public class ResponseService implements TemplateResInterface {
 
     @Override
     public <T> TemplateResponseDTO<T> apiSuccess(T data) {
-        TemplateResponseDTO<T> response = new TemplateResponseDTO<>();
-        response.setResult(data);
-        response.setStatusCode(HttpStatus.OK);
-        response.setMessage("Success");
-        response.setType(MediaType.APPLICATION_JSON_VALUE);
-        return response;
+        return createResponse(data, HttpStatus.OK, "Success");
     }
 
     @Override
     public <T> TemplateResponseDTO<T> apiFailed(T data) {
-        TemplateResponseDTO<T> response = new TemplateResponseDTO<>();
-        response.setResult(data);
-        response.setStatusCode(HttpStatus.NOT_FOUND);
-        response.setMessage("Failed");
-        response.setType(MediaType.APPLICATION_JSON_VALUE);
-        return response;
+        return createResponse(data, HttpStatus.INTERNAL_SERVER_ERROR, "Failed");
     }
 
     @Override
     public <T> TemplateResponseDTO<T> apiBadRequest(T data) {
+        return createResponse(data, HttpStatus.BAD_REQUEST, "Request Invalid");
+    }
+
+    @Override
+    public <T> TemplateResponseDTO<T> apiUnauthorized(T data) {
+        return createResponse(data, HttpStatus.UNAUTHORIZED, "User is not Authorized for this API");
+    }
+
+    private <T> TemplateResponseDTO<T> createResponse(T data, HttpStatus status, String message) {
         TemplateResponseDTO<T> response = new TemplateResponseDTO<>();
         response.setResult(data);
-        response.setStatusCode(HttpStatus.BAD_REQUEST);
-        response.setMessage("Request Invalid");
+        response.setStatusCode(status);
+        response.setMessage(message);
         response.setType(MediaType.APPLICATION_JSON_VALUE);
         return response;
     }
+
 }

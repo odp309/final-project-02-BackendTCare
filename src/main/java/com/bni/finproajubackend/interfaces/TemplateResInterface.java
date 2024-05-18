@@ -8,4 +8,6 @@ public interface TemplateResInterface {
     <T> TemplateResponseDTO<T> apiFailed(T data);
 
     <T> TemplateResponseDTO<T> apiBadRequest(T data);
+
+    <T> TemplateResponseDTO<T> apiUnauthorized(T data);
 }
