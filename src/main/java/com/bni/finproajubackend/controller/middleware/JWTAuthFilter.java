@@ -65,24 +65,24 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             filterChain.doFilter(request, response);
         } catch (Exception e) {
             int statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-            String errorMessage = e.getMessage();
+            String errorMessage = e.getMessage() != null ? e.getMessage() :"Something Went Wrong";
 
             if (errorMessage != null && errorMessage.toLowerCase().contains("jwt expired")) {
                 statusCode = HttpStatus.UNAUTHORIZED.value();
+                errorMessage = "Token Expired";
             }
 
             Map<String, Object> errorDetails = new HashMap<>();
-            errorDetails.put("message", errorMessage != null ? errorMessage : "Something Went Wrong");
-            errorDetails.put("details", e.getMessage());
+            errorDetails.put("message", errorMessage);
 
             response.setStatus(statusCode);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-            if (statusCode == HttpStatus.UNAUTHORIZED.value()) {
+            if (statusCode == HttpStatus.UNAUTHORIZED.value())
                 mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(errorDetails));
-            } else {
+            else
                 mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
-            }
+
         }
 
     }

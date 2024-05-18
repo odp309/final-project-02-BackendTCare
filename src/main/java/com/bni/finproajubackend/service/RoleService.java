@@ -32,6 +32,7 @@ public class RoleService implements RoleInterface {
         return roles.stream()
                 .map(role -> {
                     return RoleResponseDTO.builder()
+                            .message("Success get all role")
                             .roleName(role.getRoleName())
                             .roleDescription(role.getRoleDescription())
                             .build();
@@ -46,20 +47,22 @@ public class RoleService implements RoleInterface {
         role.setRoleDescription(roleRequestDTO.getRoleDescription());
         roleRepository.save(role);
         return RoleResponseDTO.builder()
+                .message("Success create a new role")
                 .roleName(role.getRoleName())
                 .roleDescription(role.getRoleDescription())
                 .build();
     }
 
     @Override
-    public RoleResponseDTO updateRole(RoleRequestDTO request) {
-        Role role = roleRepository.findByRoleName(request.getRoleName());
+    public RoleResponseDTO updateRole(long id, RoleRequestDTO request) {
+        Role role = roleRepository.findById(id);
         if (role == null)
             throw new NotFoundException("Roles Is Not Exist in Database");
         role.setRoleName(request.getRoleName());
         role.setRoleDescription(request.getRoleDescription());
         roleRepository.save(role);
         return RoleResponseDTO.builder()
+                .message("Success updating role")
                 .roleName(role.getRoleName())
                 .roleDescription(role.getRoleDescription())
                 .build();

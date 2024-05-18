@@ -35,9 +35,9 @@ public class RoleController {
     }
 
     @RequiresPermission("updateRoles")
-    @PutMapping(value = "", produces = "application/json")
-    public ResponseEntity updateRole(@RequestBody RoleRequestDTO roleRequestDTO) {
-        RoleResponseDTO result = roleService.updateRole(roleRequestDTO);
+    @PutMapping(value = "/{id}", produces = "application/json")
+    public ResponseEntity updateRole(@PathVariable long id, @RequestBody RoleRequestDTO roleRequestDTO) {
+        RoleResponseDTO result = roleService.updateRole(id, roleRequestDTO);
         return ResponseEntity.ok(responseService.apiSuccess(result));
     }
 }

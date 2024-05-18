@@ -12,5 +12,5 @@ public interface RoleInterface {
 
     RoleResponseDTO createNewRole(RoleRequestDTO request);
 
-    RoleResponseDTO updateRole(RoleRequestDTO request);
+    RoleResponseDTO updateRole(long id, RoleRequestDTO request);
 }

@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 @Builder
 public class RoleResponseDTO {
-    private String roleName, roleDescription;
+    private String message, roleName, roleDescription;
 }
