@@ -6,10 +6,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
 @EnableScheduling
-public class FinproAjuBackendApplication {
+public class FinproVinBackendApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(FinproAjuBackendApplication.class, args);
+		SpringApplication.run(FinproVinBackendApplication.class, args);
 	}
 
 }
