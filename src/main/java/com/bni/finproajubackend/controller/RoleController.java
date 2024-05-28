@@ -5,6 +5,7 @@ import com.bni.finproajubackend.dto.role.RoleRequestDTO;
 import com.bni.finproajubackend.dto.role.RoleResponseDTO;
 import com.bni.finproajubackend.interfaces.RoleInterface;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
