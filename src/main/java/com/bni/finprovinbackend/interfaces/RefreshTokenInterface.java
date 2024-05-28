@@ -10,4 +10,6 @@ public interface RefreshTokenInterface {
     public Optional<RefreshToken> findByToken(String token);
 
     public RefreshToken verifyExpiration(RefreshToken token);
+
+    public void removeRefreshToken(String token);
 }

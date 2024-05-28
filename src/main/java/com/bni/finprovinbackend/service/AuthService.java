@@ -6,10 +6,13 @@ import com.bni.finprovinbackend.dto.refreshToken.RefreshTokenRequestDTO;
 import com.bni.finprovinbackend.dto.refreshToken.RefreshTokenResponseDTO;
 import com.bni.finprovinbackend.interfaces.AuthInterface;
 import com.bni.finprovinbackend.interfaces.JWTInterface;
+import com.bni.finprovinbackend.interfaces.RefreshTokenInterface;
+import com.bni.finprovinbackend.interfaces.TokenRevocationListInterface;
 import com.bni.finprovinbackend.model.RefreshToken;
 import com.bni.finprovinbackend.model.user.User;
 import com.bni.finprovinbackend.repository.RoleRepository;
 import com.bni.finprovinbackend.repository.UserRepository;
+import org.apache.coyote.BadRequestException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,15 +27,17 @@ public class AuthService implements AuthInterface {
     private final JWTInterface jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private RefreshTokenService refreshTokenService;
+    private RefreshTokenInterface refreshTokenService;
+    private TokenRevocationListInterface tokenRevocationListService;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository, JWTInterface jwtService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, RefreshTokenService refreshTokenService) {
+    public AuthService(UserRepository userRepository, RoleRepository roleRepository, JWTInterface jwtService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, RefreshTokenService refreshTokenService, TokenRevocationListInterface tokenRevocationListService) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
         this.refreshTokenService = refreshTokenService;
+        this.tokenRevocationListService = tokenRevocationListService;
     }
 
     @Override
@@ -65,6 +70,12 @@ public class AuthService implements AuthInterface {
                 .message("Access Token Granted")
                 .accessToken(jwtService.generateToken(user))
                 .build();
+    }
+
+    @Override
+    public void logout(String token) throws BadRequestException {
+        tokenRevocationListService.addToRevocationList(token.substring(7));
+        refreshTokenService.removeRefreshToken(token);
     }
 
 

@@ -26,8 +26,6 @@ public class AuthController {
     private JWTInterface jwtUtil;
     @Autowired
     private TemplateResInterface responseService;
-    @Autowired
-    private TokenRevocationListInterface tokenRevocationListService;
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody LoginRequestDTO request) {
@@ -52,8 +50,9 @@ public class AuthController {
     @PostMapping(value = "/logout", produces = "application/json")
     public ResponseEntity logout(@RequestHeader(name = "Authorization") String token) {
         try {
-            if (token != null && token.startsWith("Bearer "))
-                tokenRevocationListService.addToRevocationList(token.substring(7));
+            if (token != null && token.startsWith("Bearer ")){
+                authService.logout(token);
+            }
             return ResponseEntity.ok(responseService.apiSuccess(null, "Logout Successful"));
         } catch (RuntimeException | BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, e.getMessage()));
