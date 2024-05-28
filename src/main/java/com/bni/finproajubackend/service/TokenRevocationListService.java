@@ -7,12 +7,9 @@ import com.bni.finproajubackend.repository.TokenRevocationRepository;
 import lombok.Getter;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
 @Service

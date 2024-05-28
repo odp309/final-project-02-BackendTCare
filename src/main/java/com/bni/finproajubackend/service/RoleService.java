@@ -3,14 +3,12 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.dto.role.RoleRequestDTO;
 import com.bni.finproajubackend.dto.role.RoleResponseDTO;
 import com.bni.finproajubackend.interfaces.RoleInterface;
-import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Role;
 import com.bni.finproajubackend.repository.RoleRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 

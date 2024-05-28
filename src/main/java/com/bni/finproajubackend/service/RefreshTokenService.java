@@ -62,4 +62,9 @@ public class RefreshTokenService implements RefreshTokenInterface {
         }
         return token;
     }
+
+    @Override
+    public void removeRefreshToken(String token) {
+        refreshTokenRepository.deleteByToken(token);
+    }
 }
