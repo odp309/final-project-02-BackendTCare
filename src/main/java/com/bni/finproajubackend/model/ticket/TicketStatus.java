@@ -15,6 +15,7 @@ public class TicketStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status_name")
     private Status status;
     @OneToMany(mappedBy = "ticketStatus")
