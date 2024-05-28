@@ -21,7 +21,7 @@ public class Account {
     private String type;
     @Column(unique = true)
     private String account_number;
-    private String balance;
+    private Long balance;
     @OneToMany(mappedBy = "account")
     private List<Transaction> transaction;
 }
