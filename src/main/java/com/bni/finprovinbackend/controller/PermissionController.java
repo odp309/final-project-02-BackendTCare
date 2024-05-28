@@ -29,10 +29,9 @@ public class PermissionController {
     public ResponseEntity getPermissions() {
         try {
             List<PermissionResponseDTO> result = PermissionService.getPermissions();
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get list of permission"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Found" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 
@@ -41,10 +40,9 @@ public class PermissionController {
     public ResponseEntity createNewPermission(@RequestBody PermissionRequestDTO PermissionRequestDTO) {
         try {
             PermissionResponseDTO result = PermissionService.createNewPermission(PermissionRequestDTO);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "New Permission Created"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Found" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 
@@ -53,10 +51,9 @@ public class PermissionController {
     public ResponseEntity updatePermission(@PathVariable long id, @RequestBody PermissionRequestDTO PermissionRequestDTO) {
         try {
             PermissionResponseDTO result = PermissionService.updatePermission(id, PermissionRequestDTO);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Permission Updated"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Found" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 }

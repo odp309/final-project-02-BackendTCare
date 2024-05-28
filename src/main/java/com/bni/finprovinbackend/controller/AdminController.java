@@ -22,19 +22,17 @@ public class AdminController {
     @Autowired
     private TemplateResInterface responseService;
 
-    private Map<String, Object> errorDetails = new HashMap<>();
-
     @RequiresPermission("getAdminProfile")
     @GetMapping(value = "/profile", produces = "application/json")
     public ResponseEntity getDetailAdmin(Authentication authentication) {
         try {
             AdminResponseDTO adminResponseDTO = adminService.getAdminProfile(authentication);;
             if (adminResponseDTO == null)
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed("Data not Found"));
-            return ResponseEntity.ok(responseService.apiSuccess(adminResponseDTO));
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null,"Data not Found"));
+            return ResponseEntity.ok(responseService.apiSuccess(adminResponseDTO, "Success get admin"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Permitted" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
+            System.out.println(e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Something went wrong getting profile" : e.getMessage()));
         }
     }
 }

@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Setter
 @Getter
@@ -13,10 +14,11 @@ import java.util.List;
 public class TicketCategories {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private UUID id;
     @Column(name = "category_name")
-    private String name;
+    private String categoryName;
+    @Column(name = "category_description")
+    private String categoryDescription;
     @OneToMany(mappedBy = "ticketCategory")
     private List<Tickets> tickets;
 }

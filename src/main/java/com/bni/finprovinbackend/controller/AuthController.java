@@ -28,16 +28,14 @@ public class AuthController {
     private TemplateResInterface responseService;
     @Autowired
     private TokenRevocationListInterface tokenRevocationListService;
-    private Map<String, Object> errorDetails = new HashMap<>();
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody LoginRequestDTO request) {
         try {
             LoginResponseDTO result = authService.login(request);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Login Success"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Bad Credentials" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "Bad Credentials"));
         }
     }
 
@@ -45,10 +43,9 @@ public class AuthController {
     public ResponseEntity resfreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenReq) {
         try {
             RefreshTokenResponseDTO result = authService.refreshToken(refreshTokenReq);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Refresh Token Acquired"));
         } catch (RuntimeException e) {
-            errorDetails.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, e.getMessage()));
         }
     }
 
@@ -57,11 +54,9 @@ public class AuthController {
         try {
             if (token != null && token.startsWith("Bearer "))
                 tokenRevocationListService.addToRevocationList(token.substring(7));
-            errorDetails.put("message", "Logout Successful");
-            return ResponseEntity.ok(responseService.apiSuccess(errorDetails));
+            return ResponseEntity.ok(responseService.apiSuccess(null, "Logout Successful"));
         } catch (RuntimeException | BadRequestException e) {
-            errorDetails.put("message", e.getMessage());
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(errorDetails));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, e.getMessage()));
         }
     }
 }

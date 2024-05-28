@@ -27,16 +27,16 @@ public class UserController {
     @GetMapping(value = "", produces = "application/json")
     public ResponseEntity getUser() {
         List<User> listUser = userService.getUsers();
-        return ResponseEntity.ok(responseService.apiSuccess(listUser));
+        return ResponseEntity.ok(responseService.apiSuccess(listUser, "Success get list of user"));
     }
 
     @GetMapping(value = "/profile", produces = "application/json")
     public ResponseEntity getDetailUser(Authentication authentication) {
         User userData = userService.getUser(authentication.getName());
         if (userData == null)
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest("User Is Not Available"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "User Is Not Available"));
         UserResponseDTO userDetails = new UserResponseDTO(userData.getUsername(), userData.getPerson().getFirstName(), userData.getPerson().getLastName());
-        return ResponseEntity.ok(responseService.apiSuccess(userDetails));
+        return ResponseEntity.ok(responseService.apiSuccess(userDetails, "Success get " + authentication.getName() + " Profile"));
     }
 
     @RequiresPermission("addUser")
@@ -44,9 +44,9 @@ public class UserController {
     public ResponseEntity addUser(@RequestBody UserRequestDTO req, Authentication authentication) {
         try {
             User result = userService.createUser(req, authentication);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "New User Created"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(e));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "Something went wrong, please try again later..."));
         }
     }
 

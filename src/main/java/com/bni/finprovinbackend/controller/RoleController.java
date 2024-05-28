@@ -30,10 +30,9 @@ public class RoleController {
     public ResponseEntity getRoles() {
         try {
             List<RoleResponseDTO> result = roleService.getRoles();
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get list of role"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Found" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 
@@ -42,10 +41,9 @@ public class RoleController {
     public ResponseEntity createNewRole(@RequestBody RoleRequestDTO roleRequestDTO) {
         try {
             RoleResponseDTO result = roleService.createNewRole(roleRequestDTO);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "New Role Crated"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Found" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 
@@ -54,10 +52,9 @@ public class RoleController {
     public ResponseEntity updateRole(@PathVariable long id, @RequestBody RoleRequestDTO roleRequestDTO) {
         try {
             RoleResponseDTO result = roleService.updateRole(id, roleRequestDTO);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Role Updated"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Found" : e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(errorDetails));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 }
