@@ -52,7 +52,6 @@ public class AuthService implements AuthInterface {
         User user = userRepository.findByUsername(username);
 
         return LoginResponseDTO.builder()
-                .message("Login Success")
                 .accessToken(jwtService.generateToken(user))
                 .token(refreshToken.getToken())
                 .build();
