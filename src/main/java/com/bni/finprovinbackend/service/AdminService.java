@@ -19,19 +19,19 @@ public class AdminService implements AdminInterface {
     private UserRepository userRepository;
 
     @Override
-    public AdminResponseDTO getAdminProfile(Authentication  authentication) {
+    public AdminResponseDTO getAdminProfile(Authentication authentication) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username);
 
-        if (user == null) {
+        if (user == null)
             throw new RuntimeException("User not found");
-        }
+
 
         Person person = personRepository.findByUser(user);
 
-        if (person == null || person.getAdmin() == null) {
+        if (person == null || person.getAdmin() == null)
             throw new RuntimeException("Person or Admin data not found for user: " + username);
-        }
+
 
         return AdminResponseDTO.builder()
                 .id(person.getId())
