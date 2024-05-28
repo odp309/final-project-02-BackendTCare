@@ -20,9 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class JWTAuthFilter extends OncePerRequestFilter {
@@ -41,29 +39,18 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        Map<String, Object> errorDetails = new HashMap<>();
-
         try {
             String accessToken = jwtService.resolveToken(request);
-
             if (accessToken == null) {
                 filterChain.doFilter(request, response);
                 return;
             }
 
-            if (tokenRevocationListService.isTokenRevoked(accessToken)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            if (tokenRevocationListService.isTokenRevoked(accessToken) || !jwtService.isTokenValid(accessToken)) {
+                response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                errorDetails.put("message", "Token Expired");
-                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
-                return;
-            }
-
-            if (!jwtService.isTokenValid(accessToken)) {
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                errorDetails.put("message", "Token Expired");
-                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
+                Map<String, Object> errorDetails = Collections.singletonMap("message", "Token Expired");
+                mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(errorDetails));
                 return;
             }
 
@@ -77,13 +64,26 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
             filterChain.doFilter(request, response);
         } catch (Exception e) {
-            errorDetails.put("message", "Authentication Error");
-            errorDetails.put("cause", e.getCause());
-            errorDetails.put("details", e.getMessage());
-            response.setStatus(HttpStatus.FORBIDDEN.value());
+            int statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
+            String errorMessage = e.getMessage() != null ? e.getMessage() :"Something Went Wrong";
+
+            if (errorMessage != null && errorMessage.toLowerCase().contains("jwt expired")) {
+                statusCode = HttpStatus.UNAUTHORIZED.value();
+                errorMessage = "Token Expired";
+            }
+
+            Map<String, Object> errorDetails = new HashMap<>();
+            errorDetails.put("message", errorMessage);
+
+            response.setStatus(statusCode);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
-            mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
+            if (statusCode == HttpStatus.UNAUTHORIZED.value())
+                mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(errorDetails));
+            else
+                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
+
         }
+
     }
 }

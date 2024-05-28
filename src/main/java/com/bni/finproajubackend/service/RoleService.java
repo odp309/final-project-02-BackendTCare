@@ -28,13 +28,11 @@ public class RoleService implements RoleInterface {
 
     @Override
     public List<RoleResponseDTO> getRoles() {
-//        User currUser = userRepository.findByUsername(authentication.getName());
-//        if (!currUser.getPerson().getAdmin().getRole().getPermissions().contains("getRoles"))
-//            throw new NotFoundException("User Not Permit To See Roles");
-        List<Role> roles = roleRepository.findAll(Sort.by(Sort.Direction.ASC, "role_name"));
+        List<Role> roles = roleRepository.findAll(Sort.by(Sort.Direction.ASC, "roleName"));
         return roles.stream()
                 .map(role -> {
                     return RoleResponseDTO.builder()
+                            .message("Success get all role")
                             .roleName(role.getRoleName())
                             .roleDescription(role.getRoleDescription())
                             .build();
@@ -49,20 +47,22 @@ public class RoleService implements RoleInterface {
         role.setRoleDescription(roleRequestDTO.getRoleDescription());
         roleRepository.save(role);
         return RoleResponseDTO.builder()
+                .message("Success create a new role")
                 .roleName(role.getRoleName())
                 .roleDescription(role.getRoleDescription())
                 .build();
     }
 
     @Override
-    public RoleResponseDTO updateRole(RoleRequestDTO request) {
-        Role role = roleRepository.findByRoleName(request.getRoleName());
+    public RoleResponseDTO updateRole(long id, RoleRequestDTO request) {
+        Role role = roleRepository.findById(id);
         if (role == null)
             throw new NotFoundException("Roles Is Not Exist in Database");
         role.setRoleName(request.getRoleName());
         role.setRoleDescription(request.getRoleDescription());
         roleRepository.save(role);
         return RoleResponseDTO.builder()
+                .message("Success updating role")
                 .roleName(role.getRoleName())
                 .roleDescription(role.getRoleDescription())
                 .build();
