@@ -38,6 +38,6 @@ public class Person {
     @JsonIgnore
     private Admin admin;
     @OneToOne(mappedBy = "person")
-    @JsonIgnore
+    //@JsonIgnore
     private Nasabah nasabah;
 }
