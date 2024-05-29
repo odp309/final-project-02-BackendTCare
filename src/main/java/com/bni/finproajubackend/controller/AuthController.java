@@ -30,7 +30,7 @@ public class AuthController {
             LoginResponseDTO result = authService.login(request);
             return ResponseEntity.ok(responseService.apiSuccess(result, "Login Success"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "Bad Credentials"));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "User Not Found, Please Check Your Username and Password"));
         }
     }
 
