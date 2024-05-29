@@ -1,33 +1,41 @@
 package com.bni.finproajubackend.controller.middleware;
 
+import com.bni.finproajubackend.model.TokenRevocation;
+import com.bni.finproajubackend.repository.TokenRevocationRepository;
 import com.bni.finproajubackend.service.TokenRevocationListService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import java.util.Date;
+import java.util.List;
 
 @Component
 public class TokenCleanupTask {
+
+    @Autowired
+    private TokenRevocationRepository tokenRevocationRepository;
+
     @Autowired
     private TokenRevocationListService tokenRevocationListService;
 
-    public TokenCleanupTask(TokenRevocationListService tokenRevocationListService) {
-        this.tokenRevocationListService = tokenRevocationListService;
-    }
-
-    @Scheduled(fixedRate = 60 * 10) // Run every hour
+    @Scheduled(fixedRate = 600000)
     public void cleanupExpiredTokens() {
-        Map<String, Long> revokedTokens = (Map<String, Long>) tokenRevocationListService.getRevokedTokens();
-        long currentTime = System.currentTimeMillis();
+        try {
+            List<TokenRevocation> expiredTokens = tokenRevocationRepository.findAll()
+                    .stream()
+                    .filter(tokenRevocation -> tokenRevocation.getExpirationTime().before(new Date()))
+                    .toList();
 
-        for (Map.Entry<String, Long> entry : revokedTokens.entrySet()) {
-            String token = entry.getKey();
-            long expirationTime = entry.getValue();
-
-            if (expirationTime < currentTime) {
-                tokenRevocationListService.removeToken(token);
+            for (TokenRevocation tokenRevocation : expiredTokens) {
+                tokenRevocationListService.removeToken(tokenRevocation.getToken());
             }
+            System.out.println("==============================");
+            System.out.println("Cleanup Success " + new Date());
+        } catch (Exception e) {
+            System.out.println("==============================");
+            System.out.println("Cleanup Failed " + new Date());
+            System.out.println(e.getMessage());
         }
     }
 }
