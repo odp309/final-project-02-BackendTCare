@@ -10,5 +10,5 @@ public class AccountDTO {
     private String accountNumber;
     private Long balance;
     private String type;
-    private List<TransactionDTO> transactionList;
+    //private List<TransactionDTO> transactionList;
 }
