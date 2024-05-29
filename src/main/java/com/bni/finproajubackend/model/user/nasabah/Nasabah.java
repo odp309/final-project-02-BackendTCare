@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.model.user.nasabah;
 
 import com.bni.finproajubackend.model.user.Person;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,7 @@ public class Nasabah {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @OneToOne
+    @JsonIgnore
     @JoinColumn(name = "person_id", referencedColumnName = "id")
     private Person person;
     @Column(unique = true)
