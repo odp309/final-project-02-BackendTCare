@@ -5,11 +5,10 @@ import com.bni.finproajubackend.dto.login.LoginResponseDTO;
 import com.bni.finproajubackend.dto.refreshToken.RefreshTokenRequestDTO;
 import com.bni.finproajubackend.dto.refreshToken.RefreshTokenResponseDTO;
 import com.bni.finproajubackend.interfaces.*;
-import com.bni.finproajubackend.service.TokenRevocationListService;
+import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,24 +23,14 @@ public class AuthController {
     private JWTInterface jwtUtil;
     @Autowired
     private TemplateResInterface responseService;
-    @Autowired
-    private TokenRevocationListService tokenRevocationListService;
-
-//    @PostMapping("/init")
-//    public ResponseEntity<InitResponseDTO> initRoleAndUser() {
-//        InitResponseDTO result = userService.initRoleAndUser();
-//        return ResponseEntity.ok(result);
-//    }
 
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody LoginRequestDTO request) {
         try {
             LoginResponseDTO result = authService.login(request);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
-        } catch (BadCredentialsException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(e));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Login Success"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiFailed(e));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "User Not Found, Please Check Your Username and Password"));
         }
     }
 
@@ -49,18 +38,21 @@ public class AuthController {
     public ResponseEntity resfreshToken(@RequestBody RefreshTokenRequestDTO refreshTokenReq) {
         try {
             RefreshTokenResponseDTO result = authService.refreshToken(refreshTokenReq);
-            return ResponseEntity.ok(responseService.apiSuccess(result));
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Refresh Token Acquired"));
         } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(e));
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, e.getMessage()));
         }
     }
 
     @PostMapping(value = "/logout", produces = "application/json")
     public ResponseEntity logout(@RequestHeader(name = "Authorization") String token) {
-        if (token != null && token.startsWith("Bearer ")) {
-            tokenRevocationListService.addToRevocationList(token.substring(7));
+        try {
+            if (token != null && token.startsWith("Bearer ")){
+                authService.logout(token);
+            }
+            return ResponseEntity.ok(responseService.apiSuccess(null, "Logout Successful"));
+        } catch (RuntimeException | BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, e.getMessage()));
         }
-        String result = "Logged Out Successfully";
-        return ResponseEntity.ok(responseService.apiSuccess(result));
     }
 }

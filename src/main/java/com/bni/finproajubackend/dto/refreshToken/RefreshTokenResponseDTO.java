@@ -8,5 +8,5 @@ import lombok.*;
 @Getter
 @Builder
 public class RefreshTokenResponseDTO {
-    private String accessToken, token;
+    private String message, accessToken;
 }

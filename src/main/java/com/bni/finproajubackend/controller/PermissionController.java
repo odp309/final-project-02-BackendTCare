@@ -1,11 +1,10 @@
 package com.bni.finproajubackend.controller;
 
 import com.bni.finproajubackend.annotation.RequiresPermission;
-import com.bni.finproajubackend.dto.role.RoleRequestDTO;
-import com.bni.finproajubackend.dto.role.RoleResponseDTO;
-import com.bni.finproajubackend.interfaces.RoleInterface;
+import com.bni.finproajubackend.dto.permission.PermissionRequestDTO;
+import com.bni.finproajubackend.dto.permission.PermissionResponseDTO;
+import com.bni.finproajubackend.interfaces.PermissionInterface;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,44 +15,43 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/private/role")
-public class RoleController {
-
+@RequestMapping("api/v1/private/permission")
+public class PermissionController {
     @Autowired
-    private RoleInterface roleService;
+    private PermissionInterface PermissionService;
     @Autowired
     private TemplateResInterface responseService;
 
     private Map<String, Object> errorDetails = new HashMap<>();
 
-    @RequiresPermission("getRoles")
+    @RequiresPermission("getPermissions")
     @GetMapping(value = "", produces = "application/json")
-    public ResponseEntity getRoles() {
+    public ResponseEntity getPermissions() {
         try {
-            List<RoleResponseDTO> result = roleService.getRoles();
-            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get list of role"));
+            List<PermissionResponseDTO> result = PermissionService.getPermissions();
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get list of permission"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 
-    @RequiresPermission("addRoles")
+    @RequiresPermission("addPermissions")
     @PostMapping(value = "", produces = "application/json")
-    public ResponseEntity createNewRole(@RequestBody RoleRequestDTO roleRequestDTO) {
+    public ResponseEntity createNewPermission(@RequestBody PermissionRequestDTO PermissionRequestDTO) {
         try {
-            RoleResponseDTO result = roleService.createNewRole(roleRequestDTO);
-            return ResponseEntity.ok(responseService.apiSuccess(result, "New Role Crated"));
+            PermissionResponseDTO result = PermissionService.createNewPermission(PermissionRequestDTO);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "New Permission Created"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 
-    @RequiresPermission("updateRoles")
+    @RequiresPermission("updatePermissions")
     @PutMapping(value = "/{id}", produces = "application/json")
-    public ResponseEntity updateRole(@PathVariable long id, @RequestBody RoleRequestDTO roleRequestDTO) {
+    public ResponseEntity updatePermission(@PathVariable long id, @RequestBody PermissionRequestDTO PermissionRequestDTO) {
         try {
-            RoleResponseDTO result = roleService.updateRole(id, roleRequestDTO);
-            return ResponseEntity.ok(responseService.apiSuccess(result, "Role Updated"));
+            PermissionResponseDTO result = PermissionService.updatePermission(id, PermissionRequestDTO);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Permission Updated"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }

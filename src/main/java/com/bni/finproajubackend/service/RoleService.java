@@ -3,14 +3,12 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.dto.role.RoleRequestDTO;
 import com.bni.finproajubackend.dto.role.RoleResponseDTO;
 import com.bni.finproajubackend.interfaces.RoleInterface;
-import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Role;
 import com.bni.finproajubackend.repository.RoleRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.webjars.NotFoundException;
 
@@ -27,14 +25,12 @@ public class RoleService implements RoleInterface {
     private UserRepository userRepository;
 
     @Override
-    public List<RoleResponseDTO> getRoles(Authentication authentication) {
-        User currUser = userRepository.findByUsername(authentication.getName());
-        if (!currUser.getPerson().getAdmin().getRole().getPermissions().contains("getRoles"))
-            throw new NotFoundException("User Not Permit To See Roles");
-        List<Role> roles = roleRepository.findAll(Sort.by(Sort.Direction.ASC, "role_name"));
+    public List<RoleResponseDTO> getRoles() {
+        List<Role> roles = roleRepository.findAll(Sort.by(Sort.Direction.ASC, "roleName"));
         return roles.stream()
                 .map(role -> {
                     return RoleResponseDTO.builder()
+                            .message("Success get all role")
                             .roleName(role.getRoleName())
                             .roleDescription(role.getRoleDescription())
                             .build();
@@ -49,20 +45,22 @@ public class RoleService implements RoleInterface {
         role.setRoleDescription(roleRequestDTO.getRoleDescription());
         roleRepository.save(role);
         return RoleResponseDTO.builder()
+                .message("Success create a new role")
                 .roleName(role.getRoleName())
                 .roleDescription(role.getRoleDescription())
                 .build();
     }
 
     @Override
-    public RoleResponseDTO updateRole(RoleRequestDTO request) {
-        Role role = roleRepository.findByRoleName(request.getRoleName());
+    public RoleResponseDTO updateRole(long id, RoleRequestDTO request) {
+        Role role = roleRepository.findById(id);
         if (role == null)
             throw new NotFoundException("Roles Is Not Exist in Database");
         role.setRoleName(request.getRoleName());
         role.setRoleDescription(request.getRoleDescription());
         roleRepository.save(role);
         return RoleResponseDTO.builder()
+                .message("Success updating role")
                 .roleName(role.getRoleName())
                 .roleDescription(role.getRoleDescription())
                 .build();

@@ -12,5 +12,5 @@ import org.springframework.http.HttpStatus;
 @Getter
 public class StatusResponseDTO {
     private HttpStatus statusCode;
-    private String message, type;
+    private String message;
 }

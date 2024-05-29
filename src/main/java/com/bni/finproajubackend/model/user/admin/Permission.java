@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.model.user.admin;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -19,6 +20,7 @@ public class Permission {
     private String permissionName;
     @Column(name = "permission_description")
     private String permissionDescription;
-    @ManyToMany(mappedBy = "permission")
+    @ManyToMany(mappedBy = "permissions")
+    @JsonIgnore
     private List<Role> roles;
 }
