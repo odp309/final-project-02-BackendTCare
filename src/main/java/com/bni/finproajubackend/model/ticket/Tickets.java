@@ -1,13 +1,9 @@
 package com.bni.finproajubackend.model.ticket;
 
-import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.UUID;
-import java.time.LocalDate;
 
 @Getter
 @Setter
