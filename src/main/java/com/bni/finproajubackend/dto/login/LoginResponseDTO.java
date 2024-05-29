@@ -7,5 +7,5 @@ import lombok.Data;
 @Builder
 public class LoginResponseDTO {
 
-    private String message, accessToken, token;
+    private String accessToken, token;
 }

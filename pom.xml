@@ -11,8 +11,8 @@
     <groupId>com.bni</groupId>
     <artifactId>finpro-aju-backend</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>final-project-01-webservice</name>
-    <description>Final project 01 backend</description>
+    <name>final-project-02-backend</name>
+    <description>Final project 02 backend</description>
     <properties>
         <java.version>17</java.version>
     </properties>

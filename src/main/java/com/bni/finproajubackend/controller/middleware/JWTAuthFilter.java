@@ -49,8 +49,7 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             if (tokenRevocationListService.isTokenRevoked(accessToken) || !jwtService.isTokenValid(accessToken)) {
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
                 response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-                Map<String, Object> errorDetails = Collections.singletonMap("message", "Token Expired");
-                mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(errorDetails));
+                mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(null, "Token Expired"));
                 return;
             }
 
@@ -72,16 +71,13 @@ public class JWTAuthFilter extends OncePerRequestFilter {
                 errorMessage = "Token Expired";
             }
 
-            Map<String, Object> errorDetails = new HashMap<>();
-            errorDetails.put("message", errorMessage);
-
             response.setStatus(statusCode);
             response.setContentType(MediaType.APPLICATION_JSON_VALUE);
 
             if (statusCode == HttpStatus.UNAUTHORIZED.value())
-                mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(errorDetails));
+                mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(null, errorMessage));
             else
-                mapper.writeValue(response.getWriter(), responseService.apiFailed(errorDetails));
+                mapper.writeValue(response.getWriter(), responseService.apiFailed(null, errorMessage));
 
         }
 

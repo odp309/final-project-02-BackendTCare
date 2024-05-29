@@ -1,6 +1,5 @@
 package com.bni.finproajubackend.interfaces;
 
-import com.bni.finproajubackend.model.TokenRevocation;
 import org.apache.coyote.BadRequestException;
 
 public interface TokenRevocationListInterface {
