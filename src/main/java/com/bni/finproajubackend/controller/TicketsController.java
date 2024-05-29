@@ -1,16 +1,9 @@
 package com.bni.finproajubackend.controller;
 
-import com.bni.finproajubackend.dto.tickets.TicketsCategoriesDTO;
-import com.bni.finproajubackend.dto.tickets.TicketsRequestDTO;
-import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
-import com.bni.finproajubackend.dto.user.UserRequestDTO;
-import com.bni.finproajubackend.dto.user.UserResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.interfaces.TicketsInterface;
-import com.bni.finproajubackend.interfaces.UserInterface;
-import com.bni.finproajubackend.model.ticket.TicketCategories;
 import com.bni.finproajubackend.model.ticket.Tickets;
-import com.bni.finproajubackend.model.user.User;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,13 +23,13 @@ public class TicketsController {
 
     @GetMapping(value = "", produces = "application/json")
     public ResponseEntity getTickets() {
-        List<Tickets> listTickets = ticketsService.getTickets();
-        return ResponseEntity.ok(responseService.apiSuccess(listTickets));
+        List<Tickets> listTickets = ticketsService.getTickets(authentication.getDetails());
+        return ResponseEntity.ok(responseService.apiSuccess(""));
     }
 
     @GetMapping(value = "", produces = "application/json")
     public ResponseEntity getDetailTickets(Authentication authentication) {
-        Tickets ticketsData = ticketsService.getTickets(authentication.getDetails());
+        List<Tickets> ticketsData = ticketsService.getTickets(authentication.getDetails());
 
         if (ticketsData == null) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

@@ -1,36 +1,46 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.dto.tickets.TicketsRequestDTO;
 import com.bni.finproajubackend.interfaces.TicketsInterface;
-import com.bni.finproajubackend.model.ticket.TicketCategories;
 import com.bni.finproajubackend.model.ticket.Tickets;
-import com.bni.finproajubackend.model.user.User;
-import jakarta.persistence.Column;
+import com.bni.finproajubackend.repository.TicketsRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
+import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
-import java.util.UUID;
+import java.io.IOException;
+import java.util.List;
 
+@Service
+@RequiredArgsConstructor
 public class TicketsService implements TicketsInterface {
 
-    @Column
-    public String ticketNumber(User user, TicketCategories categories) {
-        LocalDate currentDate = LocalDate.now();
-        String uuid = UUID.randomUUID().toString();
-        String userId = user.getId().toString();
-        String categoryId = categories.getId().toString();
+    public Tickets createTicket(TicketsRequestDTO requestDTO, Authentication authentication) {
+        Tickets ticket = new Tickets();
 
-        this.ticketNumber = currentDate.toString() + "-" + userId + "-" + categoryId + "-" + uuid;
-        return ticketNumber;
+        try {
+            TicketsRepository.save(ticket);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
-
-    private Tickets getTicketByUUID() {
+    public Tickets getTicketById(Long id) {
+        return ticketsRepository.findById(id).orElse(null);
+    }
+    public Tickets updateTicket(Long id, TicketsRequestDTO requestDTO) {
+        Tickets ticket = ticketsRepository.findById(id).orElse(null);
+        if (ticket != null) {
+            try {
+                ticketsRepository.save(ticket);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
         return null;
     }
 
-    private void updateTicket (Tickets tickets) {
-        updateTicket(tickets);
-    }
-
-    private void deleteTicket (Tickets tickets) {
-        deleteTicket(tickets);
+    @Override
+    public List<Tickets> getTickets(Object tickets) {
+        return List.of();
     }
 }

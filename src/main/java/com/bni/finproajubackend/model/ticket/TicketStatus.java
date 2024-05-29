@@ -1,6 +1,6 @@
 package com.bni.finproajubackend.model.ticket;
 
-import com.bni.finproajubackend.model.Status;
+import com.bni.finproajubackend.model.enumobject.Status;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -15,6 +15,7 @@ public class TicketStatus {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+    @Enumerated(EnumType.STRING)
     @Column(name = "status_name")
     private Status status;
     @OneToMany(mappedBy = "ticketStatus")

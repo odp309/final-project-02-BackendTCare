@@ -15,7 +15,7 @@ public class TicketHistory {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
     private Tickets ticket;
     @ManyToOne
@@ -25,4 +25,6 @@ public class TicketHistory {
     private String description;
     @Column(name = "ticket_history_date")
     private Date date;
+    @Column(name = "level")
+    private Long level;
 }

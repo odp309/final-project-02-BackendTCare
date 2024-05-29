@@ -11,8 +11,8 @@ public class TicketsRequestDTO {
 
     private String ticketNumber;
     private Long transactionId;
-    private Long ticketCategoryId;
-    private Long ticketStatusId;
+    private Long category;
+    private Long status;
     private String description;
     private LocalDateTime responseTime;
 
