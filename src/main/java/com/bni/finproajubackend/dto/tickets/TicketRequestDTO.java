@@ -7,11 +7,11 @@ import java.time.LocalDateTime;
 
 @Getter
 @Setter
-public class TicketsRequestDTO {
+public class TicketRequestDTO {
 
     private String ticketNumber;
     private Long transactionId;
-    private Long category;
+    private Long ticketCategoryId;
     private Long status;
     private String description;
     private LocalDateTime responseTime;

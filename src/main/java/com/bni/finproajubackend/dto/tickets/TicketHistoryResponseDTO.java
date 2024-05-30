@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Data
 @Builder
-public class TicketsHistoryResponseDTO {
+public class TicketHistoryResponseDTO {
     private Long id;
     private String pic;
     private String description;
