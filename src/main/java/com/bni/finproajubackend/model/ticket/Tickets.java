@@ -1,16 +1,16 @@
 package com.bni.finproajubackend.model.ticket;
 
+import com.bni.finproajubackend.model.enumobject.Status;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.catalina.Session;
 
 @Getter
 @Setter
 @Entity
 @Table(name = "tickets")
-public class Tickets implements Session {
+public class Tickets {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
@@ -18,16 +18,23 @@ public class Tickets implements Session {
     private String ticketNumber;
     @OneToOne
     @JoinColumn(name = "transaction_id", referencedColumnName = "id")
-    private Transaction transaction;
+    private Transaction transactionId;
+    public void setTransactionId(Long transactionId) {
+    }
     @ManyToOne
     @JoinColumn(name = "ticket_category_id", referencedColumnName = "id")
-    private TicketCategories ticketCategory;
+    private TicketCategories ticketCategoryId;
+    public void setTicketCategoryId(Long ticketCategoryId) {
+    }
     @ManyToOne
     @JoinColumn(name = "ticket_status_id", referencedColumnName = "id")
     private TicketStatus ticketStatus;
+    public void setTicketStatus(Status newStatus) {
+    }
     @Column(name = "ticket_description")
     private String description;
 
     @OneToOne(mappedBy = "ticket")
     private TicketResponseTime ticketResponseTime;
+
 }
