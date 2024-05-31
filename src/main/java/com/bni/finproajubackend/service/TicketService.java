@@ -7,11 +7,14 @@ import com.bni.finproajubackend.model.ticket.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.repository.TicketStatusRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
+import com.bni.finproajubackend.service.TicketService;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -48,7 +51,7 @@ public class TicketService implements TicketInterface {
     @Override
     public Tickets updateTicketStatus(Long ticketId, Status newStatus) {
         Tickets tickets = ticketsRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
+                .orElseThrow(() -> new TicketDoesNotExistException("Ticket not found with id: " + ticketId));
 
         TicketStatus updatedStatus = ticketStatusRepository.findByStatusName(newStatus);
 
@@ -63,8 +66,13 @@ public class TicketService implements TicketInterface {
 
     @Override
     public Tickets getTicketDetails(Long ticketId) {
-        return ticketsRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketNotFoundException("Ticket not found with id: " + ticketId));
+        Optional<Tickets> optionalTicket = ticketsRepository.findById(ticketId);
+
+        if (optionalTicket.isPresent()) {
+            return optionalTicket.get();
+        } else {
+            return null;
+        }
     }
 
     @Override
