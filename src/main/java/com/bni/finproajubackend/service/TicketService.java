@@ -7,8 +7,6 @@ import com.bni.finproajubackend.model.ticket.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.repository.TicketStatusRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
-import com.bni.finproajubackend.service.TicketService;
-import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,14 +31,15 @@ public class TicketService implements TicketInterface {
     @Override
     public Tickets createTicket(TicketRequestDTO requestDTO) {
         if (requestDTO == null || requestDTO.getTransactionId() == null || requestDTO.getTicketCategoryId() == null || requestDTO.getDescription() == null) {
-            throw new IllegalArgumentException("Invalid ticket creation request");
+            return null;
         }
 
         Tickets newTicket = new Tickets();
-        newTicket.setTicketNumber(UUID.randomUUID().toString());
         newTicket.setTransactionId(requestDTO.getTransactionId());
         newTicket.setTicketCategoryId(requestDTO.getTicketCategoryId());
         newTicket.setDescription(requestDTO.getDescription());
+
+        newTicket.setTicketNumber(requestDTO.getTransactionId().toString());
 
         TicketStatus initialStatus = ticketStatusRepository.findStatusById(Status.Diajukan);
         newTicket.setTicketStatus(initialStatus.getStatus());
