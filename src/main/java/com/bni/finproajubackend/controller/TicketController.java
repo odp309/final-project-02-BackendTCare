@@ -3,7 +3,6 @@ package com.bni.finproajubackend.controller;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
-import com.bni.finproajubackend.controller.TicketController;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.enumobject.Status;
 import com.bni.finproajubackend.model.ticket.Tickets;
@@ -51,6 +50,7 @@ public class TicketController {
         return ResponseEntity.ok(responseDTOs);
     }
 
+    @RequiresPermission("getTicketDetail")
     @GetMapping(value = "/ticket", produces = "application/json")
     public ResponseEntity<TicketResponseDTO> getTicketDetails(@PathVariable Long ticketId) {
         Tickets tickets = ticketService.getTicketDetails(ticketId);
