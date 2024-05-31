@@ -50,18 +50,22 @@ public class TicketService implements TicketInterface {
 
     @Override
     public Tickets updateTicketStatus(Long ticketId, Status newStatus) {
-        Tickets tickets = ticketsRepository.findById(ticketId)
-                .orElseThrow(() -> new TicketDoesNotExistException("Ticket not found with id: " + ticketId));
+        Optional<Tickets> optionalTicket = ticketsRepository.findById(ticketId);
 
-        TicketStatus updatedStatus = ticketStatusRepository.findByStatusName(newStatus);
+        if (optionalTicket.isPresent()) {
+            Tickets ticket = optionalTicket.get();
 
-        if (updatedStatus == null) {
-            throw new IllegalArgumentException("Invalid ticket status: " + newStatus);
+            TicketStatus updatedStatus = ticketStatusRepository.findByStatusName(newStatus);
+
+            if (updatedStatus != null) {
+                ticket.setTicketStatus(updatedStatus.getStatus());
+                return ticketsRepository.save(ticket);
+            } else {
+                return null;
+            }
+        } else {
+            return null;
         }
-
-        tickets.setTicketStatus(updatedStatus.getStatus());
-
-        return ticketsRepository.save(tickets);
     }
 
     @Override
