@@ -3,6 +3,7 @@ package com.bni.finproajubackend.controller;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
+import com.bni.finproajubackend.controller.TicketController;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.enumobject.Status;
 import com.bni.finproajubackend.model.ticket.Tickets;
@@ -21,12 +22,12 @@ public class TicketController {
     @Autowired
     private final TicketService ticketService;
 
+    @Autowired
+    private TemplateResInterface responseService;
+
     public TicketController(TicketService ticketService) {
         this.ticketService = ticketService;
     }
-
-    @Autowired
-    private TemplateResInterface responseService;
 
 
     @RequiresPermission("getAllTicket")
