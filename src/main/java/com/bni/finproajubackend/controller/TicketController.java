@@ -43,8 +43,8 @@ public class TicketController {
     }
 
     @PutMapping(value = "/ticket/{Id}/status", produces = "application/json")
-    public ResponseEntity<StatusResponseDTO> updateTicketStatus(@PathVariable Long Id, @RequestBody Status newStatus) {
-        StatusResponseDTO updatedTicket = ticketService.updateTicketStatus(Id, newStatus);
+    public ResponseEntity<Tickets> updateTicketStatus(@PathVariable Long Id, @RequestBody Status newStatus) {
+        Tickets updatedTicket = ticketService.updateTicketStatus(Id, newStatus);
         return ResponseEntity.ok().body(updatedTicket);
     }
 }
