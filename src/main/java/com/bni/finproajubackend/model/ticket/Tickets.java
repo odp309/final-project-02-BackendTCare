@@ -18,12 +18,12 @@ public class Tickets {
     private String ticketNumber;
     @OneToOne
     @JoinColumn(name = "transaction_id", referencedColumnName = "id")
-    private Transaction transactionId;
+    private Transaction transaction;
     public void setTransactionId(Long transactionId) {
     }
     @ManyToOne
     @JoinColumn(name = "ticket_category_id", referencedColumnName = "id")
-    private TicketCategories ticketCategoryId;
+    private TicketCategories ticketCategory;
     public void setTicketCategoryId(Long ticketCategoryId) {
     }
     @ManyToOne
