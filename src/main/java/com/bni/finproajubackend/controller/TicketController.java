@@ -20,14 +20,13 @@ public class TicketController {
     private TicketService ticketService;
 
 
-    @GetMapping("/tickets")
+    @GetMapping("/ticket")
     public ResponseEntity<List<Tickets>> getAllTickets() {
         List<Tickets> tickets = ticketService.getAllTickets();
         return ResponseEntity.ok().body(tickets);
     }
 
-    @RequiresPermission("getTicketDetail")
-    @GetMapping("/ticket")
+    @GetMapping("/detail")
     public ResponseEntity<Tickets> getTicketDetails(@RequestParam("ticketNumber") Long Id) {
         Tickets ticketDetail = ticketService.getTicketDetails(Id);
         if(ticketDetail == null) {
@@ -36,21 +35,10 @@ public class TicketController {
         return ResponseEntity.ok().body(ticketDetail);
     }
 
-    @RequiresPermission("addTicket")
-    @PostMapping(value = "/create", produces = "application/json")
-    public ResponseEntity<TicketResponseDTO> createTicket(@RequestBody TicketRequestDTO requestDTO) {
-        if (requestDTO == null) {
-            return ResponseEntity.badRequest().build();
-        }
-
-        Tickets tickets = ticketService.createTicket(requestDTO);
-
-        TicketResponseDTO responseDTO = new TicketResponseDTO();
-        responseDTO.setTicketNumber(tickets.ticketNumber());
-        responseDTO.setTicketStatus(tickets.ticketStatus());
-        responseDTO.setTicketCategoryId(tickets.ticketCategory());
-
-        return ResponseEntity.ok(responseDTO);
+    @PostMapping(value = "/ticket/create", produces = "application/json")
+    public ResponseEntity<Tickets> createTicket(@RequestBody TicketRequestDTO requestDTO) {
+        Tickets createdTicket = ticketService.createTicket(requestDTO);
+        return ResponseEntity.ok().body(createdTicket);
     }
 
     @RequiresPermission("updateStatus")
