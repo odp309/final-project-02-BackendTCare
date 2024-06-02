@@ -5,7 +5,6 @@ import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.Status;
 import com.bni.finproajubackend.model.ticket.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
-import com.bni.finproajubackend.repository.TicketStatusRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,11 +19,9 @@ public class TicketService implements TicketInterface {
 
     @Autowired
     private TicketsRepository ticketsRepository;
-    private TicketStatusRepository ticketStatusRepository;
 
-    public TicketService(TicketsRepository ticketsRepository, TicketStatusRepository ticketStatusRepository) {
+    public TicketService(TicketsRepository ticketsRepository) {
         this.ticketsRepository = ticketsRepository;
-        this.ticketStatusRepository = ticketStatusRepository;
     }
 
     @Override
@@ -40,7 +37,7 @@ public class TicketService implements TicketInterface {
 
         newTicket.setTicketNumber(requestDTO.getTransactionId().toString());
 
-        TicketStatus initialStatus = ticketStatusRepository.findStatusById(Status.Diajukan);
+        TicketStatus initialStatus = ticketsRepository.findStatusById(Status.Diajukan);
         newTicket.setTicketStatus(initialStatus.getStatus());
 
         return ticketsRepository.save(newTicket);
@@ -53,7 +50,7 @@ public class TicketService implements TicketInterface {
         if (optionalTicket.isPresent()) {
             Tickets ticket = optionalTicket.get();
 
-            TicketStatus updatedStatus = ticketStatusRepository.findByStatusName(newStatus);
+            TicketStatus updatedStatus = ticketsRepository.findByStatusName(newStatus);
 
             if (updatedStatus != null) {
                 ticket.setTicketStatus(updatedStatus.getStatus());
@@ -70,11 +67,7 @@ public class TicketService implements TicketInterface {
     public Tickets getTicketDetails(Long Id) {
         Optional<Tickets> optionalTicket = ticketsRepository.findById(Id);
 
-        if (optionalTicket.isPresent()) {
-            return optionalTicket.get();
-        } else {
-            return null;
-        }
+        return optionalTicket.orElse(null);
     }
 
     @Override

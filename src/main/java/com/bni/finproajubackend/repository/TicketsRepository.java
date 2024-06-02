@@ -1,18 +1,15 @@
 package com.bni.finproajubackend.repository;
 
+import com.bni.finproajubackend.model.enumobject.Status;
+import com.bni.finproajubackend.model.ticket.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
-import java.util.Optional;
 
 @Repository
 public interface TicketsRepository extends JpaRepository<Tickets, Long> {
-    static Optional<Object> findbyId(Long id) {
-        return Optional.empty();
-    }
+    TicketStatus findStatusById(Status status);
 
-    Tickets findTicketsById(long id);
-
-    Tickets findTicketsById(String id);
+    TicketStatus findByStatusName(Status newStatus);
 }
