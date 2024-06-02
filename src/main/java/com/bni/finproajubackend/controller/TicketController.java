@@ -1,9 +1,6 @@
 package com.bni.finproajubackend.controller;
 
-import com.bni.finproajubackend.annotation.RequiresPermission;
-import com.bni.finproajubackend.dto.templateResponse.StatusResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
-import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.model.enumobject.Status;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.service.TicketService;

@@ -26,16 +26,16 @@ public class TicketService implements TicketInterface {
 
     @Override
     public Tickets createTicket(TicketRequestDTO requestDTO) {
-        if (requestDTO == null || requestDTO.getTransactionId() == null || requestDTO.getTicketCategoryId() == null || requestDTO.getDescription() == null) {
+        if (requestDTO == null || requestDTO.getTransaction() == null || requestDTO.getTicketCategory() == null || requestDTO.getDescription() == null) {
             return null;
         }
 
         Tickets newTicket = new Tickets();
-        newTicket.setTransactionId(requestDTO.getTransactionId());
-        newTicket.setTicketCategoryId(requestDTO.getTicketCategoryId());
+        newTicket.setTransactionId(requestDTO.getTransaction());
+        newTicket.setTicketCategoryId(requestDTO.getTicketCategory());
         newTicket.setDescription(requestDTO.getDescription());
 
-        newTicket.setTicketNumber(requestDTO.getTransactionId().toString());
+        newTicket.setTicketNumber(requestDTO.getTransaction().toString());
 
         TicketStatus initialStatus = ticketsRepository.findStatusById(Status.Diajukan);
         newTicket.setTicketStatus(initialStatus.getStatus());
