@@ -67,8 +67,8 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public Tickets getTicketDetails(Long ticketId) {
-        Optional<Tickets> optionalTicket = ticketsRepository.findById(ticketId);
+    public Tickets getTicketDetails(Long Id) {
+        Optional<Tickets> optionalTicket = ticketsRepository.findById(Id);
 
         if (optionalTicket.isPresent()) {
             return optionalTicket.get();

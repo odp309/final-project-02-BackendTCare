@@ -27,20 +27,13 @@ public class TicketController {
     }
 
     @RequiresPermission("getTicketDetail")
-    @GetMapping(value = "/ticket", produces = "application/json")
-    public ResponseEntity<TicketResponseDTO> getTicketDetails(@PathVariable Long ticketId) {
-        Tickets tickets = ticketService.getTicketDetails(ticketId);
-
-        if (tickets == null) {
+    @GetMapping("/ticket")
+    public ResponseEntity<Tickets> getTicketDetails(@RequestParam("ticketNumber") Long Id) {
+        Tickets ticketDetail = ticketService.getTicketDetails(Id);
+        if(ticketDetail == null) {
             return ResponseEntity.notFound().build();
         }
-
-        TicketResponseDTO responseDTO = new TicketResponseDTO();
-        responseDTO.setTicketNumber(tickets.ticketNumber());
-        responseDTO.setTicketStatus(tickets.ticketStatus());
-        responseDTO.setTicketCategoryId(tickets.ticketCategory());
-
-        return ResponseEntity.ok(responseDTO);
+        return ResponseEntity.ok().body(ticketDetail);
     }
 
     @RequiresPermission("addTicket")
