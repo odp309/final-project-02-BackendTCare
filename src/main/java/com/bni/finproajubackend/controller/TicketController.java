@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.controller;
 
 import com.bni.finproajubackend.annotation.RequiresPermission;
+import com.bni.finproajubackend.dto.templateResponse.StatusResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.model.enumobject.Status;
@@ -41,24 +42,9 @@ public class TicketController {
         return ResponseEntity.ok().body(createdTicket);
     }
 
-    @RequiresPermission("updateStatus")
-    @PutMapping(value = "/{ticket}/update-status", produces = "application/json")
-    public ResponseEntity<TicketResponseDTO> updateTicketStatus(@PathVariable Long ticketId, @RequestParam Status newStatus) {
-        Tickets tickets = ticketService.getTicketDetails(ticketId);
-
-        if (tickets == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        tickets.setTicketStatus(newStatus);
-
-        ticketService.updateTicketStatus(ticketId, newStatus);
-
-        TicketResponseDTO responseDTO = new TicketResponseDTO();
-        responseDTO.setTicketNumber(tickets.ticketNumber());
-        responseDTO.setTicketStatus(tickets.ticketStatus());
-        responseDTO.setTicketCategoryId(tickets.ticketCategory());
-
-        return ResponseEntity.ok(responseDTO);
+    @PutMapping(value = "/ticket/{Id}/status", produces = "application/json")
+    public ResponseEntity<StatusResponseDTO> updateTicketStatus(@PathVariable Long Id, @RequestBody Status newStatus) {
+        StatusResponseDTO updatedTicket = ticketService.updateTicketStatus(Id, newStatus);
+        return ResponseEntity.ok().body(updatedTicket);
     }
 }
