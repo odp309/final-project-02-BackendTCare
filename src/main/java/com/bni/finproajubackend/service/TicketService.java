@@ -1,6 +1,5 @@
 package com.bni.finproajubackend.service;
 
-import com.bni.finproajubackend.dto.templateResponse.StatusResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.Status;
@@ -48,7 +47,7 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public StatusResponseDTO updateTicketStatus(Long Id, Status newStatus) {
+    public Tickets updateTicketStatus(Long Id, Status newStatus) {
         Optional<Tickets> optionalTicket = ticketsRepository.findById(Id);
 
         if (optionalTicket.isPresent()) {
