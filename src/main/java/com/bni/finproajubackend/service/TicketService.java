@@ -3,8 +3,10 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.Status;
+import com.bni.finproajubackend.model.ticket.TicketCategories;
 import com.bni.finproajubackend.model.ticket.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import com.bni.finproajubackend.repository.TicketStatusRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ public class TicketService implements TicketInterface {
     @Autowired
     private TicketsRepository ticketsRepository;
 
+    @Autowired
+    private TicketStatusRepository ticketStatusRepository;
+
     public TicketService(TicketsRepository ticketsRepository) {
         this.ticketsRepository = ticketsRepository;
     }
@@ -31,36 +36,44 @@ public class TicketService implements TicketInterface {
         }
 
         Tickets newTicket = new Tickets();
-        newTicket.setTransactionId(requestDTO.getTransaction());
-        newTicket.setTicketCategoryId(requestDTO.getTicketCategory());
+        newTicket.setTransaction(newTicket.getTransaction());
+        newTicket.setTicketStatus(newTicket.getTicketStatus());
+        newTicket.setTicketCategory(newTicket.getTicketCategory());
         newTicket.setDescription(requestDTO.getDescription());
 
         newTicket.setTicketNumber(requestDTO.getTransaction().toString());
 
-        TicketStatus initialStatus = ticketsRepository.findStatusById(Status.Diajukan);
-        newTicket.setTicketStatus(initialStatus.getStatus());
+        TicketStatus initialStatus = new TicketStatus();
+        initialStatus.setStatus(Status.Diajukan);
+        ticketStatusRepository.save(initialStatus);
+        newTicket.setTicketStatus(initialStatus);
 
         return ticketsRepository.save(newTicket);
     }
 
     @Override
-    public Tickets updateTicketStatus(Long Id, Status newStatus) {
+    public Tickets updateTicketStatus(Long Id, Status status) {
         Optional<Tickets> optionalTicket = ticketsRepository.findById(Id);
 
-        if (optionalTicket.isPresent()) {
-            Tickets ticket = optionalTicket.get();
-
-            TicketStatus updatedStatus = ticketsRepository.findByStatusName(newStatus);
-
-            if (updatedStatus != null) {
-                ticket.setTicketStatus(updatedStatus.getStatus());
-                return ticketsRepository.save(ticket);
-            } else {
-                return null;
-            }
-        } else {
-            return null;
+        if (!optionalTicket.isPresent()) {
+            return new Tickets();
         }
+
+        Tickets ticket = optionalTicket.get();
+
+        TicketStatus updatedStatus = ticketStatusRepository.findByTicket(optionalTicket);
+
+        if (updatedStatus == null) {
+            return new Tickets();
+        }
+
+        updatedStatus.setStatus(Status.DalamProses);
+        ticketStatusRepository.save(updatedStatus);
+
+        ticket.setTicketStatus(updatedStatus);
+        ticketsRepository.save(ticket);
+
+        return ticket;
     }
 
     @Override

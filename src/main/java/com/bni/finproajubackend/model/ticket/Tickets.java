@@ -19,18 +19,12 @@ public class Tickets {
     @OneToOne
     @JoinColumn(name = "transaction_id", referencedColumnName = "id")
     private Transaction transaction;
-    public void setTransactionId(Long transactionId) {
-    }
     @ManyToOne
     @JoinColumn(name = "ticket_category_id", referencedColumnName = "id")
     private TicketCategories ticketCategory;
-    public void setTicketCategoryId(Long ticketCategoryId) {
-    }
     @ManyToOne
     @JoinColumn(name = "ticket_status_id", referencedColumnName = "id")
     private TicketStatus ticketStatus;
-    public void setTicketStatus(Status newStatus) {
-    }
     @Column(name = "ticket_description")
     private String description;
 

@@ -1,9 +1,9 @@
 package com.bni.finproajubackend.controller;
 
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
+import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.Status;
 import com.bni.finproajubackend.model.ticket.Tickets;
-import com.bni.finproajubackend.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,7 +15,7 @@ import java.util.List;
 public class TicketController {
 
     @Autowired
-    private TicketService ticketService;
+    private TicketInterface ticketService;
 
 
     @GetMapping("/ticket")
