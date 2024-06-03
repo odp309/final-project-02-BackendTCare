@@ -25,7 +25,11 @@ public class ResponseService implements TemplateResInterface {
 
     @Override
     public <T> TemplateResponseDTO<T> apiUnauthorized(T data, String message) {
-        return createResponse(data, HttpStatus.UNAUTHORIZED, message);
+        if (message.equalsIgnoreCase("User not Permitted")) {
+            return createResponse(data, HttpStatus.FORBIDDEN, message);
+        } else {
+            return createResponse(data, HttpStatus.UNAUTHORIZED, message);
+        }
     }
 
     private <T> TemplateResponseDTO<T> createResponse(T data, HttpStatus status, String message) {
