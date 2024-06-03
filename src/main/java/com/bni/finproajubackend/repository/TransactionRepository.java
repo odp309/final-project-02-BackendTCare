@@ -1,6 +1,6 @@
 package com.bni.finproajubackend.repository;
 
-import com.bni.finproajubackend.model.user.Person;
+//import com.bni.finproajubackend.model.user.Person;
 import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
