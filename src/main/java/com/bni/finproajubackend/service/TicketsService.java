@@ -11,10 +11,8 @@ import com.bni.finproajubackend.repository.TicketsRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -44,13 +42,13 @@ public class TicketsService implements TicketsInterface {
 
         // Create primary ticket history
         String primaryDescription = getDescriptionForLevel(newLevel);
-        createAndSaveTicketHistory(newLevel, tickets, user.getPerson().getAdmin(), primaryDescription);
+        createAndSaveTicketHistory(newLevel, tickets, user.getAdmin(), primaryDescription);
 
         // Conditionally create secondary ticket history
         if (highestLevel == 0 || highestLevel == 3) {
             long secondLevel = newLevel + 1;
             String secondaryDescription = getDescriptionForLevel(secondLevel);
-            createAndSaveTicketHistory(secondLevel, tickets, user.getPerson().getAdmin(), secondaryDescription);
+            createAndSaveTicketHistory(secondLevel, tickets, user.getAdmin(), secondaryDescription);
         }
     }
 
@@ -89,7 +87,7 @@ public class TicketsService implements TicketsInterface {
 
         return ticketHistories.stream()
                 .map(ticketHistory -> TicketsHistoryResponseDTO.builder()
-                        .pic(ticketHistory.getAdmin().getPerson().getFirstName() + " " + ticketHistory.getAdmin().getPerson().getLastName())
+                        .pic(ticketHistory.getAdmin().getFirstName() + " " + ticketHistory.getAdmin().getLastName())
                         .date(ticketHistory.getDate())
                         .description(ticketHistory.getDescription())
                         .build())
