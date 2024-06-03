@@ -1,8 +1,10 @@
 package com.bni.finproajubackend.aspect;
 
 import com.bni.finproajubackend.annotation.RequiresPermission;
+import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.repository.UserRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Before;
@@ -11,54 +13,87 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
-import java.nio.file.AccessDeniedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 @Aspect
 @Component
 public class PermissionAspect {
 
-    private final UserRepository userRepository;
+    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
 
-    public PermissionAspect(UserRepository userRepository) {
+    private final UserRepository userRepository;
+    private final ObjectMapper mapper;
+    private final TemplateResInterface responseService;
+
+    public PermissionAspect(UserRepository userRepository, ObjectMapper mapper, TemplateResInterface responseService) {
         this.userRepository = userRepository;
+        this.mapper = mapper;
+        this.responseService = responseService;
     }
 
     @Pointcut("@annotation(requiresPermission)")
     public void callAt(RequiresPermission requiresPermission) {
     }
 
-    @Before("callAt(requiresPermission)")
-    public void checkPermission(JoinPoint joinPoint, RequiresPermission requiresPermission) throws Throwable {
-        String requiredPermission = requiresPermission.value();
+    @Before(value = "callAt(requiresPermission)", argNames = "joinPoint,requiresPermission")
+    public void checkPermission(JoinPoint joinPoint, RequiresPermission requiresPermission) throws IOException {
+        logger.info("Entering checkPermission method for {}", joinPoint.getSignature().getName());
+        try {
+            String requiredPermission = requiresPermission.value();
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
 
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new AccessDeniedException("Authentication required.");
+            if (authentication == null || !authentication.isAuthenticated()) {
+                logger.warn("Authentication is null or not authenticated");
+                throw new SecurityException("Unauthorized");
+            }
+
+            Object principal = authentication.getPrincipal();
+            String username = extractUsername(principal);
+            if (username == null) {
+                logger.warn("Invalid authentication principal");
+                throw new SecurityException("Invalid authentication principal.");
+            }
+
+            User user = userRepository.findByUsername(username);
+            if (user == null) {
+                logger.warn("User not found: {}", username);
+                throw new SecurityException("User Not Found");
+            }
+
+            if (!userHasPermission(user, requiredPermission)) {
+                logger.warn("User does not have permission: {}", username);
+                throw new SecurityException("User Not Permitted to access this feature");
+            }
+
+            logger.info("User {} has the required permission {}", username, requiredPermission);
+        } catch (SecurityException e) {
+            String errorMessage = switch (e.getMessage()) {
+                case "Unauthorized" -> "Unauthorized";
+                case "Invalid authentication principal." -> "Invalid authentication principal.";
+                case "User Not Found" -> "User Not Found";
+                default -> "User not Permitted";
+            };
+            logger.warn("Security exception occurred: {}", errorMessage);
+            throw new SecurityException(errorMessage);
+        } catch (Exception e) {
+            logger.error("An error occurred during permission check: {}", e.getMessage());
+            throw new IOException("Error during permission check");
         }
+    }
 
-        Object principal = authentication.getPrincipal();
-        String username;
-
+    private String extractUsername(Object principal) {
         if (principal instanceof UserDetails) {
-            username = ((UserDetails) principal).getUsername();
+            return ((UserDetails) principal).getUsername();
         } else if (principal instanceof String) {
-            username = (String) principal;
-        } else {
-            throw new AccessDeniedException("Invalid authentication principal.");
+            return (String) principal;
         }
+        return null;
+    }
 
-        User user = userRepository.findByUsername(username);
-        if (user == null) {
-            throw new AccessDeniedException("User not found.");
-        }
-
-        boolean hasPermission = user.getPerson().getAdmin().getRole().getPermissions().stream()
-                .anyMatch(permission -> permission.getPermissionName().equals(requiredPermission))
-                || user.getPerson().getAdmin().getRole().getPermissions().stream()
-                .anyMatch(permission -> permission.getPermissionName().equals("all"));
-
-        if (!hasPermission) {
-            throw new AccessDeniedException("You do not have permission to perform this action.");
-        }
+    private boolean userHasPermission(User user, String requiredPermission) {
+        return user.getAdmin().getRole().getRoleName().equals(requiredPermission);
     }
 }

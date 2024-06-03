@@ -4,11 +4,9 @@ import com.bni.finproajubackend.dto.userAccount.AccountDTO;
 import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
 import com.bni.finproajubackend.dto.userAccount.UserAccountDTO;
 import com.bni.finproajubackend.interfaces.UserAccountInterface;
-import com.bni.finproajubackend.model.user.Person;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
-import com.bni.finproajubackend.repository.PersonRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -21,8 +19,6 @@ import java.util.stream.Collectors;
 public class UserAccountService implements UserAccountInterface {
     @Autowired
     private UserRepository userRepository;
-    @Autowired
-    private PersonRepository personRepository;
 
     @Override
     public UserAccountDTO getUserAccount(Authentication authentication) {
@@ -33,25 +29,19 @@ public class UserAccountService implements UserAccountInterface {
             throw new RuntimeException("User not found");
         }
 
-        Person person = personRepository.findByUser(user);
-
-        if(person == null){
-            throw new RuntimeException("Something went wrong!");
-        }
-
-        List<AccountDTO> accountDTOList = person.getNasabah() != null ?
-                person.getNasabah().getAccount().stream().map(this::convertToAccountDTO).collect(Collectors.toList()) : List.of();
+        List<AccountDTO> accountDTOList = user.getNasabah() != null ?
+                user.getNasabah().getAccount().stream().map(this::convertToAccountDTO).collect(Collectors.toList()) : List.of();
 
         return UserAccountDTO.builder()
-                .id(person.getId())
-                .email(person.getEmail())
-                .firstName(person.getFirstName())
-                .lastName(person.getLastName())
-                .gender(person.getGender())
-                .age(person.getAge())
-                .noHp(person.getNoHP())
-                .address(person.getAddress())
-                .nasabahCode(person.getNasabah() != null ? person.getNasabah().getNik() : null)
+                .id(user.getNasabah().getId())
+                .email(user.getNasabah().getEmail())
+                .firstName(user.getNasabah().getFirstName())
+                .lastName(user.getNasabah().getLastName())
+                .gender(user.getNasabah().getGender())
+                .age(user.getNasabah().getAge())
+                .noHp(user.getNasabah().getNoHP())
+                .address(user.getNasabah().getAddress())
+                .nasabahCode(user.getNasabah() != null ? user.getNasabah().getNik() : null)
                 .accountList(accountDTOList)
                 .build();
     }
@@ -59,7 +49,7 @@ public class UserAccountService implements UserAccountInterface {
     private AccountDTO convertToAccountDTO(Account account) {
         List<TransactionDTO> transactionDTOList = account.getTransaction().stream()
                 .map(this::convertToTransactionDTO)
-                .collect(Collectors.toList());
+                .toList();
 
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setId(account.getId());

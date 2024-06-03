@@ -27,8 +27,8 @@ public class JWTAuthFilter extends OncePerRequestFilter {
 
     private final JWTInterface jwtService;
     private final ObjectMapper mapper;
-    private TokenRevocationListInterface tokenRevocationListService;
-    private TemplateResInterface responseService;
+    private final TokenRevocationListInterface tokenRevocationListService;
+    private final TemplateResInterface responseService;
 
     public JWTAuthFilter(JWTService jwtUtil, JWTInterface jwtService, ObjectMapper mapper, TokenRevocationListService tokenRevocationListService, TemplateResInterface responseService) {
         this.jwtService = jwtService;
@@ -62,24 +62,33 @@ public class JWTAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
 
             filterChain.doFilter(request, response);
+        } catch (SecurityException e) {
+            handleException(response, HttpStatus.UNAUTHORIZED.value(), e.getMessage() != null ? e.getMessage() : "Unauthorized");
         } catch (Exception e) {
-            int statusCode = HttpStatus.INTERNAL_SERVER_ERROR.value();
-            String errorMessage = e.getMessage() != null ? e.getMessage() :"Something Went Wrong";
+            handleException(response, HttpStatus.INTERNAL_SERVER_ERROR.value(), e.getMessage() != null ? e.getMessage() : "Something Went Wrong");
+        }
+    }
 
-            if (errorMessage != null && errorMessage.toLowerCase().contains("jwt expired")) {
-                statusCode = HttpStatus.UNAUTHORIZED.value();
-                errorMessage = "Token Expired";
-            }
-
-            response.setStatus(statusCode);
-            response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-
-            if (statusCode == HttpStatus.UNAUTHORIZED.value())
-                mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(null, errorMessage));
-            else
-                mapper.writeValue(response.getWriter(), responseService.apiFailed(null, errorMessage));
-
+    private void handleException(HttpServletResponse response, int status, String errorMessage) throws IOException {
+        String message;
+        if (errorMessage != null && errorMessage.toLowerCase().contains("jwt expired")) {
+            status = HttpStatus.UNAUTHORIZED.value();
+            message = "Token Expired";
+        } else if (errorMessage != null && errorMessage.toLowerCase().contains("user not permitted")) {
+            status = HttpStatus.FORBIDDEN.value();
+            message = "User not Permitted";
+        } else {
+            message = errorMessage != null ? errorMessage : "Something Went Wrong";
         }
 
+        response.setStatus(status);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        if (status == HttpStatus.UNAUTHORIZED.value() || status == HttpStatus.FORBIDDEN.value()) {
+            mapper.writeValue(response.getWriter(), responseService.apiUnauthorized(null, message));
+        } else {
+            mapper.writeValue(response.getWriter(), responseService.apiFailed(null, message));
+        }
     }
+
+
 }

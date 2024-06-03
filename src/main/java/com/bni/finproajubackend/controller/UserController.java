@@ -23,7 +23,7 @@ public class UserController {
     @Autowired
     private TemplateResInterface responseService;
 
-    @RequiresPermission("getAllUser")
+    @RequiresPermission("admin")
     @GetMapping(value = "", produces = "application/json")
     public ResponseEntity getUser() {
         List<User> listUser = userService.getUsers();
@@ -35,11 +35,11 @@ public class UserController {
         User userData = userService.getUser(authentication.getName());
         if (userData == null)
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "User Is Not Available"));
-        UserResponseDTO userDetails = new UserResponseDTO(userData.getUsername(), userData.getPerson().getFirstName(), userData.getPerson().getLastName());
+        UserResponseDTO userDetails = new UserResponseDTO(userData.getUsername(), userData.getAdmin().getFirstName(), userData.getAdmin().getLastName());
         return ResponseEntity.ok(responseService.apiSuccess(userDetails, "Success get " + authentication.getName() + " Profile"));
     }
 
-    @RequiresPermission("addUser")
+    @RequiresPermission("admin")
     @PostMapping(value = "", produces = "application/json")
     public ResponseEntity addUser(@RequestBody UserRequestDTO req, Authentication authentication) {
         try {
@@ -50,7 +50,7 @@ public class UserController {
         }
     }
 
-    @RequiresPermission("updateUser")
+    @RequiresPermission("admin")
     @PutMapping(value = "/{username}", produces = "application/json")
     public ResponseEntity<User> editUser(@PathVariable String username, @RequestBody UserRequestDTO req) {
         User result = userService.editUser(username, req);

@@ -2,7 +2,6 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.interfaces.JWTInterface;
 import com.bni.finproajubackend.model.user.User;
-import com.bni.finproajubackend.repository.PersonRepository;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
@@ -20,11 +19,6 @@ public class JWTService implements JWTInterface {
 
     @Value("${my.secret.key}")
     private String mySecretKey;
-    private PersonRepository personRepository;
-
-    public JWTService(PersonRepository personRepository) {
-        this.personRepository = personRepository;
-    }
 
     @Override
     public String generateToken(User user) {
@@ -34,9 +28,9 @@ public class JWTService implements JWTInterface {
                 .builder()
                 .subject(user.getUsername())
                 .claim("id", user.getId())
-                .claim("firstName", user.getPerson().getFirstName())
-                .claim("lastName", user.getPerson().getLastName())
-                .claim("role", user.getPerson().getAdmin() == null ? "nasabah" : user.getPerson().getAdmin().getRole().getRoleName())
+                .claim("firstName", user.getAdmin() == null ? user.getNasabah().getFirstName() : user.getAdmin().getFirstName() )
+                .claim("lastName", user.getAdmin() == null ? user.getNasabah().getLastName() : user.getAdmin().getLastName() )
+                .claim("role", user.getAdmin() == null ? "nasabah" : user.getAdmin().getRole().getRoleName())
                 .expiration(Date.from(expirationTime))
                 .signWith(getJWTKey())
                 .compact();
