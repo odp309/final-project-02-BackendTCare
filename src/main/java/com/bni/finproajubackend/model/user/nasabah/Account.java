@@ -25,5 +25,6 @@ public class Account {
     private String account_number;
     private Long balance;
     @OneToMany(mappedBy = "account")
+    @JsonIgnore
     private List<Transaction> transaction;
 }

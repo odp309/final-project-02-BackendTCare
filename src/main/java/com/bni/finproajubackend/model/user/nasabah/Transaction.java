@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.model.user.nasabah;
 
 import com.bni.finproajubackend.model.ticket.Tickets;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,5 +23,6 @@ public class Transaction {
     @Column(name = "transaction_status")
     private String status;
     @OneToOne(mappedBy = "transaction")
+    @JsonIgnore
     private Tickets tickets;
 }
