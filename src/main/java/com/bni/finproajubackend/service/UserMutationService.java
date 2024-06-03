@@ -3,7 +3,7 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
 import com.bni.finproajubackend.dto.userAccount.UserMutationDTO;
 import com.bni.finproajubackend.interfaces.UserMutationInterface;
-import com.bni.finproajubackend.model.user.Person;
+//import com.bni.finproajubackend.model.user.Person;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
@@ -21,8 +21,6 @@ public class UserMutationService implements UserMutationInterface {
     @Autowired
     private UserRepository userRepository;
     @Autowired
-    private PersonRepository personRepository;
-    @Autowired
     private TransactionRepository transactionRepository;
     @Autowired
     private NasabahRepository nasabahRepository;
@@ -38,13 +36,9 @@ public class UserMutationService implements UserMutationInterface {
             throw new RuntimeException("User not found");
         }
 
-        Person person = personRepository.findByUser(user);
 
-        if (person == null) {
-            throw new RuntimeException("Something went wrong!");
-        }
-        Nasabah nasabah = nasabahRepository.findByPerson(person);
-        //Transaction transaction = transactionRepository.findByNasabah(nasabah);
+        Nasabah nasabah = nasabahRepository.findByUser(user);
+
         Account account = accountRepository.findByNasabah(nasabah);
 
         List<Transaction> transactions = transactionRepository.findByAccount(account);
