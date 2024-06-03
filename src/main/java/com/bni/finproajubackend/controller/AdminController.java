@@ -19,7 +19,7 @@ public class AdminController {
     @Autowired
     private TemplateResInterface responseService;
 
-    @RequiresPermission("getAdminProfile")
+    @RequiresPermission("admin")
     @GetMapping(value = "/profile", produces = "application/json")
     public ResponseEntity getDetailAdmin(Authentication authentication) {
         try {
