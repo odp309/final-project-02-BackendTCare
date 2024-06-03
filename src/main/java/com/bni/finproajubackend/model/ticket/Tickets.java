@@ -30,5 +30,4 @@ public class Tickets {
 
     @OneToOne(mappedBy = "ticket")
     private TicketResponseTime ticketResponseTime;
-
 }

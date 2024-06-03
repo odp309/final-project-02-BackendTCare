@@ -17,7 +17,6 @@ public class TicketController {
     @Autowired
     private TicketInterface ticketService;
 
-
     @GetMapping("/ticket")
     public ResponseEntity<List<Tickets>> getAllTickets() {
         List<Tickets> tickets = ticketService.getAllTickets();

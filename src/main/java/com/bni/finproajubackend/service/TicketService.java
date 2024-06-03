@@ -24,10 +24,7 @@ public class TicketService implements TicketInterface {
 
     @Autowired
     private TicketStatusRepository ticketStatusRepository;
-
-    public TicketService(TicketsRepository ticketsRepository) {
-        this.ticketsRepository = ticketsRepository;
-    }
+    private TicketStatus updatedStatus;
 
     @Override
     public Tickets createTicket(TicketRequestDTO requestDTO) {
@@ -61,17 +58,15 @@ public class TicketService implements TicketInterface {
 
         Tickets ticket = optionalTicket.get();
 
-        TicketStatus updatedStatus = ticketStatusRepository.findByTicket(optionalTicket);
+        TicketStatus optionalTicketStatus = ticketStatusRepository.findTicketStatusById(ticket.getTicketStatus().getId());
 
-        if (updatedStatus == null) {
+        if (ticket == null) {
             return new Tickets();
         }
 
-        updatedStatus.setStatus(Status.DalamProses);
-        ticketStatusRepository.save(updatedStatus);
+        ticket.setTicketStatus(ticket.getTicketStatus());
 
-        ticket.setTicketStatus(updatedStatus);
-        ticketsRepository.save(ticket);
+        ticketStatusRepository.save(new TicketStatus());
 
         return ticket;
     }
