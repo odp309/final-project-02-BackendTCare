@@ -1,15 +1,16 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.bni.finproajubackend.util.EmailService;
+import com.bni.finproajubackend.service.EmailService;
 
 @Service
-public class TicketService {
+public class TicketService implements TicketInterface {
 
     @Autowired
     private TicketsRepository ticketsRepository;
