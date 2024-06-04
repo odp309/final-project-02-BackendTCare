@@ -19,6 +19,8 @@ public class TicketResponseTime {
     @OneToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
     private Tickets ticket;
+    @Column(name = "response_time")
+    private String responseTime;
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
