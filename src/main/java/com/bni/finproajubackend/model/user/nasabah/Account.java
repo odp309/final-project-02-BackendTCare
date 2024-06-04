@@ -34,5 +34,6 @@ public class Account {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
     @OneToMany(mappedBy = "account")
+    @JsonIgnore
     private List<Transaction> transaction;
 }
