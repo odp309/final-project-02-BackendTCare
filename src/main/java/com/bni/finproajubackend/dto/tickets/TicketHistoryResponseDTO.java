@@ -1,12 +1,13 @@
 package com.bni.finproajubackend.dto.tickets;
 
-import lombok.Builder;
-import lombok.Data;
+import lombok.*;
 
 import java.util.Date;
 
+@Getter
+@Setter
 @Data
-@Builder
+@NoArgsConstructor
 public class TicketHistoryResponseDTO {
     private Long id;
     private String pic;

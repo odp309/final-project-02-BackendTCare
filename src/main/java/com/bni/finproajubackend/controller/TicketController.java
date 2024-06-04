@@ -3,6 +3,7 @@ package com.bni.finproajubackend.controller;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.Status;
+import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -39,7 +40,7 @@ public class TicketController {
     }
 
     @PutMapping(value = "/ticket/{Id}/status", produces = "application/json")
-    public ResponseEntity<Tickets> updateTicketStatus(@PathVariable Long Id, @RequestBody Status newStatus) {
+    public ResponseEntity<Tickets> updateTicketStatus(@PathVariable Long Id, @RequestBody TicketStatus newStatus) {
         Tickets updatedTicket = ticketService.updateTicketStatus(Id, newStatus);
         return ResponseEntity.ok().body(updatedTicket);
     }

@@ -24,6 +24,6 @@ public class TicketFeedback {
     private StarRating starRating;
     @ManyToOne
     @Column(name = "comment")
-    private Long comment;
+    private String comment;
 
 }
