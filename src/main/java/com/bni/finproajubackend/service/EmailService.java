@@ -7,6 +7,8 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 public class EmailService {
 
@@ -16,10 +18,11 @@ public class EmailService {
     public void sendNotification(Tickets ticket) {
         String to = ticket.getTransaction().getAccount().getNasabah().getEmail();
         String subject = "Ticket Status Update";
+
         String recipient = ticket.getTransaction().getAccount().getNasabah().getFirstName();
         String ticketId = ticket.getTicketNumber();
-        String transactionDate = "27 Januari 2000";
-        String amount = "500000";
+        LocalDateTime transactionDate = ticket.getTransaction().getCreatedAt();
+        Long amount = ticket.getTransaction().getAmount();
         String description = ticket.getDescription();
         TicketStatus resolutionStatus = ticket.getTicketStatus();
         String division = "PT Bank Negara Indonesia (Persero) Tbk.";

@@ -8,11 +8,11 @@ import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.service.TicketService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/tickets")
-
 public class TicketController {
 
     @Autowired
@@ -20,10 +20,11 @@ public class TicketController {
 
     @Autowired
     private TemplateResInterface responseService;
+
     @RequiresPermission("admin")
     @PatchMapping("/{id}/status")
-    public ResponseEntity<TemplateResponseDTO<Tickets>> updateTicketStatus(@PathVariable Long id, @RequestBody TicketStatusUpdateDTO dto) {
-        Tickets result = ticketService.updateTicketStatus(id, dto.getStatus());
+    public ResponseEntity<TemplateResponseDTO<Tickets>> updateTicketStatus(@PathVariable Long id, @RequestBody TicketStatusUpdateDTO dto, Authentication authentication) {
+        Tickets result = ticketService.updateTicketStatus(id, dto.getStatus(), authentication );
         return ResponseEntity.ok(responseService.apiSuccess(result, "Successfully updated ticket status."));
     }
 }
