@@ -26,6 +26,8 @@ public class Transaction {
     private String detail;
     @Column(name = "transaction_status")
     private String status;
+    @Column(name = "amount")
+    private Long amount;
     @OneToOne(mappedBy = "transaction")
     @JsonIgnore
     private Tickets tickets;
