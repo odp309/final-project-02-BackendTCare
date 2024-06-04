@@ -8,6 +8,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 public class EmailService {
@@ -27,6 +28,10 @@ public class EmailService {
         TicketStatus resolutionStatus = ticket.getTicketStatus();
         String division = "PT Bank Negara Indonesia (Persero) Tbk.";
 
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy HH:mm:ss");
+        String formattedDateTime = transactionDate.format(formatter);
+
         String message = String.format(
                 "Dear %s,%n%n" +
                         "We would like to inform you that the status of your reported issue has been updated.%n%n" +
@@ -38,7 +43,7 @@ public class EmailService {
                         "Thank you for your patience and cooperation throughout the resolution process.%n%n" +
                         "Sincerely,%n" +
                         "%s",
-                recipient, ticketId, transactionDate, amount, description, resolutionStatus, division
+                recipient, ticketId, formattedDateTime, amount, description, resolutionStatus, division
         );
         sendEmail(to, subject, message);
     }
