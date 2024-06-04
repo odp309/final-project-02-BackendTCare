@@ -1,4 +1,4 @@
-package com.bni.finproajubackend.util;
+package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
