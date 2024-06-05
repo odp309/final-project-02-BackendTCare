@@ -2,20 +2,20 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
+import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
-import com.bni.finproajubackend.model.enumobject.Status;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
-import com.bni.finproajubackend.model.ticket.TicketCategories;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
-import com.bni.finproajubackend.model.ticket.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.AdminRepository;
-import com.bni.finproajubackend.repository.TicketStatusRepository;
 import com.bni.finproajubackend.repository.TicketsHistoryRepository;
+import com.bni.finproajubackend.repository.TicketsRepository;
 import com.bni.finproajubackend.repository.UserRepository;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.Contract;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -30,22 +30,28 @@ public class TicketService implements TicketInterface {
 
     @Autowired
     private TicketsHistoryRepository ticketsHistoryRepository;
-
+    @Autowired
+    private TicketsRepository ticketsRepository;
     @Autowired
     private UserRepository userRepository;
-
     @Autowired
     private AdminRepository adminRepository;
-
-    @Autowired
-    private TicketStatus updatedStatus;
 
     @Override
     public Tickets createTicket(TicketRequestDTO requestDTO) {
         return null;
     }
 
-    public void createTicketsHistory(long id, Authentication authentication) throws Exception {
+    @Override
+    public String generateTicketNumber(Tickets ticket) {
+        return String.valueOf(ticket.getCreatedAt().getYear()) +
+                String.format("%02d", ticket.getCreatedAt().getMonthValue()) +
+                String.format("%02d", ticket.getCreatedAt().getDayOfMonth()) +
+                ticket.getTransaction();
+    }
+
+    @Override
+    public Tickets createTicketsHistory(long id, Authentication authentication) throws Exception {
         Tickets tickets = ticketsHistoryRepository.findTicketById(id);
         User user = userRepository.findByUsername(authentication.getName());
 
@@ -65,9 +71,11 @@ public class TicketService implements TicketInterface {
             String secondaryDescription = getDescriptionForLevel(secondLevel);
             createAndSaveTicketHistory(secondLevel, tickets, user.getAdmin(), secondaryDescription);
         }
+        return tickets;
     }
 
-    private void createAndSaveTicketHistory(long level, Tickets tickets, Admin admin, String description) {
+    @Override
+    public void createAndSaveTicketHistory(long level, Tickets tickets, Admin admin, String description) {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(tickets);
         ticketHistory.setLevel(level);
@@ -77,7 +85,8 @@ public class TicketService implements TicketInterface {
         ticketsHistoryRepository.save(tickets);
     }
 
-    private String getDescriptionForLevel(long level) {
+    @Contract(pure = true)
+    private @NotNull String getDescriptionForLevel(long level) {
         switch ((int) level) {
             case 1:
                 return "Transaksi Dilakukan";
@@ -86,15 +95,10 @@ public class TicketService implements TicketInterface {
             case 3:
                 return "Laporan Dalam Proses";
             case 4:
-                return "Laporan Diterima Pelapor";
+                return "Laporan Selesai";
             default:
                 return "Laporan Selesai Diproses";
         }
-    }
-
-    @Override
-    public Tickets getTicketDetails(Long ticketId) {
-        return null;
     }
 
     @Override
@@ -111,13 +115,8 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public List<TicketsHistoryRepository> getTicketsHistory(long id) {
-        return List.of();
-    }
-
-    @Override
-    public List<TicketHistoryResponseDTO> getTicketHistory(Long ticketId) {
-        List<TicketHistory> ticketHistoryList = ticketsHistoryRepository.findByTicketId(ticketId);
+    public List<TicketHistoryResponseDTO> getTicketHistory(long id) {
+        List<TicketHistory> ticketHistoryList = ticketsHistoryRepository.findTicketById(id).getTicketHistory();
         List<TicketHistoryResponseDTO> responseDTOList = new ArrayList<>();
 
         for (TicketHistory ticketHistory : ticketHistoryList) {
@@ -132,12 +131,17 @@ public class TicketService implements TicketInterface {
         return responseDTOList;
     }
 
-    private String getAdminFullName(Admin admin) {
+    private String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
     }
 
     @Override
-    public List<Tickets> getAllTickets() {
+    public List<TicketResponseDTO> getAllTickets() {
         return List.of();
+    }
+
+    @Override
+    public Tickets getTicketDetails(Long ticketId) {
+        return null;
     }
 }
