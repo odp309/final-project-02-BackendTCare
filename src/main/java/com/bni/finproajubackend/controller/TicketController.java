@@ -27,7 +27,7 @@ public class TicketController {
             TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
             return ResponseEntity.ok(responseService.apiSuccess(result, "Ticket Created"));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Ticket Failed Created" : e.getMessage()));
         }
     }
