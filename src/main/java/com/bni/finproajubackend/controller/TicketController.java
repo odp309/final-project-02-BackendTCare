@@ -1,31 +1,41 @@
 package com.bni.finproajubackend.controller;
 
+import com.bni.finproajubackend.dto.role.RoleRequestDTO;
+import com.bni.finproajubackend.dto.role.RoleResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
+import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
+import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.interfaces.TicketInterface;
-import com.bni.finproajubackend.model.enumobject.Status;
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("api/v1/private/ticket")
+@RequestMapping("/api/v1/private/ticket")
 public class TicketController {
 
     @Autowired
     private TicketInterface ticketService;
+    @Autowired
+    private TemplateResInterface responseService;
 
-    @GetMapping("/ticket")
-    public ResponseEntity<List<Tickets>> getAllTickets() {
-        List<Tickets> tickets = ticketService.getAllTickets();
-        return ResponseEntity.ok().body(tickets);
+    @GetMapping("/all")
+    public ResponseEntity getAllTickets() {
+        try {
+            List<TicketResponseDTO> result = ticketService.getAllTickets();
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get list of tickets"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(responseService.apiFailed(null, e.getCause() == null ? "Internal Server Error" : e.getMessage()));
+        }
     }
 
     @GetMapping("/detail")
-    public ResponseEntity<Tickets> getTicketDetails(@RequestParam("ticketNumber") Long Id) {
+    public ResponseEntity getTicketDetails(@RequestParam("ticketNumber") Long Id) {
         Tickets ticketDetail = ticketService.getTicketDetails(Id);
         if(ticketDetail == null) {
             return ResponseEntity.notFound().build();
@@ -33,15 +43,14 @@ public class TicketController {
         return ResponseEntity.ok().body(ticketDetail);
     }
 
-    @PostMapping(value = "/ticket/create", produces = "application/json")
-    public ResponseEntity<Tickets> createTicket(@RequestBody TicketRequestDTO requestDTO) {
-        Tickets createdTicket = ticketService.createTicket(requestDTO);
-        return ResponseEntity.ok().body(createdTicket);
-    }
-
-    @PutMapping(value = "/ticket/{Id}/status", produces = "application/json")
-    public ResponseEntity<Tickets> updateTicketStatus(@PathVariable Long Id, @RequestBody TicketStatus newStatus) {
-        Tickets updatedTicket = ticketService.updateTicketStatus(Id, newStatus);
-        return ResponseEntity.ok().body(updatedTicket);
+    @PostMapping(value = "/create", produces = "application/json")
+    public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
+        try {
+            TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Ticket Created"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiFailed(null, e.getCause() == null ? "Ticket Failed Created" : e.getMessage()));
+        }
     }
 }

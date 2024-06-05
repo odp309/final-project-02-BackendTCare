@@ -8,6 +8,5 @@ import java.util.List;
 
 public interface TicketsHistoryRepository extends JpaRepository<Tickets, Long> {
     Tickets findTicketById(long id);
-    List<TicketHistory> findByTicketId(Long ticketId);
 
 }

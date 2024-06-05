@@ -8,6 +8,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -29,6 +30,8 @@ public class Tickets {
     private TicketStatus ticketStatus;
     @Column(name = "ticket_description")
     private String description;
+    @Column(name = "date")
+    private LocalDateTime createdAt;
 
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore

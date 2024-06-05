@@ -1,12 +1,9 @@
 package com.bni.finproajubackend.model.ticket;
 
 import com.bni.finproajubackend.model.enumobject.StarRating;
-import com.bni.finproajubackend.model.user.admin.Admin;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.Date;
 
 @Getter
 @Setter
@@ -19,10 +16,8 @@ public class TicketFeedback {
     @ManyToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
     private Tickets ticket;
-    @ManyToOne
     @Column(name = "star_rating")
     private StarRating starRating;
-    @ManyToOne
     @Column(name = "comment")
     private String comment;
 
