@@ -12,7 +12,7 @@ import java.util.List;
 
 
 public interface TicketInterface {
-    Tickets getTicketDetails(Long ticketId);
+    TicketResponseDTO getTicketDetails(Long ticketId);
     Tickets createTicket(TicketRequestDTO requestDTO);
     String generateTicketNumber(Tickets ticket);
     Tickets createTicketsHistory(long id, Authentication authentication) throws Exception;

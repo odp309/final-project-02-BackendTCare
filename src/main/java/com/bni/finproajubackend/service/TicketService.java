@@ -38,6 +38,11 @@ public class TicketService implements TicketInterface {
     private AdminRepository adminRepository;
 
     @Override
+    public TicketResponseDTO getTicketDetails(Long ticketId) {
+        return null;
+    }
+
+    @Override
     public Tickets createTicket(TicketRequestDTO requestDTO) {
         return null;
     }
@@ -131,17 +136,18 @@ public class TicketService implements TicketInterface {
         return responseDTOList;
     }
 
-    private String getAdminFullName(@NotNull Admin admin) {
-        return admin.getFirstName() + " " + admin.getLastName();
-    }
-
     @Override
     public List<TicketResponseDTO> getAllTickets() {
         return List.of();
     }
 
     @Override
-    public Tickets getTicketDetails(Long ticketId) {
+    public TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO) {
         return null;
     }
+
+    private String getAdminFullName(@NotNull Admin admin) {
+        return admin.getFirstName() + " " + admin.getLastName();
+    }
+
 }
