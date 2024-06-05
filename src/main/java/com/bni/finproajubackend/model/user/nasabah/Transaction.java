@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.model.user.nasabah;
 
+import com.bni.finproajubackend.model.bank.Bank;
 import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -20,6 +21,10 @@ public class Transaction {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "bank_id", referencedColumnName = "id")
+    private Bank bank;
 
     @ManyToOne
     @JoinColumn(name = "rekening_id", referencedColumnName = "id")

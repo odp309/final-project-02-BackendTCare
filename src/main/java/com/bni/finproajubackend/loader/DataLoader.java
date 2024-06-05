@@ -1,7 +1,10 @@
 package com.bni.finproajubackend.loader;
+
+import com.bni.finproajubackend.model.bank.Bank;
 import com.bni.finproajubackend.model.enumobject.Gender;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Admin;
@@ -16,7 +19,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.Optional;
 
 @Component
@@ -28,18 +30,20 @@ public class DataLoader {
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
     private final AccountRepository accountRepository;
-//    private final TransactionRepository transactionRepository;
-//    private final TicketsRepository ticketsRepository;
+    private final TransactionRepository transactionRepository;
+    private final BankRepository bankRepository;
+    private final TicketsRepository ticketsRepository;
 
-    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, TicketsRepository ticketsRepository) {
+    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, BankRepository bankRepository, TicketsRepository ticketsRepository) {
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.nasabahRepository = nasabahRepository;
         this.accountRepository = accountRepository;
-//        this.transactionRepository = transactionRepository;
-//        this.ticketsRepository = ticketsRepository;
+        this.transactionRepository = transactionRepository;
+        this.bankRepository = bankRepository;
+        this.ticketsRepository = ticketsRepository;
     }
 
     @Bean
@@ -47,29 +51,23 @@ public class DataLoader {
         return args -> {
             loadAdmin();
             loadNasabah();
-            loadAccount();
-            //loadTransaction();
-            //loadTickets();
         };
     }
 
-    private void loadAdmin(){
+    private void loadAdmin() {
         Optional<User> existingUser = Optional.ofNullable(userRepository.findByUsername("admin"));
         if (existingUser.isPresent()) {
             return;
         }
 
-        // Menambahkan role
         Role role = new Role();
         role.setRoleName("admin");
         role.setRoleDescription("Role untuk admin");
         roleRepository.save(role);
 
-        // Menambahkan user
         User user = new User("admin", passwordEncoder.encode("123456"));
         userRepository.save(user);
 
-        // Menambahkan admin
         Admin admin = new Admin();
         admin.setNpp("T094459");
         admin.setFirstName("aju");
@@ -85,20 +83,17 @@ public class DataLoader {
 
         user.setAdmin(admin);
         userRepository.save(user);
-
     }
 
-    private void loadNasabah(){
+    private void loadNasabah() {
         Optional<User> existingUser = Optional.ofNullable(userRepository.findByUsername("dimas"));
         if (existingUser.isPresent()) {
             return;
         }
 
-        // Menambahkan user
         User user = new User("dimas", passwordEncoder.encode("123456"));
         userRepository.save(user);
 
-        // Menambahkan nasabah
         Nasabah nasabah = new Nasabah();
         nasabah.setAddress("Balige");
         nasabah.setAge(24);
@@ -112,47 +107,65 @@ public class DataLoader {
 
         nasabahRepository.save(nasabah);
 
-    }
-
-    private void loadAccount(){
-
-        Optional<Nasabah> existingNasabah = nasabahRepository.findByEmail("daji18201@gmail.com");
-        if (existingNasabah.isPresent()) {
-            return;
-        }
-        Nasabah nasabah = existingNasabah.get();
-
-        // Menambahkan account
         Account account = new Account();
         account.setNasabah(nasabah);
         account.setType("Rekening Tabungan");
         account.setAccount_number("1234567890");
-        account.setBalance(1000000L); // Initial balance, can be any value
+        account.setBalance(1000000L);
         account.setCreatedAt(LocalDateTime.now());
         account.setUpdatedAt(LocalDateTime.now());
 
         accountRepository.save(account);
+
+        Bank bank = loadBank();
+
+        Transaction transaction1 = loadTransaction(account, bank, "Top Up Dana", 500000L, "Berhasil", TransactionCategories.TopUp);
+        Transaction transaction2 = loadTransaction(account, bank, "Transfer ke Rekening Lain", 250000L, "Berhasil", TransactionCategories.Transfer);
+
+        loadTickets(transaction1);
+        loadTickets(transaction2);
     }
 
-//    private void loadTransaction(){
-//
-//        Optional<Account> existingAccount = accountRepository.findByAccount("1234567890");
-//        if (existingAccount.isPresent()){
-//            Account account = existingAccount.get();
-//
-//            Transaction transaction = new Transaction();
-//            transaction.setAccount(account);
-//            transaction.setDetail("Top Up Dana");
-//            transaction.setAmount(500000L);
-//            transaction.setStatus("Gagal");
-//            transaction.setUpdatedAt(LocalDateTime.now());
-//            transaction.setCreatedAt(LocalDateTime.now());
-//        }
-//    }
+    private Bank loadBank() {
+        Optional<Bank> existingBank = bankRepository.findById(1L);
+        if (existingBank.isPresent()) {
+            return existingBank.get();
+        }
 
-    private void loadTickets(){
-//        Optional<Transaction> existingTransaction = transactionRepository.
+        Bank bank = new Bank();
+        bank.setCode("009");
+        bank.setBankName("Bank Negara Indonesia");
+        bankRepository.save(bank);
+
+        return bank;
     }
 
+    private Transaction loadTransaction(Account account, Bank bank, String detail, Long amount, String status, TransactionCategories category) {
+        Transaction transaction = new Transaction();
+        transaction.setAccount(account);
+        transaction.setBank(bank);
+        transaction.setDetail(detail);
+        transaction.setAmount(amount);
+        transaction.setStatus(status);
+        transaction.setCategory(category);
+        transaction.setCreatedAt(LocalDateTime.now());
+        transaction.setUpdatedAt(LocalDateTime.now());
 
+        transactionRepository.save(transaction);
+
+        return transaction;
+    }
+
+    private void loadTickets(Transaction transaction) {
+        Tickets ticket = new Tickets();
+        ticket.setTicketNumber("TICK-" + transaction.getId());
+        ticket.setTransaction(transaction);
+        ticket.setTicketCategory(TicketCategories.valueOf(transaction.getCategory().name()));
+        ticket.setTicketStatus(TicketStatus.Dibuat);
+        ticket.setDescription("Ticket for " + transaction.getDetail());
+        ticket.setCreatedAt(LocalDateTime.now());
+        ticket.setUpdatedAt(LocalDateTime.now());
+
+        ticketsRepository.save(ticket);
+    }
 }
