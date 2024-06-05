@@ -40,6 +40,9 @@ public class Tickets {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<TicketFeedback> ticketFeedbacks;
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TicketHistory> ticketHistory;
