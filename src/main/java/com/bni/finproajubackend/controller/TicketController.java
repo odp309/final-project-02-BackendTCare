@@ -21,6 +21,17 @@ public class TicketController {
     @Autowired
     private TemplateResInterface responseService;
 
+    @PostMapping(value = "/create", produces = "application/json")
+    public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
+        try {
+            TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Ticket Created"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiFailed(null, e.getCause() == null ? "Ticket Failed Created" : e.getMessage()));
+        }
+    }
+
     @GetMapping("/all")
     public ResponseEntity getAllTickets() {
         try {
@@ -33,22 +44,17 @@ public class TicketController {
     }
 
     @GetMapping("/detail")
-    public ResponseEntity getTicketDetails(@RequestParam("ticketNumber") Long Id) {
-        Tickets ticketDetail = ticketService.getTicketDetails(Id);
-        if(ticketDetail == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok().body(ticketDetail);
-    }
-
-    @PostMapping(value = "/create", produces = "application/json")
-    public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
+    public ResponseEntity getTicketDetails(@PathVariable Long ticketId) {
         try {
-            TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
-            return ResponseEntity.ok(responseService.apiSuccess(result, "Ticket Created"));
+            TicketResponseDTO result = ticketService.getTicketDetails(ticketId);
+            if (result != null) {
+                return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
+            } else {
+                return ResponseEntity.notFound().build();
+            }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(responseService.apiFailed(null, e.getCause() == null ? "Ticket Failed Created" : e.getMessage()));
+                    .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 }
