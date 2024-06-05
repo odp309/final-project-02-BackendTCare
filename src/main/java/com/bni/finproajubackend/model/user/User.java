@@ -1,5 +1,7 @@
 package com.bni.finproajubackend.model.user;
 
+import com.bni.finproajubackend.model.user.admin.Admin;
+import com.bni.finproajubackend.model.user.nasabah.Nasabah;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +22,10 @@ public class User {
     private String password;
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
     @JsonIgnore
-    private Person person;
+    private Admin admin;
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private Nasabah nasabah;
 
     public User(String username, String password){
         this.username = username;

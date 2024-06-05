@@ -4,7 +4,10 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Getter
@@ -24,6 +27,13 @@ public class Account {
     @Column(unique = true)
     private String account_number;
     private Long balance;
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
     @OneToMany(mappedBy = "account")
+    @JsonIgnore
     private List<Transaction> transaction;
 }

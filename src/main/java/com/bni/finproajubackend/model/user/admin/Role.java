@@ -19,9 +19,4 @@ public class Role {
     private String roleName;
     @Column(name = "role_description")
     private String roleDescription;
-    @ManyToMany
-    @JoinTable(name = "role_permission",
-            joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id"))
-    private List<Permission> permissions;
 }

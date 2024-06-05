@@ -3,8 +3,8 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.controller.middleware.exceptions.InvalidUserException;
 import com.bni.finproajubackend.dto.user.UserRequestDTO;
 import com.bni.finproajubackend.interfaces.UserInterface;
-import com.bni.finproajubackend.model.user.Person;
 import com.bni.finproajubackend.model.user.User;
+import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,27 +27,27 @@ public class UserService implements UserInterface {
     public User createUser(UserRequestDTO request, Authentication authentication) {
         User loginUser = userRepository.findByUsername(authentication.getName());
 
-        if(!loginUser.getPerson().getAdmin().getRole().getPermissions().contains("addUser"))
+        if (!loginUser.getAdmin().getRole().getRoleName().equals("admin"))
             throw new InvalidUserException("Not Permitted to add User");
 
         User user = userRepository.findByUsername(request.getUsername());
 
-        if(user != null)
+        if (user != null)
             throw new InvalidUserException("Username already exist!");
 
-        Person person = new Person();
-        person.setFirstName(request.getFirstName());
-        person.setLastName(request.getLastName());
-        person.setEmail(request.getEmail());
-        person.setAge(request.getAge());
-        person.setNoHP(request.getNoHP());
-        person.setAddress(request.getAddress());
-        person.setGender(request.getGender());
+        Admin admin = new Admin();
+        admin.setFirstName(request.getFirstName());
+        admin.setLastName(request.getLastName());
+        admin.setEmail(request.getEmail());
+        admin.setAge(request.getAge());
+        admin.setNoHP(request.getNoHP());
+        admin.setAddress(request.getAddress());
+        admin.setGender(request.getGender());
 
         user = new User();
         user.setUsername(request.getUsername());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setPerson(person);
+        user.setAdmin(admin);
 
         userRepository.save(user);
 
@@ -59,7 +59,14 @@ public class UserService implements UserInterface {
         User user = userRepository.findByUsername(username);
         if (user == null) return null;
         user.setUsername(request.getUsername());
-        user.getPerson().setFirstName(request.getFirstName());
+        if (user.getAdmin() != null) {
+            user.getAdmin().setFirstName(request.getFirstName());
+            user.getAdmin().setLastName(request.getLastName());
+        }
+        if (user.getNasabah() != null) {
+            user.getNasabah().setFirstName(request.getFirstName());
+            user.getNasabah().setLastName(request.getLastName());
+        }
         userRepository.save(user);
         return user;
     }

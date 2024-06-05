@@ -26,7 +26,7 @@ public class RoleController {
 
     private Map<String, Object> errorDetails = new HashMap<>();
 
-    @RequiresPermission("getRoles")
+    @RequiresPermission("admin")
     @GetMapping(value = "", produces = "application/json")
     public ResponseEntity getRoles() {
         try {
@@ -37,7 +37,7 @@ public class RoleController {
         }
     }
 
-    @RequiresPermission("addRoles")
+    @RequiresPermission("admin")
     @PostMapping(value = "", produces = "application/json")
     public ResponseEntity createNewRole(@RequestBody RoleRequestDTO roleRequestDTO) {
         try {
@@ -48,7 +48,7 @@ public class RoleController {
         }
     }
 
-    @RequiresPermission("updateRoles")
+    @RequiresPermission("admin")
     @PutMapping(value = "/{id}", produces = "application/json")
     public ResponseEntity updateRole(@PathVariable long id, @RequestBody RoleRequestDTO roleRequestDTO) {
         try {

@@ -1,13 +1,18 @@
 package com.bni.finproajubackend.model.ticket;
 
+//import com.bni.finproajubackend.listener.TicketListener;
+import com.bni.finproajubackend.model.enumobject.TicketCategories;
+import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
 
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @Setter
@@ -22,15 +27,22 @@ public class Tickets {
     @OneToOne
     @JoinColumn(name = "transaction_id", referencedColumnName = "id")
     private Transaction transaction;
-    @ManyToOne
-    @JoinColumn(name = "ticket_category_id", referencedColumnName = "id")
+    @Column(name = "ticket_category")
     private TicketCategories ticketCategory;
-    @ManyToOne
-    @JoinColumn(name = "ticket_status_id", referencedColumnName = "id")
+    @Column(name = "ticket_status")
     private TicketStatus ticketStatus;
     @Column(name = "ticket_description")
     private String description;
+    @CreatedDate
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<TicketFeedback> ticketFeedbacks;
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TicketHistory> ticketHistory;
