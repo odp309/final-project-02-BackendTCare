@@ -33,6 +33,9 @@ public class Tickets {
     @Column(name = "date")
     private LocalDateTime createdAt;
 
+    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    @JsonIgnore
+    private List<TicketFeedback> ticketFeedbacks;
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TicketHistory> ticketHistory;
