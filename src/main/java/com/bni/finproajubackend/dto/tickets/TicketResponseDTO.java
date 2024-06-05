@@ -1,21 +1,19 @@
 package com.bni.finproajubackend.dto.tickets;
 
+import com.bni.finproajubackend.model.enumobject.TicketCategories;
+import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import lombok.Builder;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
+import java.time.LocalDateTime;
 
-@Getter
-@Setter
 @Data
 @Builder
 public class TicketResponseDTO {
 
-    private Long id;
     private String ticketNumber;
-    private Long transactionId;
-    private Long ticketCategoryId;
+    private Transaction transaction;
+    private TicketCategories ticketCategory;
     private String description;
-    private String createdAt;
+    private LocalDateTime createdAt;
 
 }

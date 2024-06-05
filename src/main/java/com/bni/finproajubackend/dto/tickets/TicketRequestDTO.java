@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.dto.tickets;
 
+import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,7 +11,7 @@ import lombok.Setter;
 public class TicketRequestDTO {
 
     private Long transactionId;
-    private Long ticketCategoryId;
+    private TicketCategories ticketCategory;
     private String description;
 
 }

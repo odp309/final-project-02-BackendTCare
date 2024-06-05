@@ -9,6 +9,7 @@ import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Admin;
+import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.bni.finproajubackend.repository.AdminRepository;
 import com.bni.finproajubackend.repository.TicketsHistoryRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
@@ -20,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -30,6 +32,8 @@ public class TicketService implements TicketInterface {
 
     @Autowired
     private TicketsHistoryRepository ticketsHistoryRepository;
+    @Autowired
+    private TransactionRepository transactionRepository;
     @Autowired
     private TicketsRepository ticketsRepository;
     @Autowired
@@ -42,17 +46,36 @@ public class TicketService implements TicketInterface {
         return null;
     }
 
-    @Override
-    public Tickets createTicket(TicketRequestDTO requestDTO) {
-        return null;
-    }
+    public String createTicketNumber(Transaction transaction) {
+        String categoryCode = "";
+        switch ("Transfer") {
+            case "Transfer":
+                categoryCode = "TF"; // ID kategori 1 untuk Gagal Transfer
+                break;
+            case "TopUp":
+                categoryCode = "TU"; // ID kategori 2 untuk Gagal Top Up
+                break;
+            case "Payment":
+                categoryCode = "PY"; // ID kategori 3 untuk Gagal Pembayaran
+                break;
+            default:
+                categoryCode = ""; // ID kategori tidak valid
+        }
 
-    @Override
-    public String generateTicketNumber(Tickets ticket) {
-        return String.valueOf(ticket.getCreatedAt().getYear()) +
-                String.format("%02d", ticket.getCreatedAt().getMonthValue()) +
-                String.format("%02d", ticket.getCreatedAt().getDayOfMonth()) +
-                ticket.getTransaction();
+        Date createdAt = new Date();
+        String year = String.valueOf(createdAt.getYear());
+        String month = String.format("%02d", createdAt.getMonth());
+        String day = String.format("%02d", createdAt.getDay());
+
+        String transactionId = String.valueOf(transaction);
+
+        String ticketNumber = categoryCode + year + month + day + transactionId;
+
+        if (ticketNumber.length() > 15) {
+            ticketNumber = ticketNumber.substring(0, 15);
+        }
+
+        return ticketNumber;
     }
 
     @Override
@@ -138,15 +161,29 @@ public class TicketService implements TicketInterface {
 
     @Override
     public List<TicketResponseDTO> getAllTickets() {
-        return List.of();
+        return getAllTickets();
     }
 
     @Override
     public TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO) {
-        return null;
+        Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransactionId());
+        Tickets ticket = new Tickets();
+        ticket.setTicketNumber(createTicketNumber(transaction));
+        ticket.setTransaction(transaction);
+        ticket.setTicketCategory(ticketRequestDTO.getTicketCategory());
+        ticket.setDescription(ticketRequestDTO.getDescription());
+        ticketsRepository.save(ticket);
+
+        return TicketResponseDTO.builder()
+                .ticketNumber(ticket.getTicketNumber())
+                .transaction(ticket.getTransaction())
+                .ticketCategory(ticket.getTicketCategory())
+                .description(ticket.getDescription())
+                .createdAt(ticket.getCreatedAt())
+                .build();
     }
 
-    private String getAdminFullName(@NotNull Admin admin) {
+    public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
     }
 
