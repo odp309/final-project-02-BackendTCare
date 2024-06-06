@@ -19,6 +19,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.Optional;
 
 @Component
@@ -157,15 +158,46 @@ public class DataLoader {
     }
 
     private void loadTickets(Transaction transaction) {
-        Tickets ticket = new Tickets();
-        ticket.setTicketNumber("TICK-" + transaction.getId());
-        ticket.setTransaction(transaction);
-        ticket.setTicketCategory(TicketCategories.valueOf(transaction.getCategory().name()));
-        ticket.setTicketStatus(TicketStatus.Dibuat);
-        ticket.setDescription("Ticket for " + transaction.getDetail());
-        ticket.setCreatedAt(LocalDateTime.now());
-        ticket.setUpdatedAt(LocalDateTime.now());
+        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
+                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
+                : TicketCategories.Transfer;
+
+        Tickets ticket = Tickets.builder()
+                .ticketNumber(createTicketNumber(transaction))
+                .transaction(transaction)
+                .ticketCategory(categories)
+                .ticketStatus(TicketStatus.Dibuat)
+                .description("Ticket for " + transaction.getDetail())
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
 
         ticketsRepository.save(ticket);
     }
+
+
+    public String createTicketNumber(Transaction transaction) {
+        String categoryCode = switch (transaction.getCategory()) {
+            case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
+            case TopUp -> "TU"; // ID kategori 2 untuk Gagal Top Up
+            case Payment -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
+            default -> ""; // ID kategori tidak valid
+        };
+
+        LocalDateTime createdAt = transaction.getCreatedAt();
+        String year = String.valueOf(createdAt.getYear()); // Mengambil dua digit terakhir dari tahun
+        String month = String.format("%02d", createdAt.getMonthValue());
+        String day = String.format("%02d", createdAt.getDayOfMonth());
+
+        String transactionId = String.valueOf(transaction.getId());
+        String baseTicketNumber = categoryCode + year + month + day + transactionId;
+
+        if (baseTicketNumber.length() < 15) {
+            int zerosToAdd = 15 - baseTicketNumber.length();
+            transactionId = "0".repeat(zerosToAdd) + transactionId;
+        }
+
+        return categoryCode + year + month + day + transactionId;
+    }
+
 }

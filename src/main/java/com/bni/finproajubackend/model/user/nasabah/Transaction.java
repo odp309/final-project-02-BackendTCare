@@ -3,6 +3,7 @@ package com.bni.finproajubackend.model.user.nasabah;
 import com.bni.finproajubackend.model.bank.Bank;
 import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -46,12 +47,12 @@ public class Transaction {
     @OneToOne(mappedBy = "transaction")
     @JsonIgnore
     private Tickets tickets;
-
     @CreatedDate
     @Column(name = "created_at", updatable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
-
     @LastModifiedDate
     @Column(name = "updated_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 }

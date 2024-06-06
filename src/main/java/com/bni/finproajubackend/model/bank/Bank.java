@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.model.bank;
 
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,5 +25,6 @@ public class Bank {
     private String bankName;
 
     @OneToMany(mappedBy = "bank")
+    @JsonIgnore
     private List<Transaction> transactions;
 }
