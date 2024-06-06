@@ -250,7 +250,7 @@ public class TicketService implements TicketInterface {
         // Create PaginationDTO
 
         return PaginationDTO.<TicketResponseDTO>builder()
-                .result(ticketResponseDTOList)
+                .data(ticketResponseDTOList)
                 .currentPage(ticketsPage.getNumber())
                 .currentItem(ticketsPage.getNumberOfElements())
                 .totalPage(ticketsPage.getTotalPages())
