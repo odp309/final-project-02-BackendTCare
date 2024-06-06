@@ -117,7 +117,7 @@ public class TicketService implements TicketInterface {
 
     @Override
     public TicketResponseDTO getTicketDetails(String ticketNumber) {
-        Tickets ticket = ticketsRepository.findTicketById(ticketNumber);
+        Tickets ticket = ticketsRepository.findByTicket(ticketNumber);
         if (ticket == null) {
             return null;
         }
@@ -295,7 +295,6 @@ public class TicketService implements TicketInterface {
                 .createdAt(savedTicket.getCreatedAt())
                 .build();
     }
-
 
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();

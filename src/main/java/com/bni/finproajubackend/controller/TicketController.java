@@ -79,6 +79,7 @@ public class TicketController {
                     .body(responseService.apiFailed(null, e.getMessage()));
         }
     }
+
     @GetMapping("ticket/detail/{ticketNumber}")
     public ResponseEntity getTicketDetails(@PathVariable String ticketNumber) {
         try {
