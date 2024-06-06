@@ -158,10 +158,14 @@ public class DataLoader {
     }
 
     private void loadTickets(Transaction transaction) {
+        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
+                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
+                : TicketCategories.Transfer;
+
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
-                .ticketCategory(transaction.getTickets().getTicketCategory())
+                .ticketCategory(categories)
                 .ticketStatus(TicketStatus.Dibuat)
                 .description("Ticket for " + transaction.getDetail())
                 .createdAt(LocalDateTime.now())
