@@ -3,6 +3,7 @@ package com.bni.finproajubackend.model.ticket;
 //import com.bni.finproajubackend.listener.TicketListener;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
