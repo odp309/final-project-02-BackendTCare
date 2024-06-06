@@ -31,6 +31,7 @@ public class Tickets {
     @JoinColumn(name = "transaction_id", referencedColumnName = "id")
     private Transaction transaction;
     @Column(name = "ticket_category")
+    @Enumerated(EnumType.STRING)
     private TicketCategories ticketCategory;
     @Column(name = "ticket_status")
     private TicketStatus ticketStatus;

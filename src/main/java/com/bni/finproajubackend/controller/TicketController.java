@@ -21,7 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/private/ticket")
+@RequestMapping("/api/v1/private")
 public class TicketController {
 
     @Autowired
@@ -56,16 +56,31 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/all")
-    public ResponseEntity getAllTickets() {
+    @GetMapping("/admin/ticket-reports")
+    public ResponseEntity getAllTickets(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String start_date,
+            @RequestParam(required = false) String end_date,
+            @RequestParam(required = false) String ticket_number,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false, defaultValue = "created_at") String sort_by,
+            @RequestParam(required = false, defaultValue = "asc") String order
+    ) {
         try {
-            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(0, 20);
-            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get list of tickets"));
+            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date, end_date, ticket_number, page, limit, sort_by, order);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(responseService.apiFailed(null, e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(responseService.apiFailed(null, e.getMessage()));
         }
     }
+
 
     @GetMapping("/detail")
     public ResponseEntity getTicketDetails(@PathVariable Long ticketId) {

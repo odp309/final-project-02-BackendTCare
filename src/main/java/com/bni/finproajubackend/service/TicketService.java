@@ -2,6 +2,7 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
+import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
@@ -25,7 +26,9 @@ import com.bni.finproajubackend.repository.TicketsHistoryRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
+import jakarta.persistence.criteria.Predicate;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -159,11 +162,82 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public PaginationDTO<TicketResponseDTO> getAllTickets(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "20") int size) {
-        Pageable pageable = PageRequest.of(page, size);
-        Page<Tickets> ticketsPage = ticketsRepository.findAll(pageable);
+    public PaginationDTO<TicketResponseDTO> getAllTickets(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String start_date,
+            @RequestParam(required = false) String end_date,
+            @RequestParam(required = false) String ticket_number,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false, defaultValue = "created_at") String sort_by,
+            @RequestParam(required = false, defaultValue = "asc") String order
+    ) {
+        // Build pageable object for pagination
+        Pageable pageable = PageRequest.of(page, limit);
 
-        List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.stream()
+        // Convert start_date and end_date to LocalDateTime objects
+        LocalDateTime startDate;
+        LocalDateTime endDate;
+        if (start_date != null && end_date != null) {
+            startDate = LocalDateTime.parse(start_date + "T00:00:00");
+            endDate = LocalDateTime.parse(end_date + "T23:59:59");
+            if (endDate.isBefore(startDate)) {
+                throw new IllegalArgumentException("End date must be bigger than or equal to start date");
+            }
+        } else {
+            endDate = null;
+            startDate = null;
+        }
+
+        // Create Specification for filtering
+        Specification<Tickets> spec = (root, query, builder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            // Filter by category
+            if (category != null) {
+                // Convert String category to TicketCategories enum
+                TicketCategories ticketCategoryEnum = switch (category){
+                    case "\"Gagal Transfer\"" -> TicketCategories.Transfer;
+                    case "\"Gagal TopUp\"" -> TicketCategories.TopUp;
+                    case "\"Gagal Payment\"" -> TicketCategories.Payment;
+                    default -> null;
+                };
+
+                predicates.add(builder.equal(root.get("ticketCategory"), ticketCategoryEnum));
+            }
+
+            // Filter by rating
+            if (rating != null) {
+                // Assuming rating is a field in Tickets entity
+                predicates.add(builder.equal(root.get("rating"), rating));
+            }
+
+            // Filter by status
+            if (status != null) {
+                // Assuming status is a field in Tickets entity
+                predicates.add(builder.equal(root.get("status"), status));
+            }
+
+            // Filter by ticket created at
+            if (startDate != null && endDate != null) {
+                predicates.add(builder.between(root.get("createdAt"), startDate, endDate));
+            }
+
+            // Search by ticket number
+            if (ticket_number != null) {
+                predicates.add(builder.equal(root.get("ticketNumber"), ticket_number));
+            }
+
+            return builder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        // Perform query with Specification and pageable
+        Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
+
+        // Convert Page<Tickets> to List<TicketResponseDTO>
+        List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketResponseDTO.builder()
                         .ticketNumber(ticket.getTicketNumber())
                         .transaction(ticket.getTransaction())
@@ -173,7 +247,9 @@ public class TicketService implements TicketInterface {
                         .build())
                 .collect(Collectors.toList());
 
-        return PaginationDTO.<TicketResponseDTO>builder() // Menggunakan builder untuk membuat PaginationDTO
+        // Create PaginationDTO
+
+        return PaginationDTO.<TicketResponseDTO>builder()
                 .result(ticketResponseDTOList)
                 .currentPage(ticketsPage.getNumber())
                 .currentItem(ticketsPage.getNumberOfElements())

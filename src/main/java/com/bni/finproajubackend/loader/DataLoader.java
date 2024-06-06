@@ -158,10 +158,18 @@ public class DataLoader {
     }
 
     private void loadTickets(Transaction transaction) {
+        TransactionCategories category = transaction.getCategory();
+
+        TicketCategories ticketCategories = switch (category) {
+            case Transfer -> TicketCategories.Transfer;
+            case Payment -> TicketCategories.Payment;
+            case TopUp -> TicketCategories.TopUp;
+        };
+
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
-                .ticketCategory(transaction.getTickets().getTicketCategory())
+                .ticketCategory(ticketCategories)
                 .ticketStatus(TicketStatus.Dibuat)
                 .description("Ticket for " + transaction.getDetail())
                 .createdAt(LocalDateTime.now())
