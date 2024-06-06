@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.repository;
 
+import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.repository.JpaRepository;

@@ -132,6 +132,7 @@ public class TicketService implements TicketInterface {
                 .build();
     }
 
+    @Override
     public String createTicketNumber(Transaction transaction) {
         String categoryCode = switch (transaction.getCategory()) {
             case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
