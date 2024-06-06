@@ -43,7 +43,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, err.getCause() == null ? "Something went wrong" : err.getMessage()));
         }
     }
-    @PostMapping(value = "/create", produces = "application/json")
+    @PostMapping(value = "/ticket/create", produces = "application/json")
     public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         try {
             TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
@@ -79,10 +79,10 @@ public class TicketController {
                     .body(responseService.apiFailed(null, e.getMessage()));
         }
     }
-    @GetMapping("/detail")
-    public ResponseEntity getTicketDetails(@PathVariable Long ticketId) {
+    @GetMapping("ticket/detail/{ticketNumber}")
+    public ResponseEntity getTicketDetails(@PathVariable String ticketNumber) {
         try {
-            TicketResponseDTO result = ticketService.getTicketDetails(ticketId);
+            TicketResponseDTO result = ticketService.getTicketDetails(ticketNumber);
             if (result == null)
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));

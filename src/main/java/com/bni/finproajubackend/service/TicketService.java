@@ -116,8 +116,20 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public TicketResponseDTO getTicketDetails(Long ticketId) {
-        return null;
+    public TicketResponseDTO getTicketDetails(String ticketNumber) {
+        Tickets ticket = ticketsRepository.findTicketById(ticketNumber);
+        if (ticket == null) {
+            return null;
+        }
+
+        return TicketResponseDTO.builder()
+                .ticketNumber(ticket.getTicketNumber())
+                .ticketCategory(ticket.getTicketCategory())
+                .createdAt(ticket.getCreatedAt())
+                .transaction(ticket.getTransaction())
+                .status(ticket.getTicketStatus())
+                .description(ticket.getDescription())
+                .build();
     }
 
     public String createTicketNumber(Transaction transaction) {
@@ -129,7 +141,7 @@ public class TicketService implements TicketInterface {
         };
 
         LocalDateTime createdAt = transaction.getCreatedAt();
-        String year = String.valueOf(createdAt.getYear()); // Mengambil dua digit terakhir dari tahun
+        String year = String.valueOf(createdAt.getYear());
         String month = String.format("%02d", createdAt.getMonthValue());
         String day = String.format("%02d", createdAt.getDayOfMonth());
 
