@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.controller;
 
+import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.annotation.RequiresPermission;
@@ -18,10 +19,9 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/private")
+@RequestMapping("/api/v1/private/ticket")
 public class TicketController {
 
     @Autowired
@@ -59,7 +59,7 @@ public class TicketController {
     @GetMapping("/all")
     public ResponseEntity getAllTickets() {
         try {
-            List<TicketResponseDTO> result = ticketService.getAllTickets();
+            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(0, 20);
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get list of tickets"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
@@ -71,11 +71,9 @@ public class TicketController {
     public ResponseEntity getTicketDetails(@PathVariable Long ticketId) {
         try {
             TicketResponseDTO result = ticketService.getTicketDetails(ticketId);
-            if (result != null) {
-                return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
-            } else {
+            if (result == null)
                 return ResponseEntity.notFound().build();
-            }
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));

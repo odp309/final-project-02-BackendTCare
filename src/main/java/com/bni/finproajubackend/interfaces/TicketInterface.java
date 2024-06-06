@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.interfaces;
 
+import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
@@ -16,7 +17,7 @@ public interface TicketInterface {
     Tickets updateTicketStatus(Long ticketId, TicketStatus status, Authentication authentication);
     TicketResponseDTO getTicketDetails(Long ticketId);
     List<TicketHistoryResponseDTO> getTicketHistory(long id);
-    List<TicketResponseDTO> getAllTickets();
+    PaginationDTO<TicketResponseDTO> getAllTickets(int page, int size);
     TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO);
     String getAdminFullName(@NotNull Admin admin);
 }
