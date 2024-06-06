@@ -80,7 +80,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("ticket/detail/{ticketNumber}")
+    @GetMapping("/ticket/detail/{ticketNumber}")
     public ResponseEntity getTicketDetails(@PathVariable String ticketNumber) {
         try {
             TicketResponseDTO result = ticketService.getTicketDetails(ticketNumber);

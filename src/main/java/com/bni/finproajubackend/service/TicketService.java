@@ -117,7 +117,7 @@ public class TicketService implements TicketInterface {
 
     @Override
     public TicketResponseDTO getTicketDetails(String ticketNumber) {
-        Tickets ticket = ticketsRepository.findByTicket(ticketNumber);
+        Tickets ticket = ticketsRepository.findTicketById(ticketNumber);
         if (ticket == null) {
             return null;
         }
