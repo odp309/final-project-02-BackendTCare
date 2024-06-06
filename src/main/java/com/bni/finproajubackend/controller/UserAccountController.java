@@ -1,6 +1,5 @@
 package com.bni.finproajubackend.controller;
 
-import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.userAccount.UserAccountDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.service.UserAccountService;
@@ -29,9 +28,8 @@ public class UserAccountController {
     public ResponseEntity getUserAccountDetail(Authentication authentication){
         try {
             UserAccountDTO userAccountDTO = userAccountService.getUserAccount(authentication);
-            if(userAccountDTO == null){
+            if(userAccountDTO == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null,"Data not found"));
-            }
             return ResponseEntity.ok(responseService.apiSuccess(userAccountDTO, "Success get data"));
         }
         catch (Exception e){
