@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.interfaces.TicketInterface;
+import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
@@ -29,6 +30,10 @@ import java.util.Date;
 import java.util.List;
 import java.time.LocalDate;
 import java.util.Optional;
+
+import static com.bni.finproajubackend.model.enumobject.TicketCategories.*;
+import static com.bni.finproajubackend.model.enumobject.TransactionCategories.Payment;
+import static com.bni.finproajubackend.model.enumobject.TransactionCategories.Transfer;
 
 @Service
 public class TicketService implements TicketInterface {
@@ -110,39 +115,26 @@ public class TicketService implements TicketInterface {
 
     @Override
     public TicketResponseDTO getTicketDetails(Long ticketId) {
-        return null;
+        return null; // Your implementation here
     }
 
     public String createTicketNumber(Transaction transaction) {
-        String categoryCode = "";
-        switch ("Transfer") {
-            case "Transfer":
-                categoryCode = "TF"; // ID kategori 1 untuk Gagal Transfer
-                break;
-            case "TopUp":
-                categoryCode = "TU"; // ID kategori 2 untuk Gagal Top Up
-                break;
-            case "Payment":
-                categoryCode = "PY"; // ID kategori 3 untuk Gagal Pembayaran
-                break;
-            default:
-                categoryCode = ""; // ID kategori tidak valid
-        }
+        TicketCategories categoryCode = switch ("") {
+            case GagalTransfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
+            case GagalTopUp -> "TU"; // ID kategori 2 untuk Gagal Top Up
+            case GagalPembayaran -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
+        };
 
-        Date createdAt = new Date();
+        LocalDateTime createdAt = LocalDateTime.now();
         String year = String.valueOf(createdAt.getYear());
-        String month = String.format("%02d", createdAt.getMonth());
-        String day = String.format("%02d", createdAt.getDay());
+        String month = String.format("%02d", createdAt.getMonthValue());
+        String day = String.format("%02d", createdAt.getDayOfMonth());
 
-        String transactionId = String.valueOf(transaction);
+        String transactionId = String.valueOf(transaction.getId());
 
         String ticketNumber = categoryCode + year + month + day + transactionId;
 
-        if (ticketNumber.length() > 15) {
-            ticketNumber = ticketNumber.substring(0, 15);
-        }
-
-        return ticketNumber;
+        return ticketNumber.length() > 15 ? ticketNumber.substring(0, 15) : ticketNumber;
     }
 
     @Override

@@ -45,7 +45,7 @@ public class TicketController {
         }
     }
 
-    @PostMapping(value = "/create", produces = "application/json")
+    @PostMapping(value = "/ticket/create", produces = "application/json")
     public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         try {
             TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
@@ -56,7 +56,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/all")
+    @GetMapping("/ticket/all")
     public ResponseEntity getAllTickets() {
         try {
             List<TicketResponseDTO> result = ticketService.getAllTickets();
@@ -67,8 +67,8 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/detail")
-    public ResponseEntity getTicketDetails(@PathVariable Long ticketId) {
+    @GetMapping("/ticket/detail/{ticketNumber}")
+    public ResponseEntity getTicketDetails(@PathVariable("ticketNumber") Long ticketId) {
         try {
             TicketResponseDTO result = ticketService.getTicketDetails(ticketId);
             if (result != null) {
