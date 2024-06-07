@@ -120,11 +120,10 @@ public class DataLoader {
 
         Bank bank = loadBank();
 
-        Transaction transaction1 = loadTransaction(account, bank, "Top Up Dana", 500000L, "Berhasil", TransactionCategories.TopUp);
-        Transaction transaction2 = loadTransaction(account, bank, "Transfer ke Rekening Lain", 250000L, "Berhasil", TransactionCategories.Transfer);
-
-        loadTickets(transaction1);
-        loadTickets(transaction2);
+        for (int i = 1; i <= 50; i++) {
+            Transaction transaction = loadTransaction(account, bank, "Transaction " + i, 500000L + i, "Berhasil", TransactionCategories.values()[i % TransactionCategories.values().length]);
+            loadTickets(transaction);
+        }
     }
 
     private Bank loadBank() {
