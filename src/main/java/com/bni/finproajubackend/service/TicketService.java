@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
@@ -175,11 +176,18 @@ public class TicketService implements TicketInterface {
             @RequestParam(required = false) String ticket_number,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false, defaultValue = "created_at") String sort_by,
+            @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
+
+        // Determine sort direction
+        Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+
+        if (sort_by.equalsIgnoreCase("ticket_number"))
+            sort_by = "ticketNumber";
+
         // Build pageable object for pagination
-        Pageable pageable = PageRequest.of(page, limit);
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, sort_by));
 
         // Define date formatter
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -250,7 +258,7 @@ public class TicketService implements TicketInterface {
                 .map(ticket -> TicketResponseDTO.builder()
                         .id(ticket.getId())
                         .ticket_number(ticket.getTicketNumber())
-                        .category(switch (ticket.getTicketCategory()){
+                        .category(switch (ticket.getTicketCategory()) {
                             case Transfer -> "Gagal Transfer";
                             case TopUp -> "Gagal TopUp";
                             case Payment -> "Gagal Payment";
@@ -267,11 +275,11 @@ public class TicketService implements TicketInterface {
                             default -> 4;
                         })
                         .created_at(ticket.getCreatedAt())
-                        .updated_at(ticket.getCreatedAt())
+                        .updated_at(ticket.getUpdatedAt())
                         .build())
                 .collect(Collectors.toList());
 
-        if(ticketResponseDTOList.isEmpty())
+        if (ticketResponseDTOList.isEmpty())
             return null;
         // Create PaginationDTO
 
@@ -316,7 +324,7 @@ public class TicketService implements TicketInterface {
         return TicketResponseDTO.builder()
                 .id(savedTicket.getId())
                 .ticket_number(savedTicket.getTicketNumber())
-                .category(switch (ticket.getTicketCategory()){
+                .category(switch (ticket.getTicketCategory()) {
                     case Transfer -> "Gagal Transfer";
                     case TopUp -> "Gagal TopUp";
                     case Payment -> "Gagal Payang";
