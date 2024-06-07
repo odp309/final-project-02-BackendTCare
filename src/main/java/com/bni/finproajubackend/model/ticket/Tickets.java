@@ -1,10 +1,9 @@
 package com.bni.finproajubackend.model.ticket;
 
 //import com.bni.finproajubackend.listener.TicketListener;
-import com.bni.finproajubackend.model.enumobject.DivisiTarget;
+import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
-import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -38,7 +37,7 @@ public class Tickets {
     @Column(name = "ticket_status")
     private TicketStatus ticketStatus;
     @Column(name = "divisi_target")
-    private DivisiTarget divisiTarget;
+    private DivisionTarget divisionTarget;
     @Column(name = "ticket_description")
     private String description;
     @CreatedDate

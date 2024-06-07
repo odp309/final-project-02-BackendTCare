@@ -2,9 +2,7 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
-import com.bni.finproajubackend.model.enumobject.StarRating;
-import com.bni.finproajubackend.model.enumobject.TicketCategories;
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.enumobject.*;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
@@ -58,48 +56,51 @@ public class TicketService implements TicketInterface {
     private EmailService emailService;
 
     @Transactional
-    public Tickets updateTicketStatus(Long ticketId, TicketStatus status, Authentication authentication) {
+    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) {
         Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
         TicketStatus oldStatus = ticket.getTicketStatus();
-        ticket.setTicketStatus(status);
-        ticketsRepository.save(ticket);
+        if (oldStatus != TicketStatus.Selesai){
+            TicketStatus nextStatus = oldStatus == TicketStatus.Diajukan ? TicketStatus.DalamProses
+                    : TicketStatus.Selesai;
 
-        // Get admin details from authentication
-        String username = authentication.getName();
-        Admin admin = adminRepository.findByUsername(username);
+            ticket.setTicketStatus(nextStatus);
+            ticketsRepository.save(ticket);
 
-        if (admin == null)
-            throw new RuntimeException("User not found");
+            // Get admin details from authentication
+            String username = authentication.getName();
+            Admin admin = adminRepository.findByUsername(username);
 
-        Long statusLevel = getStatusLevel(ticket.getTicketStatus());
+            if (admin == null)
+                throw new RuntimeException("User not found");
 
-        // Create a new ticket history entry
-        TicketHistory ticketHistory = new TicketHistory();
-        ticketHistory.setTicket(ticket);
-        ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + status);
-        ticketHistory.setDate(new Date());
-        ticketHistory.setLevel(statusLevel);
-        ticketHistory.setCreatedAt(LocalDateTime.now());
-        ticketHistory.setUpdatedAt(LocalDateTime.now());
-        ticketHistoryRepository.save(ticketHistory);
+            Long statusLevel = getStatusLevel(ticket.getTicketStatus());
 
-        // Handle TicketResponseTime when status is Ditutup
-        if (status == TicketStatus.Ditutup) {
-            handleTicketResponseTime(ticket);
+            // Create a new ticket history entry
+            TicketHistory ticketHistory = new TicketHistory();
+            ticketHistory.setTicket(ticket);
+            ticketHistory.setAdmin(admin);
+            ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + nextStatus);
+            ticketHistory.setDate(new Date());
+            ticketHistory.setLevel(statusLevel);
+            ticketHistory.setCreatedAt(LocalDateTime.now());
+            ticketHistory.setUpdatedAt(LocalDateTime.now());
+            ticketHistoryRepository.save(ticketHistory);
+
+            // Handle TicketResponseTime when status is Ditutup
+            if (nextStatus == TicketStatus.Selesai) {
+                handleTicketResponseTime(ticket);
+            }
+
+            // Send email notification
+            emailService.sendNotification(ticket);
         }
-
-        // Send email notification
-        emailService.sendNotification(ticket);
 
         return ticket;
     }
 
     private Long getStatusLevel(TicketStatus status) {
-        return status == TicketStatus.Dibuat ? 1L :
-                status == TicketStatus.Diajukan ? 2L :
-                        status == TicketStatus.DalamProses ? 3L :
-                                status == TicketStatus.Selesai ? 4L : 5L;
+        return status == TicketStatus.Diajukan ? 1L :
+                status == TicketStatus.DalamProses ? 2L : 3L;
     }
 
     private void handleTicketResponseTime(Tickets ticket) {
@@ -246,7 +247,7 @@ public class TicketService implements TicketInterface {
                         .category(ticket.getTicketCategory())
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
                         .status(ticket.getTicketStatus())
-                        .divisiTarget(ticket.getDivisiTarget())
+                        .division_target(ticket.getDivisionTarget())
                         .rating(switch (ticket.getTicketFeedbacks() == null ? StarRating.Empat : ticket.getTicketFeedbacks().getStarRating()) {
                             case Satu -> 1;
                             case Dua -> 2;
@@ -275,17 +276,29 @@ public class TicketService implements TicketInterface {
         Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransactionId())
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
 
+        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
+                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
+                : TicketCategories.Transfer;
+
+        DivisionTarget divisiTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisionTarget.DGO
+                : transaction.getCategory() == TransactionCategories.TopUp ? DivisionTarget.WPP
+                : DivisionTarget.CXC;
+
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
-                .ticketCategory(ticketRequestDTO.getTicketCategory())
+                .ticketCategory(categories)
                 .description(ticketRequestDTO.getDescription())
-                .ticketStatus(TicketStatus.Dibuat)
+                .divisionTarget(divisiTarget)
+                .ticketStatus(TicketStatus.Diajukan)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
 
         Tickets savedTicket = ticketsRepository.save(ticket);
+
+        // Load ticket history
+        createTicketHistory(savedTicket);
 
         return TicketResponseDTO.builder()
                 .id(savedTicket.getId())
@@ -293,7 +306,7 @@ public class TicketService implements TicketInterface {
                 .category(savedTicket.getTicketCategory())
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
                 .status(savedTicket.getTicketStatus())
-                .divisiTarget(savedTicket.getDivisiTarget())
+                .division_target(savedTicket.getDivisionTarget())
                 .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
                     case Satu -> 1;
                     case Dua -> 2;
@@ -306,6 +319,20 @@ public class TicketService implements TicketInterface {
                 .build();
     }
 
+    private void createTicketHistory(Tickets ticket) {
+        Admin admin = adminRepository.findByUsername("admin");
+
+        TicketHistory ticketHistory = new TicketHistory();
+        ticketHistory.setTicket(ticket);
+        ticketHistory.setAdmin(admin);
+        ticketHistory.setDescription("Ticket created with status " + ticket.getTicketStatus());
+        ticketHistory.setDate(new Date());
+        ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
+        ticketHistory.setCreatedAt(LocalDateTime.now());
+        ticketHistory.setUpdatedAt(LocalDateTime.now());
+
+        ticketHistoryRepository.save(ticketHistory);
+    }
 
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();

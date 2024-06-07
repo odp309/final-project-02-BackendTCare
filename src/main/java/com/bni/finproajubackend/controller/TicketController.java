@@ -33,9 +33,9 @@ public class TicketController {
 
     @RequiresPermission("admin")
     @PatchMapping("/{id}/update-status")
-    public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, @RequestBody TicketStatusUpdateDTO dto, Authentication authentication) {
+    public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, Authentication authentication) {
         try {
-            Tickets result = ticketService.updateTicketStatus(id, dto.getStatus(), authentication);
+            Tickets result = ticketService.updateTicketStatus(id, authentication);
             TicketStatus ticketStatus = result.getTicketStatus();
             TicketStatusResponseDTO responseDTO = new TicketStatusResponseDTO(ticketStatus);
             return ResponseEntity.ok(responseService.apiSuccess(responseDTO, "Successfully updated ticket status."));
@@ -56,7 +56,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/admin/ticket-reports")
+    @GetMapping("  ")
     public ResponseEntity getAllTickets(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
