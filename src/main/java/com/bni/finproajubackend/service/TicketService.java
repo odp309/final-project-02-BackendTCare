@@ -2,6 +2,7 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
+import com.bni.finproajubackend.model.enumobject.StarRating;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
@@ -30,6 +31,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -106,7 +108,7 @@ public class TicketService implements TicketInterface {
 
         LocalDate createdAt = ticket.getCreatedAt().toLocalDate();
         LocalDate closedAt = LocalDate.now();
-        long daysBetween = java.time.Duration.between(createdAt.atStartOfDay(), closedAt.atStartOfDay()).toDays();
+        long daysBetween = Duration.between(createdAt.atStartOfDay(), closedAt.atStartOfDay()).toDays();
 
         responseTime.setResponseTime(daysBetween);
         responseTime.setCreatedAt(LocalDateTime.now());
@@ -125,7 +127,7 @@ public class TicketService implements TicketInterface {
         return TicketResponseDTO.builder()
                 .ticketNumber(ticket.getTicketNumber())
                 .ticketCategory(ticket.getTicketCategory())
-                .createdAt(ticket.getCreatedAt())
+                .created_at(ticket.getCreatedAt())
                 .transaction(ticket.getTransaction())
                 .status(ticket.getTicketStatus())
                 .description(ticket.getDescription())
@@ -211,7 +213,7 @@ public class TicketService implements TicketInterface {
             // Filter by category
             if (category != null) {
                 // Convert String category to TicketCategories enum
-                TicketCategories ticketCategoryEnum = switch (category){
+                TicketCategories ticketCategoryEnum = switch (category) {
                     case "\"Gagal Transfer\"" -> TicketCategories.Transfer;
                     case "\"Gagal TopUp\"" -> TicketCategories.TopUp;
                     case "\"Gagal Payment\"" -> TicketCategories.Payment;
@@ -252,18 +254,28 @@ public class TicketService implements TicketInterface {
         // Convert Page<Tickets> to List<TicketResponseDTO>
         List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketResponseDTO.builder()
+                        .id(ticket.getId())
                         .ticketNumber(ticket.getTicketNumber())
-                        .transaction(ticket.getTransaction())
                         .ticketCategory(ticket.getTicketCategory())
-                        .description(ticket.getDescription())
-                        .createdAt(ticket.getCreatedAt())
+                        .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
+                        .status(ticket.getTicketStatus())
+                        .divisiTarget(ticket.getDivisiTarget())
+                        .rating(switch (ticket.getTicketFeedbacks() == null ? StarRating.Empat : ticket.getTicketFeedbacks().getStarRating()) {
+                            case Satu -> 1;
+                            case Dua -> 2;
+                            case Tiga -> 3;
+                            case Lima -> 5;
+                            default -> 4;
+                        })
+                        .created_at(ticket.getCreatedAt())
+                        .updated_at(ticket.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
 
         // Create PaginationDTO
 
         return PaginationDTO.<TicketResponseDTO>builder()
-                .result(ticketResponseDTOList)
+                .data(ticketResponseDTOList)
                 .currentPage(ticketsPage.getNumber())
                 .currentItem(ticketsPage.getNumberOfElements())
                 .totalPage(ticketsPage.getTotalPages())
@@ -289,11 +301,21 @@ public class TicketService implements TicketInterface {
         Tickets savedTicket = ticketsRepository.save(ticket);
 
         return TicketResponseDTO.builder()
+                .id(savedTicket.getId())
                 .ticketNumber(savedTicket.getTicketNumber())
-                .transaction(savedTicket.getTransaction())
                 .ticketCategory(savedTicket.getTicketCategory())
-                .description(savedTicket.getDescription())
-                .createdAt(savedTicket.getCreatedAt())
+                .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
+                .status(savedTicket.getTicketStatus())
+                .divisiTarget(savedTicket.getDivisiTarget())
+                .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
+                    case Satu -> 1;
+                    case Dua -> 2;
+                    case Tiga -> 3;
+                    case Lima -> 5;
+                    default -> 4;
+                })
+                .created_at(savedTicket.getCreatedAt())
+                .updated_at(savedTicket.getCreatedAt())
                 .build();
     }
 

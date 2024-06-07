@@ -1,5 +1,7 @@
 package com.bni.finproajubackend.model.ticket;
 
+//import com.bni.finproajubackend.listener.TicketListener;
+import com.bni.finproajubackend.model.enumobject.DivisiTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -34,6 +36,8 @@ public class Tickets {
     private TicketCategories ticketCategory;
     @Column(name = "ticket_status")
     private TicketStatus ticketStatus;
+    @Column(name = "divisi_target")
+    private DivisiTarget divisiTarget;
     @Column(name = "ticket_description")
     private String description;
     @CreatedDate
@@ -45,9 +49,9 @@ public class Tickets {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<TicketFeedback> ticketFeedbacks;
+    private TicketFeedback ticketFeedbacks;
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TicketHistory> ticketHistory;

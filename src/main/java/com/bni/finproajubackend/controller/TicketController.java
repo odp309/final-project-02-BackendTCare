@@ -67,10 +67,8 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
         try {
-            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date,
-                    end_date, ticket_number, page, limit, sort_by, order);
-
-            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
+            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date, end_date, ticket_number, page, limit, sort_by, order);
+            return ResponseEntity.ok(responseService.apiSuccessPagination(result, "Success get ticket details"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(responseService.apiFailed(null, e.getMessage()));
@@ -80,7 +78,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/admin/ticket-reports")
+    @GetMapping("/admin/ticket-reports/:id/reporter-detail")
     public ResponseEntity getTicketDetails(@PathVariable String ticketNumber) {
         try {
             TicketResponseDTO result = ticketService.getTicketDetails(ticketNumber);

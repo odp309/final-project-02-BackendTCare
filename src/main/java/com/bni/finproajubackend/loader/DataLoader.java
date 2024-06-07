@@ -1,10 +1,7 @@
 package com.bni.finproajubackend.loader;
 
 import com.bni.finproajubackend.model.bank.Bank;
-import com.bni.finproajubackend.model.enumobject.Gender;
-import com.bni.finproajubackend.model.enumobject.TicketCategories;
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
-import com.bni.finproajubackend.model.enumobject.TransactionCategories;
+import com.bni.finproajubackend.model.enumobject.*;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Admin;
@@ -162,11 +159,16 @@ public class DataLoader {
                 : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
                 : TicketCategories.Transfer;
 
+        DivisiTarget divisiTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisiTarget.DGO
+                : transaction.getCategory() == TransactionCategories.TopUp ? DivisiTarget.WPP
+                : DivisiTarget.CXC;
+
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
                 .ticketCategory(categories)
                 .ticketStatus(TicketStatus.Dibuat)
+                .divisiTarget(divisiTarget)
                 .description("Ticket for " + transaction.getDetail())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())

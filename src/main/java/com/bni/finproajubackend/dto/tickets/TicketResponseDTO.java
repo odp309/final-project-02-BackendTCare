@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.dto.tickets;
 
+import com.bni.finproajubackend.model.enumobject.DivisiTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -12,12 +13,17 @@ import java.time.LocalDateTime;
 @Builder
 public class TicketResponseDTO {
 
+    private long id;
+    private long time_response;
+    private DivisiTarget divisiTarget;
+    private TicketStatus status;
+    private long rating;
     private String ticketNumber;
     private Transaction transaction;
     private TicketCategories ticketCategory;
-    private TicketStatus status;
     private String description;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime createdAt;
-
+    private LocalDateTime created_at;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime updated_at;
 }
