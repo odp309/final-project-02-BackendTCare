@@ -1,5 +1,7 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.dto.PaginationDTO;
+import com.bni.finproajubackend.dto.templateResponse.TemplatePaginationResponseDTO;
 import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import org.springframework.http.HttpStatus;
@@ -11,6 +13,19 @@ public class ResponseService implements TemplateResInterface {
     @Override
     public <T> TemplateResponseDTO<T> apiSuccess(T data, String message) {
         return createResponse(data, HttpStatus.OK, "Success");
+    }
+
+    @Override
+    public <T>TemplatePaginationResponseDTO<T> apiSuccessPagination(PaginationDTO data, String message) {
+        TemplatePaginationResponseDTO<T> templatePaginationResponseDTO = new TemplatePaginationResponseDTO<>();
+        templatePaginationResponseDTO.setStatusCode(HttpStatus.OK);
+        templatePaginationResponseDTO.setMessage(message);
+        templatePaginationResponseDTO.setResult(data.getData());
+        templatePaginationResponseDTO.setCurrentPage(data.getCurrentPage());
+        templatePaginationResponseDTO.setCurrentItem(data.getCurrentItem());
+        templatePaginationResponseDTO.setTotalPage(data.getTotalPage());
+        templatePaginationResponseDTO.setTotalItem(data.getTotalItem());
+        return templatePaginationResponseDTO;
     }
 
     @Override

@@ -13,7 +13,7 @@ public class TicketFeedback {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
     private Tickets ticket;
     @Column(name = "star_rating")
