@@ -78,10 +78,10 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/admin/ticket-reports/:id/reporter-detail")
-    public ResponseEntity getTicketDetails(@PathVariable String ticketNumber) {
+    @GetMapping("/admin/ticket-reports/{id}/reporter-detail")
+    public ResponseEntity getTicketDetails(@PathVariable String id) {
         try {
-            TicketResponseDTO result = ticketService.getTicketDetails(ticketNumber);
+            TicketResponseDTO result = ticketService.getTicketDetails(id);
             if (result == null)
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));

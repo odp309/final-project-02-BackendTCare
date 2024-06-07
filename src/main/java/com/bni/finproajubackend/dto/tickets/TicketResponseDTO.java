@@ -22,6 +22,8 @@ public class TicketResponseDTO {
     private Transaction transaction;
     private TicketCategories ticketCategory;
     private String description;
+    private String referenceNumber;
+    private LocalDateTime report_date;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime created_at;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")

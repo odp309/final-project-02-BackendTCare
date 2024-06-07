@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
+import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.StarRating;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
@@ -18,9 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
-import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
-import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.bni.finproajubackend.repository.AdminRepository;
 import com.bni.finproajubackend.repository.TicketsHistoryRepository;
@@ -33,9 +31,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.time.LocalDate;
 import java.util.stream.Collectors;
 
@@ -120,18 +116,22 @@ public class TicketService implements TicketInterface {
     @Override
     public TicketResponseDTO getTicketDetails(String ticketNumber) {
         Tickets ticket = ticketsRepository.findByTicketNumber(ticketNumber);
-        if (ticket == null) {
-            return null;
-        }
+        if (ticket == null)
+            throw new EntityNotFoundException("Ticket not found");
 
-        return TicketResponseDTO.builder()
+        TicketResponseDTO responseDTO = TicketResponseDTO.builder()
+                .id(ticket.getId())
                 .ticketNumber(ticket.getTicketNumber())
                 .ticketCategory(ticket.getTicketCategory())
-                .created_at(ticket.getCreatedAt())
-                .transaction(ticket.getTransaction())
                 .status(ticket.getTicketStatus())
                 .description(ticket.getDescription())
+                .referenceNumber(ticket.getReferenceNumber())
+                .report_date(ticket.getCreatedAt())
+                .created_at(ticket.getCreatedAt())
+                .updated_at(ticket.getUpdatedAt())
                 .build();
+
+        return responseDTO;
     }
 
     @Override
