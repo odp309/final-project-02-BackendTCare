@@ -2,9 +2,7 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
-import com.bni.finproajubackend.model.enumobject.StarRating;
-import com.bni.finproajubackend.model.enumobject.TicketCategories;
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.enumobject.*;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
@@ -275,12 +273,21 @@ public class TicketService implements TicketInterface {
         Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransactionId())
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
 
+        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
+                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
+                : TicketCategories.Transfer;
+
+        DivisiTarget divisiTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisiTarget.DGO
+                : transaction.getCategory() == TransactionCategories.TopUp ? DivisiTarget.WPP
+                : DivisiTarget.CXC;
+
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
-                .ticketCategory(ticketRequestDTO.getTicketCategory())
+                .ticketCategory(categories)
                 .description(ticketRequestDTO.getDescription())
                 .ticketStatus(TicketStatus.Dibuat)
+                .divisiTarget(divisiTarget)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
