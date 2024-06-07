@@ -35,7 +35,7 @@ public class ResponseService implements TemplateResInterface {
             return templatePaginationResponseDTO;
         }
         templatePaginationResponseDTO.setResult(data.getData());
-        templatePaginationResponseDTO.setCurrent_page(data.getCurrentPage());
+        templatePaginationResponseDTO.setCurrent_page(data.getCurrentPage() == 0 ? 1 : data.getCurrentPage() );
         templatePaginationResponseDTO.setCurrent_item(data.getCurrentItem());
         templatePaginationResponseDTO.setTotal_page(data.getTotalPage());
         templatePaginationResponseDTO.setTotal_item(data.getTotalItem());
