@@ -28,17 +28,17 @@ public class ResponseService implements TemplateResInterface {
         templatePaginationResponseDTO.setStatusCode(HttpStatus.OK);
         templatePaginationResponseDTO.setMessage(message);
         if(data == null){
-            templatePaginationResponseDTO.setCurrentPage(0);
-            templatePaginationResponseDTO.setCurrentItem(0);
-            templatePaginationResponseDTO.setTotalPage(0);
-            templatePaginationResponseDTO.setTotalItem(0);
+            templatePaginationResponseDTO.setCurrent_page(0);
+            templatePaginationResponseDTO.setCurrent_item(0);
+            templatePaginationResponseDTO.setTotal_page(0);
+            templatePaginationResponseDTO.setTotal_item(0);
             return templatePaginationResponseDTO;
         }
         templatePaginationResponseDTO.setResult(data.getData());
-        templatePaginationResponseDTO.setCurrentPage(data.getCurrentPage());
-        templatePaginationResponseDTO.setCurrentItem(data.getCurrentItem());
-        templatePaginationResponseDTO.setTotalPage(data.getTotalPage());
-        templatePaginationResponseDTO.setTotalItem(data.getTotalItem());
+        templatePaginationResponseDTO.setCurrent_page(data.getCurrentPage());
+        templatePaginationResponseDTO.setCurrent_item(data.getCurrentItem());
+        templatePaginationResponseDTO.setTotal_page(data.getTotalPage());
+        templatePaginationResponseDTO.setTotal_item(data.getTotalItem());
         return templatePaginationResponseDTO;
     }
 
