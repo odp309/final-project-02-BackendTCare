@@ -253,7 +253,7 @@ public class TicketService implements TicketInterface {
                         .category(switch (ticket.getTicketCategory()){
                             case Transfer -> "Gagal Transfer";
                             case TopUp -> "Gagal TopUp";
-                            case Payment -> "Gagal Payang";
+                            case Payment -> "Gagal Payment";
                             default -> null;
                         })
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
