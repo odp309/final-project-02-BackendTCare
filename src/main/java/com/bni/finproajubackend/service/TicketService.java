@@ -58,48 +58,51 @@ public class TicketService implements TicketInterface {
     private EmailService emailService;
 
     @Transactional
-    public Tickets updateTicketStatus(Long ticketId, TicketStatus status, Authentication authentication) {
+    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) {
         Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
         TicketStatus oldStatus = ticket.getTicketStatus();
-        ticket.setTicketStatus(status);
-        ticketsRepository.save(ticket);
+        if (oldStatus != TicketStatus.Selesai){
+            TicketStatus nextStatus = oldStatus == TicketStatus.Diajukan ? TicketStatus.DalamProses
+                    : TicketStatus.Selesai;
 
-        // Get admin details from authentication
-        String username = authentication.getName();
-        Admin admin = adminRepository.findByUsername(username);
+            ticket.setTicketStatus(nextStatus);
+            ticketsRepository.save(ticket);
 
-        if (admin == null)
-            throw new RuntimeException("User not found");
+            // Get admin details from authentication
+            String username = authentication.getName();
+            Admin admin = adminRepository.findByUsername(username);
 
-        Long statusLevel = getStatusLevel(ticket.getTicketStatus());
+            if (admin == null)
+                throw new RuntimeException("User not found");
 
-        // Create a new ticket history entry
-        TicketHistory ticketHistory = new TicketHistory();
-        ticketHistory.setTicket(ticket);
-        ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + status);
-        ticketHistory.setDate(new Date());
-        ticketHistory.setLevel(statusLevel);
-        ticketHistory.setCreatedAt(LocalDateTime.now());
-        ticketHistory.setUpdatedAt(LocalDateTime.now());
-        ticketHistoryRepository.save(ticketHistory);
+            Long statusLevel = getStatusLevel(ticket.getTicketStatus());
 
-        // Handle TicketResponseTime when status is Ditutup
-        if (status == TicketStatus.Ditutup) {
-            handleTicketResponseTime(ticket);
+            // Create a new ticket history entry
+            TicketHistory ticketHistory = new TicketHistory();
+            ticketHistory.setTicket(ticket);
+            ticketHistory.setAdmin(admin);
+            ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + nextStatus);
+            ticketHistory.setDate(new Date());
+            ticketHistory.setLevel(statusLevel);
+            ticketHistory.setCreatedAt(LocalDateTime.now());
+            ticketHistory.setUpdatedAt(LocalDateTime.now());
+            ticketHistoryRepository.save(ticketHistory);
+
+            // Handle TicketResponseTime when status is Ditutup
+            if (nextStatus == TicketStatus.Selesai) {
+                handleTicketResponseTime(ticket);
+            }
+
+            // Send email notification
+            emailService.sendNotification(ticket);
         }
-
-        // Send email notification
-        emailService.sendNotification(ticket);
 
         return ticket;
     }
 
     private Long getStatusLevel(TicketStatus status) {
-        return status == TicketStatus.Dibuat ? 1L :
-                status == TicketStatus.Diajukan ? 2L :
-                        status == TicketStatus.DalamProses ? 3L :
-                                status == TicketStatus.Selesai ? 4L : 5L;
+        return status == TicketStatus.Diajukan ? 1L :
+                status == TicketStatus.DalamProses ? 2L : 3L;
     }
 
     private void handleTicketResponseTime(Tickets ticket) {
@@ -280,7 +283,7 @@ public class TicketService implements TicketInterface {
                 .transaction(transaction)
                 .ticketCategory(ticketRequestDTO.getTicketCategory())
                 .description(ticketRequestDTO.getDescription())
-                .ticketStatus(TicketStatus.Dibuat)
+                .ticketStatus(TicketStatus.Diajukan)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();

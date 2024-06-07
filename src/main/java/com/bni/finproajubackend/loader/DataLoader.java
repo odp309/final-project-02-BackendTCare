@@ -167,13 +167,12 @@ public class DataLoader {
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
                 .ticketCategory(categories)
-                .ticketStatus(TicketStatus.Dibuat)
+                .ticketStatus(TicketStatus.Diajukan)
                 .divisiTarget(divisiTarget)
                 .description("Ticket for " + transaction.getDetail())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
-
         ticketsRepository.save(ticket);
     }
 
