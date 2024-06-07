@@ -14,7 +14,7 @@ public class TicketResponseDTO {
 
     private long id;
     private String ticket_number;
-    private TicketCategories category;
+    private String category;
     private long time_response;
     private DivisionTarget division_target;
     private TicketStatus status;
