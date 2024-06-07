@@ -47,9 +47,9 @@ public class Tickets {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
-    @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
     @JsonIgnore
-    private List<TicketFeedback> ticketFeedbacks;
+    private TicketFeedback ticketFeedbacks;
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TicketHistory> ticketHistory;
