@@ -28,14 +28,14 @@ public class ResponseService implements TemplateResInterface {
         templatePaginationResponseDTO.setStatusCode(HttpStatus.OK);
         templatePaginationResponseDTO.setMessage(message);
         if(data == null){
-            templatePaginationResponseDTO.setCurrent_page(0);
+            templatePaginationResponseDTO.setCurrent_page(1);
             templatePaginationResponseDTO.setCurrent_item(0);
             templatePaginationResponseDTO.setTotal_page(0);
             templatePaginationResponseDTO.setTotal_item(0);
             return templatePaginationResponseDTO;
         }
         templatePaginationResponseDTO.setResult(data.getData());
-        templatePaginationResponseDTO.setCurrent_page(data.getCurrentPage());
+        templatePaginationResponseDTO.setCurrent_page(data.getCurrentPage() == 0 ? 1 : data.getCurrentPage() );
         templatePaginationResponseDTO.setCurrent_item(data.getCurrentItem());
         templatePaginationResponseDTO.setTotal_page(data.getTotalPage());
         templatePaginationResponseDTO.setTotal_item(data.getTotalItem());
