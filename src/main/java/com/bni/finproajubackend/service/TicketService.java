@@ -249,7 +249,7 @@ public class TicketService implements TicketInterface {
                         .category(ticket.getTicketCategory())
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
                         .status(ticket.getTicketStatus())
-                        .divisiTarget(ticket.getDivisiTarget())
+                        .division_target(ticket.getDivisionTarget())
                         .rating(switch (ticket.getTicketFeedbacks() == null ? StarRating.Empat : ticket.getTicketFeedbacks().getStarRating()) {
                             case Satu -> 1;
                             case Dua -> 2;
@@ -288,6 +288,7 @@ public class TicketService implements TicketInterface {
                 .updatedAt(LocalDateTime.now())
                 .build();
 
+
         Tickets savedTicket = ticketsRepository.save(ticket);
 
         return TicketResponseDTO.builder()
@@ -296,7 +297,7 @@ public class TicketService implements TicketInterface {
                 .category(savedTicket.getTicketCategory())
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
                 .status(savedTicket.getTicketStatus())
-                .divisiTarget(savedTicket.getDivisiTarget())
+                .division_target(savedTicket.getDivisionTarget())
                 .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
                     case Satu -> 1;
                     case Dua -> 2;
