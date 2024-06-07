@@ -27,6 +27,13 @@ public class ResponseService implements TemplateResInterface {
         TemplatePaginationResponseDTO<T> templatePaginationResponseDTO = new TemplatePaginationResponseDTO<>();
         templatePaginationResponseDTO.setStatusCode(HttpStatus.OK);
         templatePaginationResponseDTO.setMessage(message);
+        if(data == null){
+            templatePaginationResponseDTO.setCurrentPage(0);
+            templatePaginationResponseDTO.setCurrentItem(0);
+            templatePaginationResponseDTO.setTotalPage(0);
+            templatePaginationResponseDTO.setTotalItem(0);
+            return templatePaginationResponseDTO;
+        }
         templatePaginationResponseDTO.setResult(data.getData());
         templatePaginationResponseDTO.setCurrentPage(data.getCurrentPage());
         templatePaginationResponseDTO.setCurrentItem(data.getCurrentItem());

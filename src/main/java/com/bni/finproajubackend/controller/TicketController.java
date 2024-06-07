@@ -56,7 +56,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("  ")
+    @GetMapping("admin/ticket-reports")
     public ResponseEntity getAllTickets(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
