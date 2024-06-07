@@ -200,7 +200,7 @@ public class TicketService implements TicketInterface {
             // Filter by category
             if (category != null) {
                 // Convert String category to TicketCategories enum
-                TicketCategories ticketCategoryEnum = switch (category){
+                TicketCategories ticketCategoryEnum = switch (category) {
                     case "\"Gagal Transfer\"" -> TicketCategories.Transfer;
                     case "\"Gagal TopUp\"" -> TicketCategories.TopUp;
                     case "\"Gagal Payment\"" -> TicketCategories.Payment;
@@ -246,7 +246,7 @@ public class TicketService implements TicketInterface {
                         .category(ticket.getTicketCategory())
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
                         .status(ticket.getTicketStatus())
-                        .rating(switch(ticket.getTicketFeedbacks().getStarRating()) {
+                        .rating(switch (ticket.getTicketFeedbacks() == null ? StarRating.Empat : ticket.getTicketFeedbacks().getStarRating()) {
                             case Satu -> 1;
                             case Dua -> 2;
                             case Tiga -> 3;
@@ -292,7 +292,7 @@ public class TicketService implements TicketInterface {
                 .category(savedTicket.getTicketCategory())
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
                 .status(savedTicket.getTicketStatus())
-                .rating(switch(savedTicket.getTicketFeedbacks().getStarRating()) {
+                .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
                     case Satu -> 1;
                     case Dua -> 2;
                     case Tiga -> 3;
