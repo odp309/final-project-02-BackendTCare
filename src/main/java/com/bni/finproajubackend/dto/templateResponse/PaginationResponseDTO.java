@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class PaginationResponseDTO extends StatusResponseDTO {
-    private int currentPage;
-    private int currentItem;
-    private int totalPage;
-    private long totalItem;
+    private int current_page;
+    private int current_item;
+    private int total_page;
+    private long total_item;
 }

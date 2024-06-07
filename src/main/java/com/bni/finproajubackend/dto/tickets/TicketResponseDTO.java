@@ -1,6 +1,6 @@
 package com.bni.finproajubackend.dto.tickets;
 
-import com.bni.finproajubackend.model.enumobject.DivisiTarget;
+import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -14,8 +14,10 @@ import java.time.LocalDateTime;
 public class TicketResponseDTO {
 
     private long id;
+    private String ticket_number;
+    private String category;
     private long time_response;
-    private DivisiTarget divisiTarget;
+    private DivisionTarget division_target;
     private TicketStatus status;
     private long rating;
     private String ticketNumber;

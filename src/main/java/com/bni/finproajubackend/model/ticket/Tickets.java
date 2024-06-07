@@ -1,14 +1,12 @@
 package com.bni.finproajubackend.model.ticket;
 
-import ch.qos.logback.core.net.server.AbstractServerSocketAppender;
-import com.bni.finproajubackend.model.enumobject.DivisiTarget;
+import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
-import jdk.javadoc.doclet.Reporter;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
@@ -38,15 +36,11 @@ public class Tickets {
     @Column(name = "ticket_status")
     private TicketStatus ticketStatus;
     @Column(name = "divisi_target")
-    private DivisiTarget divisiTarget;
+    private DivisionTarget divisionTarget;
     @Column(name = "ticket_description")
     private String description;
     @Column(name = "reference_number")
     private String referenceNumber;
-    @Column(name = "reporter")
-    private String reporter;
-    @Column(name = "report_status")
-    private String reportStatus;
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")

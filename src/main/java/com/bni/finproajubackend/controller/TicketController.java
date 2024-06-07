@@ -5,7 +5,6 @@ import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
-import com.bni.finproajubackend.dto.TicketStatusUpdateDTO;
 import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
@@ -32,9 +31,9 @@ public class TicketController {
 
     @RequiresPermission("admin")
     @PatchMapping("/{id}/update-status")
-    public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, @RequestBody TicketStatusUpdateDTO dto, Authentication authentication) {
+    public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, Authentication authentication) {
         try {
-            Tickets result = ticketService.updateTicketStatus(id, dto.getStatus(), authentication);
+            Tickets result = ticketService.updateTicketStatus(id, authentication);
             TicketStatus ticketStatus = result.getTicketStatus();
             TicketStatusResponseDTO responseDTO = new TicketStatusResponseDTO(ticketStatus);
             return ResponseEntity.ok(responseService.apiSuccess(responseDTO, "Successfully updated ticket status."));
@@ -53,6 +52,7 @@ public class TicketController {
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Ticket Failed Created" : e.getMessage()));
         }
     }
+
     @GetMapping("/admin/ticket-reports")
     public ResponseEntity getAllTickets(
             @RequestParam(required = false) String category,
