@@ -207,10 +207,10 @@ public class TicketService implements TicketInterface {
             // Filter by category
             if (category != null) {
                 // Convert String category to TicketCategories enum
-                TicketCategories ticketCategoryEnum = switch (category) {
-                    case "\"Gagal Transfer\"" -> TicketCategories.Transfer;
-                    case "\"Gagal TopUp\"" -> TicketCategories.TopUp;
-                    case "\"Gagal Payment\"" -> TicketCategories.Payment;
+                TicketCategories ticketCategoryEnum = switch (category.toLowerCase()) {
+                    case "\"gagal transfer\"" -> TicketCategories.Transfer;
+                    case "\"gagal topup\"" -> TicketCategories.TopUp;
+                    case "\"gagal payment\"" -> TicketCategories.Payment;
                     default -> null;
                 };
 
@@ -250,7 +250,12 @@ public class TicketService implements TicketInterface {
                 .map(ticket -> TicketResponseDTO.builder()
                         .id(ticket.getId())
                         .ticket_number(ticket.getTicketNumber())
-                        .category(ticket.getTicketCategory())
+                        .category(switch (ticket.getTicketCategory()){
+                            case Transfer -> "Gagal Transfer";
+                            case TopUp -> "Gagal TopUp";
+                            case Payment -> "Gagal Payment";
+                            default -> null;
+                        })
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
                         .status(ticket.getTicketStatus())
                         .division_target(ticket.getDivisionTarget())
@@ -311,7 +316,12 @@ public class TicketService implements TicketInterface {
         return TicketResponseDTO.builder()
                 .id(savedTicket.getId())
                 .ticket_number(savedTicket.getTicketNumber())
-                .category(savedTicket.getTicketCategory())
+                .category(switch (ticket.getTicketCategory()){
+                    case Transfer -> "Gagal Transfer";
+                    case TopUp -> "Gagal TopUp";
+                    case Payment -> "Gagal Payang";
+                    default -> null;
+                })
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
                 .status(savedTicket.getTicketStatus())
                 .division_target(savedTicket.getDivisionTarget())
