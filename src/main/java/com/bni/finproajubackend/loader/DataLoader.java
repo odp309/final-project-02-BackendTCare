@@ -2,6 +2,7 @@ package com.bni.finproajubackend.loader;
 
 import com.bni.finproajubackend.model.bank.Bank;
 import com.bni.finproajubackend.model.enumobject.*;
+import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Admin;
@@ -31,8 +32,9 @@ public class DataLoader {
     private final TransactionRepository transactionRepository;
     private final BankRepository bankRepository;
     private final TicketsRepository ticketsRepository;
+    private final TicketsHistoryRepository ticketHistoryRepository;
 
-    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, BankRepository bankRepository, TicketsRepository ticketsRepository) {
+    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, BankRepository bankRepository, TicketsRepository ticketsRepository, TicketsHistoryRepository ticketHistoryRepository) {
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.roleRepository = roleRepository;
@@ -42,6 +44,7 @@ public class DataLoader {
         this.transactionRepository = transactionRepository;
         this.bankRepository = bankRepository;
         this.ticketsRepository = ticketsRepository;
+        this.ticketHistoryRepository = ticketHistoryRepository;
     }
 
     @Bean
@@ -159,23 +162,40 @@ public class DataLoader {
                 : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
                 : TicketCategories.Transfer;
 
-        DivisiTarget divisiTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisiTarget.DGO
-                : transaction.getCategory() == TransactionCategories.TopUp ? DivisiTarget.WPP
-                : DivisiTarget.CXC;
+        DivisionTarget divisionTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisionTarget.DGO
+                : transaction.getCategory() == TransactionCategories.TopUp ? DivisionTarget.WPP
+                : DivisionTarget.CXC;
 
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
                 .ticketCategory(categories)
                 .ticketStatus(TicketStatus.Diajukan)
-                .divisiTarget(divisiTarget)
+                .divisionTarget(divisionTarget)
                 .description("Ticket for " + transaction.getDetail())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
         ticketsRepository.save(ticket);
+
+        // Load ticket history
+        createTicketHistory(ticket);
     }
 
+    private void createTicketHistory(Tickets ticket) {
+        Admin admin = adminRepository.findByUsername("admin");
+
+        TicketHistory ticketHistory = new TicketHistory();
+        ticketHistory.setTicket(ticket);
+        ticketHistory.setAdmin(admin);
+        ticketHistory.setDescription("Ticket created with status " + ticket.getTicketStatus());
+        ticketHistory.setDate(new Date());
+        ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
+        ticketHistory.setCreatedAt(LocalDateTime.now());
+        ticketHistory.setUpdatedAt(LocalDateTime.now());
+
+        ticketHistoryRepository.save(ticketHistory);
+    }
 
     public String createTicketNumber(Transaction transaction) {
         String categoryCode = switch (transaction.getCategory()) {
@@ -200,5 +220,4 @@ public class DataLoader {
 
         return categoryCode + year + month + day + transactionId;
     }
-
 }
