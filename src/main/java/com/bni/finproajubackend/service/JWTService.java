@@ -23,7 +23,7 @@ public class JWTService implements JWTInterface {
     @Override
     public String generateToken(User user) {
         Instant now = Instant.now();
-        Instant expirationTime = now.plusSeconds(600);
+        Instant expirationTime = now.plusSeconds(3600000);
         return Jwts
                 .builder()
                 .subject(user.getUsername())
