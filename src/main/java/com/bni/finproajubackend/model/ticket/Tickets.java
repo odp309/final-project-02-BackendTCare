@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.model.ticket;
 
 //import com.bni.finproajubackend.listener.TicketListener;
+import com.bni.finproajubackend.model.enumobject.DivisiTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.enumobject.TransactionCategories;
@@ -35,6 +36,8 @@ public class Tickets {
     private TicketCategories ticketCategory;
     @Column(name = "ticket_status")
     private TicketStatus ticketStatus;
+    @Column(name = "divisi_target")
+    private DivisiTarget divisiTarget;
     @Column(name = "ticket_description")
     private String description;
     @CreatedDate

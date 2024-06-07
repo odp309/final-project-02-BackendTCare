@@ -168,6 +168,7 @@ public class TicketService implements TicketInterface {
                         .ticketNumber(ticket.getTicketNumber())
                         .transaction(ticket.getTransaction())
                         .ticketCategory(ticket.getTicketCategory())
+                        .divisiTarget(ticket.getDivisiTarget())
                         .description(ticket.getDescription())
                         .createdAt(ticket.getCreatedAt())
                         .build())
