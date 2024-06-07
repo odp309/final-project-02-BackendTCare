@@ -31,6 +31,7 @@ import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -59,7 +60,7 @@ public class TicketService implements TicketInterface {
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) {
         Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
         TicketStatus oldStatus = ticket.getTicketStatus();
-        if (oldStatus != TicketStatus.Selesai){
+        if (oldStatus != TicketStatus.Selesai) {
             TicketStatus nextStatus = oldStatus == TicketStatus.Diajukan ? TicketStatus.DalamProses
                     : TicketStatus.Selesai;
 
@@ -180,12 +181,17 @@ public class TicketService implements TicketInterface {
         // Build pageable object for pagination
         Pageable pageable = PageRequest.of(page, limit);
 
+        // Define date formatter
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
         // Convert start_date and end_date to LocalDateTime objects
         LocalDateTime startDate;
         LocalDateTime endDate;
         if (start_date != null && end_date != null) {
-            startDate = LocalDateTime.parse(start_date + "T00:00:00");
-            endDate = LocalDateTime.parse(end_date + "T23:59:59");
+            start_date = start_date.replace("”", "");
+            end_date = end_date.replace("”", "");
+            startDate = LocalDateTime.parse(start_date + "T00:00:00", formatter);
+            endDate = LocalDateTime.parse(end_date + "T23:59:59", formatter);
             if (endDate.isBefore(startDate)) {
                 throw new IllegalArgumentException("End date must be bigger than or equal to start date");
             }
@@ -260,6 +266,8 @@ public class TicketService implements TicketInterface {
                         .build())
                 .collect(Collectors.toList());
 
+        if(ticketResponseDTOList.isEmpty())
+            return null;
         // Create PaginationDTO
 
         return PaginationDTO.<TicketResponseDTO>builder()
