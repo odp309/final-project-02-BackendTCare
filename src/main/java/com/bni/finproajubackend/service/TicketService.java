@@ -2,6 +2,7 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
+import com.bni.finproajubackend.model.enumobject.StarRating;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
@@ -30,6 +31,7 @@ import jakarta.persistence.criteria.Predicate;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -106,7 +108,7 @@ public class TicketService implements TicketInterface {
 
         LocalDate createdAt = ticket.getCreatedAt().toLocalDate();
         LocalDate closedAt = LocalDate.now();
-        long daysBetween = java.time.Duration.between(createdAt.atStartOfDay(), closedAt.atStartOfDay()).toDays();
+        long daysBetween = Duration.between(createdAt.atStartOfDay(), closedAt.atStartOfDay()).toDays();
 
         responseTime.setResponseTime(daysBetween);
         responseTime.setCreatedAt(LocalDateTime.now());
@@ -239,11 +241,20 @@ public class TicketService implements TicketInterface {
         // Convert Page<Tickets> to List<TicketResponseDTO>
         List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketResponseDTO.builder()
-                        .ticketNumber(ticket.getTicketNumber())
-                        .transaction(ticket.getTransaction())
-                        .ticketCategory(ticket.getTicketCategory())
-                        .description(ticket.getDescription())
-                        .createdAt(ticket.getCreatedAt())
+                        .id(ticket.getId())
+                        .ticket_number(ticket.getTicketNumber())
+                        .category(ticket.getTicketCategory())
+                        .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
+                        .status(ticket.getTicketStatus())
+                        .rating(switch(ticket.getTicketFeedbacks().getStarRating()) {
+                            case Satu -> 1;
+                            case Dua -> 2;
+                            case Tiga -> 3;
+                            case Lima -> 5;
+                            default -> 4;
+                        })
+                        .created_at(ticket.getCreatedAt())
+                        .updated_at(ticket.getCreatedAt())
                         .build())
                 .collect(Collectors.toList());
 
@@ -276,14 +287,22 @@ public class TicketService implements TicketInterface {
         Tickets savedTicket = ticketsRepository.save(ticket);
 
         return TicketResponseDTO.builder()
-                .ticketNumber(savedTicket.getTicketNumber())
-                .transaction(savedTicket.getTransaction())
-                .ticketCategory(savedTicket.getTicketCategory())
-                .description(savedTicket.getDescription())
-                .createdAt(savedTicket.getCreatedAt())
+                .id(savedTicket.getId())
+                .ticket_number(savedTicket.getTicketNumber())
+                .category(savedTicket.getTicketCategory())
+                .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
+                .status(savedTicket.getTicketStatus())
+                .rating(switch(savedTicket.getTicketFeedbacks().getStarRating()) {
+                    case Satu -> 1;
+                    case Dua -> 2;
+                    case Tiga -> 3;
+                    case Lima -> 5;
+                    default -> 4;
+                })
+                .created_at(savedTicket.getCreatedAt())
+                .updated_at(savedTicket.getCreatedAt())
                 .build();
     }
-
 
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
