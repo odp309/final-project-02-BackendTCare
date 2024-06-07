@@ -48,8 +48,6 @@ public class ReportService implements ReportInterface {
                     case "\"Diajukan\"" -> TicketStatus.Diajukan;
                     case "\"Diproses\"" -> TicketStatus.DalamProses;
                     case "\"Selesai\"" -> TicketStatus.Selesai;
-                    case "\"Ditutup\"" -> TicketStatus.Ditutup;
-                    case "\"Dibuat\"" -> TicketStatus.Dibuat;
                     default -> null;
                 };
                 if (ticketStatus != null) {

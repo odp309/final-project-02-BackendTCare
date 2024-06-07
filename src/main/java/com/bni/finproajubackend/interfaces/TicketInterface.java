@@ -15,7 +15,7 @@ import java.util.List;
 
 
 public interface TicketInterface {
-    Tickets updateTicketStatus(Long ticketId, TicketStatus status, Authentication authentication);
+    Tickets updateTicketStatus(Long ticketId, Authentication authentication);
     TicketResponseDTO getTicketDetails(Long ticketId);
     List<TicketHistoryResponseDTO> getTicketHistory(long id);
     PaginationDTO<TicketResponseDTO> getAllTickets(

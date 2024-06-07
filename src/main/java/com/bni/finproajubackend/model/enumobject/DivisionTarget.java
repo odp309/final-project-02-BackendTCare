@@ -1,5 +1,5 @@
 package com.bni.finproajubackend.model.enumobject;
 
-public enum DivisiTarget {
+public enum DivisionTarget {
     WPP, DGO, CXC
 }

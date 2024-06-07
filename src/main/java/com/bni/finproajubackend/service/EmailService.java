@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 @Service
 public class EmailService {
@@ -18,7 +19,7 @@ public class EmailService {
 
     public void sendNotification(Tickets ticket) {
         String to = ticket.getTransaction().getAccount().getNasabah().getEmail();
-        String subject = "Ticket Status Update";
+        String subject = "Pembaruan Status Tiket";
 
         String recipient = ticket.getTransaction().getAccount().getNasabah().getFirstName();
         String ticketId = ticket.getTicketNumber();
@@ -28,22 +29,23 @@ public class EmailService {
         TicketStatus resolutionStatus = ticket.getTicketStatus();
         String division = "PT Bank Negara Indonesia (Persero) Tbk.";
 
-
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy HH:mm:ss");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy HH:mm:ss", new Locale("id", "ID"));
         String formattedDateTime = transactionDate.format(formatter);
 
+        String formattedResolutionStatus = formatTicketStatus(resolutionStatus);
+
         String message = String.format(
-                "Dear %s,%n%n" +
-                        "We would like to inform you that the status of your reported issue has been updated.%n%n" +
-                        "Ticket ID: %s%n" +
-                        "Transaction Date: %s%n" +
-                        "Amount: %s%n" +
-                        "Description: %s%n" +
-                        "Resolution Status: %s%n%n" +
-                        "Thank you for your patience and cooperation throughout the resolution process.%n%n" +
-                        "Sincerely,%n" +
+                "Yth. %s,%n%n" +
+                        "Kami ingin memberitahukan bahwa status dari masalah yang Anda laporkan telah diperbarui.%n%n" +
+                        "ID Tiket: %s%n" +
+                        "Tanggal Transaksi: %s%n" +
+                        "Jumlah: %s%n" +
+                        "Deskripsi: %s%n" +
+                        "Status Resolusi: %s%n%n" +
+                        "Terima kasih atas kesabaran dan kerja sama Anda selama proses penyelesaian ini.%n%n" +
+                        "Hormat kami,%n" +
                         "%s",
-                recipient, ticketId, formattedDateTime, amount, description, resolutionStatus, division
+                recipient, ticketId, formattedDateTime, amount, description, formattedResolutionStatus, division
         );
         sendEmail(to, subject, message);
     }
@@ -54,5 +56,15 @@ public class EmailService {
         message.setSubject(subject);
         message.setText(body);
         mailSender.send(message);
+    }
+
+    private String formatTicketStatus(TicketStatus status) {
+        switch (status) {
+            case DalamProses:
+                return "Dalam Proses";
+            // Tambahkan case lain jika ada
+            default:
+                return status.toString();
+        }
     }
 }
