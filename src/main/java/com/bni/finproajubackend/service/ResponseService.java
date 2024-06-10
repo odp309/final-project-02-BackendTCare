@@ -23,14 +23,15 @@ public class ResponseService implements TemplateResInterface {
     }
 
     @Override
-    public <T>TemplatePaginationResponseDTO<T> apiSuccessPagination(PaginationDTO data, String message) {
+    public <T> TemplatePaginationResponseDTO<T> apiSuccessPagination(PaginationDTO data, String message) {
         TemplatePaginationResponseDTO<T> templatePaginationResponseDTO = new TemplatePaginationResponseDTO<>();
         templatePaginationResponseDTO.setStatusCode(HttpStatus.OK);
         templatePaginationResponseDTO.setMessage(message);
-        if(data == null){
+        if (data == null) {
+            templatePaginationResponseDTO.setResult(null);
             templatePaginationResponseDTO.setCurrent_page(1);
             templatePaginationResponseDTO.setCurrent_item(0);
-            templatePaginationResponseDTO.setTotal_page(0);
+            templatePaginationResponseDTO.setTotal_page(1);
             templatePaginationResponseDTO.setTotal_item(0);
             return templatePaginationResponseDTO;
         }

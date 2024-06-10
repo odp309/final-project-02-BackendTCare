@@ -20,11 +20,10 @@ public class TicketResponseDTO {
     private DivisionTarget division_target;
     private TicketStatus status;
     private long rating;
-    private String ticketNumber;
     private Transaction transaction;
-    private TicketCategories ticketCategory;
+    private TicketCategories ticket_category;
     private String description;
-    private String referenceNumber;
+    private String reference_number;
     private LocalDateTime report_date;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime created_at;

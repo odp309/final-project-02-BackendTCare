@@ -5,20 +5,20 @@ import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -129,19 +130,17 @@ public class TicketService implements TicketInterface {
         if (ticket == null)
             throw new EntityNotFoundException("Ticket not found");
 
-        TicketResponseDTO responseDTO = TicketResponseDTO.builder()
+        return TicketResponseDTO.builder()
                 .id(ticket.getId())
-                .ticketNumber(ticket.getTicketNumber())
-                .ticketCategory(ticket.getTicketCategory())
+                .ticket_number(ticket.getTicketNumber())
+                .ticket_category(ticket.getTicketCategory())
                 .status(ticket.getTicketStatus())
                 .description(ticket.getDescription())
-                .referenceNumber(ticket.getReferenceNumber())
+                .reference_number(ticket.getReferenceNumber())
                 .report_date(ticket.getCreatedAt())
                 .created_at(ticket.getCreatedAt())
                 .updated_at(ticket.getUpdatedAt())
                 .build();
-
-        return responseDTO;
     }
 
     @Override
@@ -202,9 +201,7 @@ public class TicketService implements TicketInterface {
 
         // Determine sort direction
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-
-        if (sort_by.equalsIgnoreCase("ticket_number"))
-            sort_by = "ticketNumber";
+        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : sort_by;
 
         // Build pageable object for pagination
         Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, sort_by));
@@ -216,8 +213,6 @@ public class TicketService implements TicketInterface {
         LocalDateTime startDate;
         LocalDateTime endDate;
         if (start_date != null && end_date != null) {
-            start_date = start_date.replace("”", "");
-            end_date = end_date.replace("”", "");
             startDate = LocalDateTime.parse(start_date + "T00:00:00", formatter);
             endDate = LocalDateTime.parse(end_date + "T23:59:59", formatter);
             if (endDate.isBefore(startDate)) {
@@ -232,61 +227,70 @@ public class TicketService implements TicketInterface {
         Specification<Tickets> spec = (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Filter by category
-            if (category != null) {
-                logger.info("Category Trigger");
-                // Convert String category to TicketCategories enum
-                TicketCategories ticketCategoryEnum = switch (category.toLowerCase()) {
-                    case "\"gagal transfer\"" -> TicketCategories.Transfer;
-                    case "\"gagal topup\"" -> TicketCategories.TopUp;
-                    case "\"gagal payment\"" -> TicketCategories.Payment;
+            Optional.ofNullable(category).ifPresent(cat -> {
+                TicketCategories ticketCategoryEnum = switch (cat.toLowerCase()) {
+                    case "gagal transfer" -> TicketCategories.Transfer;
+                    case "gagal topup" -> TicketCategories.TopUp;
+                    case "gagal payment" -> TicketCategories.Payment;
                     default -> null;
                 };
-                logger.info(ticketCategoryEnum.toString());
+                if (ticketCategoryEnum != null) {
+                    predicates.add(builder.equal(root.get("ticketCategory"), ticketCategoryEnum));
+                }
+            });
 
-                predicates.add(builder.equal(root.get("ticketCategory"), ticketCategoryEnum));
-            }
+            Optional.ofNullable(rating).ifPresent(r -> {
+                if (rating == 4) {
+                    // Jika rating null, cari rating null atau bernilai 4
+                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
+                    predicates.add(
+                            builder.or(
+                                    builder.isNull(feedbackJoin.get("starRating")),
+                                    builder.equal(feedbackJoin.get("starRating"), StarRating.Empat)
+                            )
+                    );
+                } else {
+                    // Jika rating tidak null, cari berdasarkan nilai rating tersebut
+                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
+                    predicates.add(builder.equal(feedbackJoin.get("starRating"), StarRating.fromValue(rating)));
+                }
+            });
 
-            // Filter by rating
-            if (rating != null) {
-                logger.info("Rating Trigger");
-                // Assuming rating is a field in Tickets entity
-                predicates.add(builder.equal(root.get("rating"), rating));
-            }
+            Optional.ofNullable(status).ifPresent(st -> {
+                TicketStatus ticketStatusEnum = switch (st.toLowerCase()) {
+                    case "diajukan" -> TicketStatus.Diajukan;
+                    case "dalam proses" -> TicketStatus.DalamProses;
+                    case "selesai" -> TicketStatus.Selesai;
+                    default -> null;
+                };
+                predicates.add(builder.equal(root.get("ticketStatus"), ticketStatusEnum));
+            });
 
-            // Filter by status
-            if (status != null) {
-                logger.info("Status Trigger");
-                // Assuming status is a field in Tickets entity
-                predicates.add(builder.equal(root.get("status"), status));
-            }
-
-            // Filter by ticket created at
             if (startDate != null && endDate != null) {
-                logger.info("Date Trigger");
                 predicates.add(builder.between(root.get("createdAt"), startDate, endDate));
             }
 
-            // Search by ticket number
-            if (ticket_number != null) {
-                logger.info("Ticket Number Trigger");
-                predicates.add(builder.equal(root.get("ticketNumber"), ticket_number));
-            }
+            Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
 
             return builder.and(predicates.toArray(new Predicate[0]));
         };
 
         // Perform query with Specification and pageable
         Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
-        logger.info("Tickets Page Created");
+
+        // Ensure non-empty results
+        if (ticketsPage.isEmpty()) {
+            // Fetch all tickets without pagination if the result is empty and there is no filter
+            List<Tickets> allTickets = ticketsRepository.findAll(Sort.by(sortDirection, sort_by));
+            ticketsPage = new PageImpl<>(allTickets);
+        }
 
         // Convert Page<Tickets> to List<TicketResponseDTO>
         List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketResponseDTO.builder()
                         .id(ticket.getId())
-                        .ticketNumber(ticket.getTicketNumber())
-                        .ticketCategory(ticket.getTicketCategory())
                         .ticket_number(ticket.getTicketNumber())
+                        .ticket_category(ticket.getTicketCategory())
                         .category(switch (ticket.getTicketCategory()) {
                             case Transfer -> "Gagal Transfer";
                             case TopUp -> "Gagal TopUp";
@@ -296,23 +300,15 @@ public class TicketService implements TicketInterface {
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
                         .status(ticket.getTicketStatus())
                         .division_target(ticket.getDivisionTarget())
-                        .rating(switch (ticket.getTicketFeedbacks() == null ? StarRating.Empat : ticket.getTicketFeedbacks().getStarRating()) {
-                            case Satu -> 1;
-                            case Dua -> 2;
-                            case Tiga -> 3;
-                            case Lima -> 5;
-                            default -> 4;
-                        })
+                        .rating(ticket.getTicketFeedbacks() == null ? 4 : ticket.getTicketFeedbacks().getStarRating().getValue())
                         .created_at(ticket.getCreatedAt())
                         .updated_at(ticket.getUpdatedAt())
                         .build())
                 .collect(Collectors.toList());
 
-        if (ticketResponseDTOList.isEmpty())
-            return null;
-        // Create PaginationDTO
-        logger.info("Ticket Response Created");
+        if (ticketResponseDTOList.isEmpty()) return null;
 
+        // Return PaginationDTO
         return PaginationDTO.<TicketResponseDTO>builder()
                 .data(ticketResponseDTOList)
                 .currentPage(ticketsPage.getNumber())
@@ -353,7 +349,7 @@ public class TicketService implements TicketInterface {
 
         return TicketResponseDTO.builder()
                 .id(savedTicket.getId())
-                .ticketCategory(savedTicket.getTicketCategory())
+                .ticket_category(savedTicket.getTicketCategory())
                 .ticket_number(savedTicket.getTicketNumber())
                 .category(switch (ticket.getTicketCategory()) {
                     case Transfer -> "Gagal Transfer";
