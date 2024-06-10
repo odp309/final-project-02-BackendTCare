@@ -4,7 +4,7 @@ import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -20,7 +20,7 @@ public interface TicketInterface {
     TicketResponseDTO getTicketDetails(String ticketNumber);
     String createTicketNumber(Transaction transaction);
     List<TicketHistoryResponseDTO> getTicketHistory(long id);
-    PaginationDTO<TicketResponseDTO> getAllTickets(
+    PaginationDTO<TicketsResponseDTO> getAllTickets(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
