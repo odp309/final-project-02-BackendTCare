@@ -1,6 +1,5 @@
 package com.bni.finproajubackend.model.ticket;
 
-//import com.bni.finproajubackend.listener.TicketListener;
 import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
@@ -40,6 +39,8 @@ public class Tickets {
     private DivisionTarget divisionTarget;
     @Column(name = "ticket_description")
     private String description;
+    @Column(name = "reference_number")
+    private String referenceNumber;
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
