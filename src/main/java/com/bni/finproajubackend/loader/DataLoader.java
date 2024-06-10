@@ -66,7 +66,7 @@ public class DataLoader {
         role.setRoleDescription("Role untuk admin");
         roleRepository.save(role);
 
-        User user = new User("admin", passwordEncoder.encode("123456"));
+        User user = new User("admin12", passwordEncoder.encode("12345678"));
         userRepository.save(user);
 
         Admin admin = new Admin();
@@ -92,7 +92,7 @@ public class DataLoader {
             return;
         }
 
-        User user = new User("dimas", passwordEncoder.encode("123456"));
+        User user = new User("dimas27", passwordEncoder.encode("12345678"));
         userRepository.save(user);
 
         Nasabah nasabah = new Nasabah();
@@ -187,7 +187,7 @@ public class DataLoader {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Ticket created with status " + ticket.getTicketStatus());
+        ticketHistory.setDescription("Laporan " + ticket.getTicketStatus());
         ticketHistory.setDate(new Date());
         ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
         ticketHistory.setCreatedAt(LocalDateTime.now());
