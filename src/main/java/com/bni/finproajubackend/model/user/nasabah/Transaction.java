@@ -38,7 +38,7 @@ public class Transaction {
     private String status;
 
     @Column(name = "amount")
-    private int amount;
+    private Long amount;
 
     @Column(name = "category") // Menambahkan properti untuk enum
     @Enumerated(EnumType.STRING) // Menyimpan nilai enum sebagai string dalam database

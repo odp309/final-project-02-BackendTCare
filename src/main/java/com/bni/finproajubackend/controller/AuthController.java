@@ -27,8 +27,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity login(@RequestBody LoginRequestDTO request) {
         try {
-            LoginResponseDTO result = authService.login(request);
-            return ResponseEntity.ok(responseService.apiSuccess(result, "Login Success"));
+            if(request.getUsername().length() < 6){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "Username min 6 character"));
+            }
+            else if (request.getPassword().length() < 8){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "password min 8 character"));
+            }
+            else{
+                LoginResponseDTO result = authService.login(request);
+                return ResponseEntity.ok(responseService.apiSuccess(result, "Login Success"));
+            }
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(responseService.apiBadRequest(null, "User Not Found, Please Check Your Username and Password"));
         }

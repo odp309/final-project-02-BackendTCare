@@ -2,6 +2,7 @@ package com.bni.finproajubackend.loader;
 
 import com.bni.finproajubackend.model.bank.Bank;
 import com.bni.finproajubackend.model.enumobject.*;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
@@ -17,8 +18,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.Optional;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class DataLoader {
@@ -33,8 +37,9 @@ public class DataLoader {
     private final BankRepository bankRepository;
     private final TicketsRepository ticketsRepository;
     private final TicketsHistoryRepository ticketHistoryRepository;
+    private final TicketFeedbackRepository ticketFeedbackRepository;
 
-    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, BankRepository bankRepository, TicketsRepository ticketsRepository, TicketsHistoryRepository ticketHistoryRepository) {
+    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, BankRepository bankRepository, TicketsRepository ticketsRepository, TicketsHistoryRepository ticketHistoryRepository, TicketFeedbackRepository ticketFeedbackRepository) {
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.roleRepository = roleRepository;
@@ -45,6 +50,7 @@ public class DataLoader {
         this.bankRepository = bankRepository;
         this.ticketsRepository = ticketsRepository;
         this.ticketHistoryRepository = ticketHistoryRepository;
+        this.ticketFeedbackRepository = ticketFeedbackRepository;
     }
 
     @Bean
@@ -56,7 +62,7 @@ public class DataLoader {
     }
 
     private void loadAdmin() {
-        Optional<User> existingUser = Optional.ofNullable(userRepository.findByUsername("admin"));
+        Optional<User> existingUser = Optional.ofNullable(userRepository.findByUsername("admin12"));
         if (existingUser.isPresent()) {
             return;
         }
@@ -66,7 +72,7 @@ public class DataLoader {
         role.setRoleDescription("Role untuk admin");
         roleRepository.save(role);
 
-        User user = new User("admin", passwordEncoder.encode("123456"));
+        User user = new User("admin12", passwordEncoder.encode("12345678"));
         userRepository.save(user);
 
         Admin admin = new Admin();
@@ -87,21 +93,21 @@ public class DataLoader {
     }
 
     private void loadNasabah() {
-        Optional<User> existingUser = Optional.ofNullable(userRepository.findByUsername("dimas"));
+        Optional<User> existingUser = Optional.ofNullable(userRepository.findByUsername("dimas27"));
         if (existingUser.isPresent()) {
             return;
         }
 
-        User user = new User("dimas", passwordEncoder.encode("123456"));
+        User user = new User("dimas27", passwordEncoder.encode("12345678"));
         userRepository.save(user);
 
         Nasabah nasabah = new Nasabah();
         nasabah.setAddress("Balige");
         nasabah.setAge(24);
         nasabah.setEmail("daji18201@gmail.com");
-        nasabah.setFirst_name("Dimas");
+        nasabah.setFirstName("Dimas");
         nasabah.setGender(Gender.Male);
-        nasabah.setLast_name("Pangestu");
+        nasabah.setLastName("Pangestu");
         nasabah.setNik("1212784693778572");
         nasabah.setNoHP("082265746357");
         nasabah.setUser(user);
@@ -157,43 +163,74 @@ public class DataLoader {
     }
 
     private void loadTickets(Transaction transaction) {
-        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Gagal_Payment
-                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.Gagal_TopUp
-                : TicketCategories.Gagal_Transfer;
+        // Mengatur kategori tiket berdasarkan kategori transaksi
+        TicketCategories categories = switch (transaction.getCategory()) {
+            case Transfer -> TicketCategories.Transfer;
+            case TopUp -> TicketCategories.TopUp;
+            case Payment -> TicketCategories.Payment;
+        };
 
-        DivisionTarget divisionTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisionTarget.DGO
-                : transaction.getCategory() == TransactionCategories.TopUp ? DivisionTarget.WPP
-                : DivisionTarget.CXC;
+        // Mengatur target divisi berdasarkan kategori transaksi
+        DivisionTarget divisionTarget = switch (transaction.getCategory()) {
+            case Transfer -> DivisionTarget.CXC;
+            case TopUp -> DivisionTarget.WPP;
+            case Payment -> DivisionTarget.DGO;
+        };
 
+        // Mengatur status tiket secara acak
+        TicketStatus ticketStatus = switch (new Random().nextInt(3)) {
+            case 0 -> TicketStatus.Diajukan;
+            case 1 -> TicketStatus.DalamProses;
+            case 2 -> TicketStatus.Selesai;
+            default -> TicketStatus.Diajukan; // Nilai default jika terjadi kesalahan
+        };
+
+
+        // Membuat objek tiket baru
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
                 .ticketCategory(categories)
-                .ticketStatus(TicketStatus.Diajukan)
+                .ticketStatus(ticketStatus)
                 .divisionTarget(divisionTarget)
                 .description("Ticket for " + transaction.getDetail())
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
+                .createdAt(generateRandomDateTime(null))
+                .updatedAt(generateRandomDateTime(null))
                 .build();
         ticketsRepository.save(ticket);
 
+        // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
+        if (ticketStatus == TicketStatus.Selesai) {
+            addTicketFeedback(ticket);
+        }
+
         // Load ticket history
-        createTicketHistory(ticket);
+        createTicketHistory(ticket, transaction.getCategory());
     }
 
-    private void createTicketHistory(Tickets ticket) {
-        Admin admin = adminRepository.findByUsername("admin");
+    private void createTicketHistory(Tickets ticket, TransactionCategories category) {
+        Admin admin = adminRepository.findByUsername("admin12");
+        String[] statuses = {"Transaksi Dibuat", "Laporan Diajukan", "Laporan Dalam Proses", "Laporan Selesai Diproses", "Laporan Diterima Pelapor"};
 
-        TicketHistory ticketHistory = new TicketHistory();
-        ticketHistory.setTicket(ticket);
-        ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Ticket created with status " + ticket.getTicketStatus());
-        ticketHistory.setDate(new Date());
-        ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
-        ticketHistory.setCreatedAt(LocalDateTime.now());
-        ticketHistory.setUpdatedAt(LocalDateTime.now());
+        int counter = switch (ticket.getTicketStatus()) {
+            case Diajukan -> 2;
+            case DalamProses -> 3;
+            case Selesai -> 5;
+        };
 
-        ticketHistoryRepository.save(ticketHistory);
+        for (int i = 0; i < counter; i++) {
+            TicketHistory ticketHistory = new TicketHistory();
+            ticketHistory.setTicket(ticket);
+            ticketHistory.setAdmin(admin);
+            ticketHistory.setDescription(statuses[i]);
+            ticketHistory.setDate(new Date());
+            ticketHistory.setLevel(i+1L); // Assuming level 1 for ticket creation
+            ticketHistory.setCreatedAt(generateRandomDateTime(ticket.getCreatedAt()));
+            ticketHistory.setUpdatedAt(generateRandomDateTime(ticket.getCreatedAt()));
+
+            ticketHistoryRepository.save(ticketHistory);
+        }
+
     }
 
     public String createTicketNumber(Transaction transaction) {
@@ -219,4 +256,28 @@ public class DataLoader {
 
         return categoryCode + year + month + day + transactionId;
     }
+
+    private void addTicketFeedback(Tickets ticket) {
+        // Membuat objek masukan tiket secara acak
+        StarRating starRating = StarRating.values()[new Random().nextInt(StarRating.values().length)];
+        TicketFeedback feedback = new TicketFeedback();
+        feedback.setTicket(ticket);
+        feedback.setStarRating(starRating);
+        feedback.setComment("Terima kasih atas pelayanan yang baik.");
+
+        // Menyimpan masukan tiket
+        ticketFeedbackRepository.save(feedback);
+    }
+
+    private LocalDateTime generateRandomDateTime(LocalDateTime minDate) {
+        if (minDate == null) {
+            minDate = LocalDateTime.of(2022, 1, 1, 0, 0); // Nilai default jika minDate null
+        }
+        LocalDateTime end = LocalDateTime.now();
+        long minDay = minDate.toEpochSecond(ZoneOffset.UTC);
+        long maxDay = end.toEpochSecond(ZoneOffset.UTC);
+        long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
+        return LocalDateTime.ofEpochSecond(randomDay, 0, ZoneOffset.UTC);
+    }
+
 }

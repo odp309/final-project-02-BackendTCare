@@ -1,21 +1,24 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -35,10 +38,13 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class TicketService implements TicketInterface {
+
+    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -79,7 +85,9 @@ public class TicketService implements TicketInterface {
             TicketHistory ticketHistory = new TicketHistory();
             ticketHistory.setTicket(ticket);
             ticketHistory.setAdmin(admin);
-            ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + nextStatus);
+            //ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + nextStatus);
+            ticketHistory.setDescription(nextStatus == TicketStatus.DalamProses ? "Laporan dalam proses" :
+                    nextStatus == TicketStatus.Selesai ? "Laporan selesai diproses" : "");
             ticketHistory.setDate(new Date());
             ticketHistory.setLevel(statusLevel);
             ticketHistory.setCreatedAt(LocalDateTime.now());
@@ -132,8 +140,8 @@ public class TicketService implements TicketInterface {
                 .build();
 
         ReportDetail reportDetail = ReportDetail.builder()
-                .transactionDate(ticket.getCreatedAt().toString()) // Assuming transaction date is the created date of the ticket
-                .amount(ticket.getTransaction().getAmount()) // Assuming transaction amount is available in transaction
+                .transactionDate(ticket.getCreatedAt().toString())
+                .amount(ticket.getTransaction().getAmount())
                 .category(ticket.getTicketCategory().name())
                 .description(ticket.getDescription())
                 .referenceNum(ticket.getReferenceNumber())
@@ -148,21 +156,24 @@ public class TicketService implements TicketInterface {
                     case DalamProses -> "Dalam Proses";
                     case Selesai -> "Selesai";
                 })
+                .description(ticket.getDescription())
+                .reference_number(ticket.getReferenceNumber())
+                .report_date(ticket.getCreatedAt())
                 .report_detail(reportDetail)
                 .reporter_detail(reporterDetail)
                 .created_at(ticket.getCreatedAt())
                 .updated_at(ticket.getUpdatedAt())
                 .build();
 
-        return responseDTO;
+        return TicketResponseDTO.builder().build();
     }
 
     @Override
     public String createTicketNumber(Transaction transaction) {
-        String categoryCode = switch (transaction.getCategory().name()) {
-            case "Gagal_Transfer" -> "TF"; // ID kategori 1 untuk Gagal Transfer
-            case "Gagal_TopUp" -> "TU"; // ID kategori 2 untuk Gagal Top Up
-            case "Gagal_Payment" -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
+        String categoryCode = switch (transaction.getCategory()) {
+            case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
+            case TopUp -> "TU"; // ID kategori 2 untuk Gagal Top Up
+            case Payment -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
             default -> ""; // ID kategori tidak valid
         };
 
@@ -215,9 +226,7 @@ public class TicketService implements TicketInterface {
 
         // Determine sort direction
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-
-        if (sort_by.equalsIgnoreCase("ticket_number"))
-            sort_by = "ticketNumber";
+        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : sort_by;
 
         // Build pageable object for pagination
         Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, sort_by));
@@ -229,8 +238,6 @@ public class TicketService implements TicketInterface {
         LocalDateTime startDate;
         LocalDateTime endDate;
         if (start_date != null && end_date != null) {
-            start_date = start_date.replace("”", "");
-            end_date = end_date.replace("”", "");
             startDate = LocalDateTime.parse(start_date + "T00:00:00", formatter);
             endDate = LocalDateTime.parse(end_date + "T23:59:59", formatter);
             if (endDate.isBefore(startDate)) {
@@ -245,46 +252,63 @@ public class TicketService implements TicketInterface {
         Specification<Tickets> spec = (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Filter by category
-            if (category != null) {
-                // Convert String category to TicketCategories enum
-                TicketCategories ticketCategoryEnum = switch (category.toLowerCase()) {
+            Optional.ofNullable(category).ifPresent(cat -> {
+                TicketCategories ticketCategoryEnum = switch (cat.toLowerCase()) {
                     case "gagal transfer" -> TicketCategories.Transfer;
                     case "gagal topup" -> TicketCategories.TopUp;
                     case "gagal payment" -> TicketCategories.Payment;
                     default -> null;
                 };
+                if (ticketCategoryEnum != null) {
+                    predicates.add(builder.equal(root.get("ticketCategory"), ticketCategoryEnum));
+                }
+            });
 
-                predicates.add(builder.equal(root.get("ticketCategory"), ticketCategoryEnum));
-            }
+            Optional.ofNullable(rating).ifPresent(r -> {
+                if (rating == 4) {
+                    // Jika rating null, cari rating null atau bernilai 4
+                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
+                    predicates.add(
+                            builder.or(
+                                    builder.isNull(feedbackJoin.get("starRating")),
+                                    builder.equal(feedbackJoin.get("starRating"), StarRating.Empat)
+                            )
+                    );
+                } else {
+                    // Jika rating tidak null, cari berdasarkan nilai rating tersebut
+                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
+                    predicates.add(builder.equal(feedbackJoin.get("starRating"), StarRating.fromValue(rating)));
+                }
+            });
 
-            // Filter by rating
-            if (rating != null) {
-                // Assuming rating is a field in Tickets entity
-                predicates.add(builder.equal(root.get("rating"), rating));
-            }
+            Optional.ofNullable(status).ifPresent(st -> {
+                TicketStatus ticketStatusEnum = switch (st.toLowerCase()) {
+                    case "diajukan" -> TicketStatus.Diajukan;
+                    case "dalam proses" -> TicketStatus.DalamProses;
+                    case "selesai" -> TicketStatus.Selesai;
+                    default -> null;
+                };
+                predicates.add(builder.equal(root.get("ticketStatus"), ticketStatusEnum));
+            });
 
-            // Filter by status
-            if (status != null) {
-                // Assuming status is a field in Tickets entity
-                predicates.add(builder.equal(root.get("status"), status));
-            }
-
-            // Filter by ticket created at
             if (startDate != null && endDate != null) {
                 predicates.add(builder.between(root.get("createdAt"), startDate, endDate));
             }
 
-            // Search by ticket number
-            if (ticket_number != null) {
-                predicates.add(builder.equal(root.get("ticketNumber"), ticket_number));
-            }
+            Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
 
             return builder.and(predicates.toArray(new Predicate[0]));
         };
 
         // Perform query with Specification and pageable
         Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
+
+        // Ensure non-empty results
+        if (ticketsPage.isEmpty()) {
+            // Fetch all tickets without pagination if the result is empty and there is no filter
+            List<Tickets> allTickets = ticketsRepository.findAll(Sort.by(sortDirection, sort_by));
+            ticketsPage = new PageImpl<>(allTickets);
+        }
 
         // Convert Page<Tickets> to List<TicketResponseDTO>
         List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
@@ -305,22 +329,15 @@ public class TicketService implements TicketInterface {
                             case Selesai -> "Selesai";
                         })
                         .division_target(ticket.getDivisionTarget())
-                        .rating(switch (ticket.getTicketFeedbacks() == null ? StarRating.Empat : ticket.getTicketFeedbacks().getStarRating()) {
-                            case Satu -> 1;
-                            case Dua -> 2;
-                            case Tiga -> 3;
-                            case Lima -> 5;
-                            default -> 4;
-                        })
+                        .rating(ticket.getTicketFeedbacks() == null ? 4 : ticket.getTicketFeedbacks().getStarRating().getValue())
                         .created_at(ticket.getCreatedAt())
                         .updated_at(ticket.getUpdatedAt())
                         .build())
                 .collect(Collectors.toList());
 
-        if (ticketResponseDTOList.isEmpty())
-            return null;
-        // Create PaginationDTO
+        if (ticketResponseDTOList.isEmpty()) return null;
 
+        // Return PaginationDTO
         return PaginationDTO.<TicketResponseDTO>builder()
                 .data(ticketResponseDTOList)
                 .currentPage(ticketsPage.getNumber())
@@ -370,7 +387,11 @@ public class TicketService implements TicketInterface {
                     default -> null;
                 })
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
-                .status(savedTicket.getTicketStatus())
+                .status(switch (savedTicket.getTicketStatus()) {
+                    case Diajukan -> "Diajukan";
+                    case DalamProses -> "Dalam Proses";
+                    case Selesai -> "Selesai";
+                })
                 .division_target(savedTicket.getDivisionTarget())
                 .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
                     case Satu -> 1;
@@ -385,12 +406,12 @@ public class TicketService implements TicketInterface {
     }
 
     private void createTicketHistory(Tickets ticket) {
-        Admin admin = adminRepository.findByUsername("admin");
+        Admin admin = adminRepository.findByUsername("admin12");
 
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Ticket created with status " + ticket.getTicketStatus());
+        ticketHistory.setDescription("Laporan " + ticket.getTicketStatus());
         ticketHistory.setDate(new Date());
         ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
         ticketHistory.setCreatedAt(LocalDateTime.now());
