@@ -63,7 +63,7 @@ public class TicketController {
             @RequestParam(required = false) String ticket_number,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false, defaultValue = "created_at") String sort_by,
+            @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
         try {
