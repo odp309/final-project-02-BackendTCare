@@ -154,6 +154,7 @@ public class DataLoader {
         transaction.setAmount(amount);
         transaction.setStatus(status);
         transaction.setCategory(category);
+        transaction.setTransaction_type(new Random().nextBoolean() ? TransactionType.In : TransactionType.Out);
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setUpdatedAt(LocalDateTime.now());
 

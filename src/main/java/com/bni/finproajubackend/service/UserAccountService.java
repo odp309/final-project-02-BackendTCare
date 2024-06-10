@@ -56,7 +56,7 @@ public class UserAccountService implements UserAccountInterface {
     private TransactionDTO convertToTransactionDTO(Transaction transaction) {
         TransactionDTO transactionDTO = new TransactionDTO();
         transactionDTO.setId(transaction.getId());
-        transactionDTO.setTransactionDetail(transaction.getDetail());
+        transactionDTO.setTransaction_detail(transaction.getDetail());
         transactionDTO.setStatus(transaction.getStatus());
         return transactionDTO;
     }

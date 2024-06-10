@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class TransactionDTO {
     private Long id;
-    private String transactionDetail;
+    private String transaction_detail;
+    private String transaction_type;
     private String status;
-
 }

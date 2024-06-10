@@ -4,6 +4,7 @@ import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
 import com.bni.finproajubackend.dto.userAccount.UserMutationDTO;
 import com.bni.finproajubackend.interfaces.UserMutationInterface;
 //import com.bni.finproajubackend.model.user.Person;
+import com.bni.finproajubackend.model.enumobject.TransactionType;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
@@ -47,14 +48,16 @@ public class UserMutationService implements UserMutationInterface {
                 .collect(Collectors.toList());
 
         return UserMutationDTO.builder()
-                .transactionList(transactionDTOList)
+                .transaction_list(transactionDTOList)
                 .build();
     }
 
     private TransactionDTO convertToTransactionDTO(Transaction transaction){
+        String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
         TransactionDTO transactionDTO = new TransactionDTO();
         transactionDTO.setId(transaction.getId());
-        transactionDTO.setTransactionDetail(transaction.getDetail());
+        transactionDTO.setTransaction_detail(transaction.getDetail());
+        transactionDTO.setTransaction_type(transactionType);
         transactionDTO.setStatus(transaction.getStatus());
         return transactionDTO;
     }
