@@ -192,13 +192,14 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public PaginationDTO<TicketResponseDTO> getAllTickets(
+    public PaginationDTO<TicketsResponseDTO> getAllTickets(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String start_date,
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
+            @RequestParam(required = false) String created_at,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
@@ -207,7 +208,7 @@ public class TicketService implements TicketInterface {
 
         // Determine sort direction
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : sort_by;
+        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : (sort_by.equalsIgnoreCase("created_at") ? "createdAt" : sort_by);
 
         // Build pageable object for pagination
         Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, sort_by));
@@ -276,6 +277,12 @@ public class TicketService implements TicketInterface {
                 predicates.add(builder.between(root.get("createdAt"), startDate, endDate));
             }
 
+            // Tambahkan kondisi untuk created_at
+            Optional.ofNullable(created_at).ifPresent(ca -> {
+                LocalDate date = LocalDate.parse(ca, DateTimeFormatter.ISO_LOCAL_DATE);
+                predicates.add(builder.equal(root.get("createdAt").as(LocalDate.class), date));
+            });
+
             Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
 
             return builder.and(predicates.toArray(new Predicate[0]));
@@ -287,13 +294,13 @@ public class TicketService implements TicketInterface {
         // Ensure non-empty results
         if (ticketsPage.isEmpty()) {
             // Fetch all tickets without pagination if the result is empty and there is no filter
-            List<Tickets> allTickets = ticketsRepository.findAll(Sort.by(sortDirection, sort_by));
+            List<Tickets> allTickets = ticketsRepository.findAll(spec, Sort.by(sortDirection, sort_by));
             ticketsPage = new PageImpl<>(allTickets);
         }
 
         // Convert Page<Tickets> to List<TicketResponseDTO>
-        List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
-                .map(ticket -> TicketResponseDTO.builder()
+        List<TicketsResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
+                .map(ticket -> TicketsResponseDTO.builder()
                         .id(ticket.getId())
                         .ticket_number(ticket.getTicketNumber())
                         .ticket_category(ticket.getTicketCategory())
@@ -316,11 +323,11 @@ public class TicketService implements TicketInterface {
                         .build())
                 .collect(Collectors.toList());
 
-        if (ticketResponseDTOList.isEmpty()) return null;
+        if (ticketsResponseDTOList.isEmpty()) return null;
 
         // Return PaginationDTO
-        return PaginationDTO.<TicketResponseDTO>builder()
-                .data(ticketResponseDTOList)
+        return PaginationDTO.<TicketsResponseDTO>builder()
+                .data(ticketsResponseDTOList)
                 .currentPage(ticketsPage.getNumber())
                 .currentItem(ticketsPage.getNumberOfElements())
                 .totalPage(ticketsPage.getTotalPages())

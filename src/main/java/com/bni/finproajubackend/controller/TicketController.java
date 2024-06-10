@@ -6,6 +6,7 @@ import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
 import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
+import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
@@ -30,7 +31,7 @@ public class TicketController {
     private Map<String, Object> errorDetails = new HashMap<>();
 
     @RequiresPermission("admin")
-    @PatchMapping("/{id}/update-status")
+    @PatchMapping("/admin/ticket-reports/{id}/update-status")
     public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, Authentication authentication) {
         try {
             Tickets result = ticketService.updateTicketStatus(id, authentication);
@@ -61,13 +62,14 @@ public class TicketController {
             @RequestParam(required = false) String start_date,
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
+            @RequestParam(required = false) String created_at,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
         try {
-            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date, end_date, ticket_number, page, limit, sort_by, order);
+            PaginationDTO<TicketsResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
             return ResponseEntity.ok(responseService.apiSuccessPagination(result, "Success get ticket details"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
