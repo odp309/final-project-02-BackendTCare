@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;
@@ -10,6 +11,8 @@ import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.*;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +44,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class TicketService implements TicketInterface {
+
+    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -214,6 +219,7 @@ public class TicketService implements TicketInterface {
 
             // Filter by category
             if (category != null) {
+                logger.info("Category Trigger");
                 // Convert String category to TicketCategories enum
                 TicketCategories ticketCategoryEnum = switch (category.toLowerCase()) {
                     case "\"gagal transfer\"" -> TicketCategories.Transfer;
@@ -221,29 +227,34 @@ public class TicketService implements TicketInterface {
                     case "\"gagal payment\"" -> TicketCategories.Payment;
                     default -> null;
                 };
+                logger.info(ticketCategoryEnum.toString());
 
                 predicates.add(builder.equal(root.get("ticketCategory"), ticketCategoryEnum));
             }
 
             // Filter by rating
             if (rating != null) {
+                logger.info("Rating Trigger");
                 // Assuming rating is a field in Tickets entity
                 predicates.add(builder.equal(root.get("rating"), rating));
             }
 
             // Filter by status
             if (status != null) {
+                logger.info("Status Trigger");
                 // Assuming status is a field in Tickets entity
                 predicates.add(builder.equal(root.get("status"), status));
             }
 
             // Filter by ticket created at
             if (startDate != null && endDate != null) {
+                logger.info("Date Trigger");
                 predicates.add(builder.between(root.get("createdAt"), startDate, endDate));
             }
 
             // Search by ticket number
             if (ticket_number != null) {
+                logger.info("Ticket Number Trigger");
                 predicates.add(builder.equal(root.get("ticketNumber"), ticket_number));
             }
 
@@ -252,6 +263,7 @@ public class TicketService implements TicketInterface {
 
         // Perform query with Specification and pageable
         Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
+        logger.info("Tickets Page Created");
 
         // Convert Page<Tickets> to List<TicketResponseDTO>
         List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
@@ -282,6 +294,7 @@ public class TicketService implements TicketInterface {
         if (ticketResponseDTOList.isEmpty())
             return null;
         // Create PaginationDTO
+        logger.info("Ticket Response Created");
 
         return PaginationDTO.<TicketResponseDTO>builder()
                 .data(ticketResponseDTOList)
