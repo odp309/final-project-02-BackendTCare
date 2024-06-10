@@ -55,16 +55,4 @@ public class Transaction {
     @Column(name = "updated_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
-
-    @Column(name = "reporter_name")
-    private String reporterName;
-
-    @Column(name = "reporter_account_name")
-    private String reporterAccountNumber;
-
-
-    private String reporterAddress;
-    private String reporterPhoneNumber;
-
-
 }

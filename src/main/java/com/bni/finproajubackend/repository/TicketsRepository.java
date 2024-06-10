@@ -11,6 +11,5 @@ import java.util.Optional;
 @Repository
 public interface TicketsRepository extends JpaRepository<Tickets, Long>, JpaSpecificationExecutor<Tickets> {
     Optional<Tickets> findById(Long id);
-
     Tickets findByTicketNumber(String ticketNumber);
 }

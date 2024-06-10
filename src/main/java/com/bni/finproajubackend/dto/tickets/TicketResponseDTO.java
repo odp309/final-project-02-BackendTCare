@@ -2,11 +2,13 @@ package com.bni.finproajubackend.dto.tickets;
 
 import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
+import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Data;
 import java.time.LocalDateTime;
+import java.util.Map;
 
 @Data
 @Builder
@@ -24,10 +26,14 @@ public class TicketResponseDTO {
     private String description;
     private String reference_number;
     private LocalDateTime report_date;
-    private ReporterDetail reporter_detail;
-    private ReportDetail report_detail;
+    private Map<String, Object> reporter_detail;
+    private Map<String, Object> report_detail;
+    private Map<String, Object> report_status_detail;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime created_at;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updated_at;
 }
+
+

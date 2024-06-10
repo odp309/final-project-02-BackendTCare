@@ -4,7 +4,6 @@ import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -32,6 +31,21 @@ public interface TicketInterface {
             @RequestParam(required = false, defaultValue = "created_at") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order
     );
+
+    PaginationDTO<TicketResponseDTO> getAllTickets(
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) Integer rating,
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String start_date,
+            @RequestParam(required = false) String end_date,
+            @RequestParam(required = false) String ticket_number,
+            @RequestParam(required = false) String created_at,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int limit,
+            @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
+            @RequestParam(required = false, defaultValue = "asc") String order
+    );
+
     TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO);
     String getAdminFullName(@NotNull Admin admin);
 }
