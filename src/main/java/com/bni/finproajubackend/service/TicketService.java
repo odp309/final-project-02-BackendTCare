@@ -294,7 +294,7 @@ public class TicketService implements TicketInterface {
         // Ensure non-empty results
         if (ticketsPage.isEmpty()) {
             // Fetch all tickets without pagination if the result is empty and there is no filter
-            List<Tickets> allTickets = ticketsRepository.findAll(Sort.by(sortDirection, sort_by));
+            List<Tickets> allTickets = ticketsRepository.findAll(spec, Sort.by(sortDirection, sort_by));
             ticketsPage = new PageImpl<>(allTickets);
         }
 
