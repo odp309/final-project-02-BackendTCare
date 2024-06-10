@@ -7,6 +7,7 @@ import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
+import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -16,7 +17,8 @@ import java.util.List;
 
 public interface TicketInterface {
     Tickets updateTicketStatus(Long ticketId, Authentication authentication);
-    TicketResponseDTO getTicketDetails(Long ticketId);
+    TicketResponseDTO getTicketDetails(String ticketNumber);
+    String createTicketNumber(Transaction transaction);
     List<TicketHistoryResponseDTO> getTicketHistory(long id);
     PaginationDTO<TicketResponseDTO> getAllTickets(
             @RequestParam(required = false) String category,

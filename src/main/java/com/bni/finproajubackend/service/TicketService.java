@@ -2,6 +2,7 @@ package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.dto.PaginationDTO;
+import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
@@ -20,9 +21,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
-import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
-import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
-import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.bni.finproajubackend.repository.AdminRepository;
 import com.bni.finproajubackend.repository.TicketsHistoryRepository;
@@ -126,10 +124,27 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public TicketResponseDTO getTicketDetails(Long ticketId) {
-        return null;
+    public TicketResponseDTO getTicketDetails(String ticketNumber) {
+        Tickets ticket = ticketsRepository.findByTicketNumber(ticketNumber);
+        if (ticket == null)
+            throw new EntityNotFoundException("Ticket not found");
+
+        TicketResponseDTO responseDTO = TicketResponseDTO.builder()
+                .id(ticket.getId())
+                .ticketNumber(ticket.getTicketNumber())
+                .ticketCategory(ticket.getTicketCategory())
+                .status(ticket.getTicketStatus())
+                .description(ticket.getDescription())
+                .referenceNumber(ticket.getReferenceNumber())
+                .report_date(ticket.getCreatedAt())
+                .created_at(ticket.getCreatedAt())
+                .updated_at(ticket.getUpdatedAt())
+                .build();
+
+        return responseDTO;
     }
 
+    @Override
     public String createTicketNumber(Transaction transaction) {
         String categoryCode = switch (transaction.getCategory()) {
             case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
@@ -139,7 +154,7 @@ public class TicketService implements TicketInterface {
         };
 
         LocalDateTime createdAt = transaction.getCreatedAt();
-        String year = String.valueOf(createdAt.getYear()); // Mengambil dua digit terakhir dari tahun
+        String year = String.valueOf(createdAt.getYear());
         String month = String.format("%02d", createdAt.getMonthValue());
         String day = String.format("%02d", createdAt.getDayOfMonth());
 
@@ -269,6 +284,8 @@ public class TicketService implements TicketInterface {
         List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketResponseDTO.builder()
                         .id(ticket.getId())
+                        .ticketNumber(ticket.getTicketNumber())
+                        .ticketCategory(ticket.getTicketCategory())
                         .ticket_number(ticket.getTicketNumber())
                         .category(switch (ticket.getTicketCategory()) {
                             case Transfer -> "Gagal Transfer";
@@ -336,6 +353,7 @@ public class TicketService implements TicketInterface {
 
         return TicketResponseDTO.builder()
                 .id(savedTicket.getId())
+                .ticketCategory(savedTicket.getTicketCategory())
                 .ticket_number(savedTicket.getTicketNumber())
                 .category(switch (ticket.getTicketCategory()) {
                     case Transfer -> "Gagal Transfer";
