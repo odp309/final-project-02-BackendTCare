@@ -11,6 +11,7 @@ import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.*;
+import com.bni.finproajubackend.specification.TicketsSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -202,16 +203,26 @@ public class TicketService implements TicketInterface {
             @RequestParam(required = false) String created_at,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
+            @RequestParam(required = false, defaultValue = "created_at") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
+        // Convert sort_by to camel case field names
+        sort_by = switch (sort_by.toLowerCase()) {
+            case "ticket_number" -> "ticketNumber";
+            case "created_at" -> "createdAt";
+            case "status" -> "ticketStatus";
+            default -> sort_by;
+        };
 
         // Determine sort direction
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : (sort_by.equalsIgnoreCase("created_at") ? "createdAt" : sort_by);
+
+        // Multi-sort configuration
+        List<Sort.Order> orders = new ArrayList<>();
+        orders.add(new Sort.Order(sortDirection, sort_by));
 
         // Build pageable object for pagination
-        Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, sort_by));
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(orders));
 
         // Define date formatter
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -288,8 +299,11 @@ public class TicketService implements TicketInterface {
             return builder.and(predicates.toArray(new Predicate[0]));
         };
 
+        // Gabungkan spec filtering dengan spec sorting
+        Specification<Tickets> combinedSpec = spec.and(TicketsSpecifications.orderByStatus());
+
         // Perform query with Specification and pageable
-        Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
+        Page<Tickets> ticketsPage = ticketsRepository.findAllWithCustomOrder(combinedSpec, pageable);
 
         // Ensure non-empty results
         if (ticketsPage.isEmpty()) {

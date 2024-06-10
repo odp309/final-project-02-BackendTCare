@@ -34,6 +34,7 @@ public class Tickets {
     @Enumerated(EnumType.STRING)
     private TicketCategories ticketCategory;
     @Column(name = "ticket_status")
+    @Enumerated(EnumType.STRING)
     private TicketStatus ticketStatus;
     @Column(name = "divisi_target")
     private DivisionTarget divisionTarget;
