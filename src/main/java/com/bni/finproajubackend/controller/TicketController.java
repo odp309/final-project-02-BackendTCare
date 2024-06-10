@@ -61,13 +61,14 @@ public class TicketController {
             @RequestParam(required = false) String start_date,
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
+            @RequestParam(required = false) String created_at,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
         try {
-            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date, end_date, ticket_number, page, limit, sort_by, order);
+            PaginationDTO<TicketResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
             return ResponseEntity.ok(responseService.apiSuccessPagination(result, "Success get ticket details"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
