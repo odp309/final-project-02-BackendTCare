@@ -199,6 +199,7 @@ public class TicketService implements TicketInterface {
             @RequestParam(required = false) String start_date,
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
+            @RequestParam(required = false) String created_at,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
@@ -207,7 +208,7 @@ public class TicketService implements TicketInterface {
 
         // Determine sort direction
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : sort_by;
+        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : (sort_by.equalsIgnoreCase("created_at") ? "createdAt" : sort_by);
 
         // Build pageable object for pagination
         Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, sort_by));
@@ -275,6 +276,12 @@ public class TicketService implements TicketInterface {
             if (startDate != null && endDate != null) {
                 predicates.add(builder.between(root.get("createdAt"), startDate, endDate));
             }
+
+            // Tambahkan kondisi untuk created_at
+            Optional.ofNullable(created_at).ifPresent(ca -> {
+                LocalDate date = LocalDate.parse(ca, DateTimeFormatter.ISO_LOCAL_DATE);
+                predicates.add(builder.equal(root.get("createdAt").as(LocalDate.class), date));
+            });
 
             Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
 
