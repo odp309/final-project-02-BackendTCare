@@ -192,7 +192,7 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public PaginationDTO<TicketResponseDTO> getAllTickets(
+    public PaginationDTO<TicketsResponseDTO> getAllTickets(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
@@ -299,8 +299,8 @@ public class TicketService implements TicketInterface {
         }
 
         // Convert Page<Tickets> to List<TicketResponseDTO>
-        List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
-                .map(ticket -> TicketResponseDTO.builder()
+        List<TicketsResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
+                .map(ticket -> TicketsResponseDTO.builder()
                         .id(ticket.getId())
                         .ticket_number(ticket.getTicketNumber())
                         .ticket_category(ticket.getTicketCategory())
@@ -323,11 +323,11 @@ public class TicketService implements TicketInterface {
                         .build())
                 .collect(Collectors.toList());
 
-        if (ticketResponseDTOList.isEmpty()) return null;
+        if (ticketsResponseDTOList.isEmpty()) return null;
 
         // Return PaginationDTO
-        return PaginationDTO.<TicketResponseDTO>builder()
-                .data(ticketResponseDTOList)
+        return PaginationDTO.<TicketsResponseDTO>builder()
+                .data(ticketsResponseDTOList)
                 .currentPage(ticketsPage.getNumber())
                 .currentItem(ticketsPage.getNumberOfElements())
                 .totalPage(ticketsPage.getTotalPages())
