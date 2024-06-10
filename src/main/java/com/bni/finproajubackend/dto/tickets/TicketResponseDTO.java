@@ -18,7 +18,7 @@ public class TicketResponseDTO {
     private String category;
     private long time_response;
     private DivisionTarget division_target;
-    private TicketStatus status;
+    private String status;
     private long rating;
     private Transaction transaction;
     private TicketCategories ticket_category;

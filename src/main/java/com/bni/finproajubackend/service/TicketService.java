@@ -136,7 +136,11 @@ public class TicketService implements TicketInterface {
                 .id(ticket.getId())
                 .ticket_number(ticket.getTicketNumber())
                 .ticket_category(ticket.getTicketCategory())
-                .status(ticket.getTicketStatus())
+                .status(switch (ticket.getTicketStatus()) {
+                    case Diajukan -> "Diajukan";
+                    case DalamProses -> "Dalam Proses";
+                    case Selesai -> "Selesai";
+                })
                 .description(ticket.getDescription())
                 .reference_number(ticket.getReferenceNumber())
                 .report_date(ticket.getCreatedAt())
@@ -300,7 +304,11 @@ public class TicketService implements TicketInterface {
                             default -> null;
                         })
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
-                        .status(ticket.getTicketStatus())
+                        .status(switch (ticket.getTicketStatus()) {
+                            case Diajukan -> "Diajukan";
+                            case DalamProses -> "Dalam Proses";
+                            case Selesai -> "Selesai";
+                        })
                         .division_target(ticket.getDivisionTarget())
                         .rating(ticket.getTicketFeedbacks() == null ? 4 : ticket.getTicketFeedbacks().getStarRating().getValue())
                         .created_at(ticket.getCreatedAt())
@@ -360,7 +368,11 @@ public class TicketService implements TicketInterface {
                     default -> null;
                 })
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
-                .status(savedTicket.getTicketStatus())
+                .status(switch (savedTicket.getTicketStatus()) {
+                    case Diajukan -> "Diajukan";
+                    case DalamProses -> "Dalam Proses";
+                    case Selesai -> "Selesai";
+                })
                 .division_target(savedTicket.getDivisionTarget())
                 .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
                     case Satu -> 1;
