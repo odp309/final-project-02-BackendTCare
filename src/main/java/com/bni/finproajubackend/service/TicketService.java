@@ -379,7 +379,7 @@ public class TicketService implements TicketInterface {
     }
 
     private void createTicketHistory(Tickets ticket) {
-        Admin admin = adminRepository.findByUsername("admin");
+        Admin admin = adminRepository.findByUsername("admin12");
 
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
