@@ -187,7 +187,7 @@ public class DataLoader {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Ticket created with status " + ticket.getTicketStatus());
+        ticketHistory.setDescription("Laporan " + ticket.getTicketStatus());
         ticketHistory.setDate(new Date());
         ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
         ticketHistory.setCreatedAt(LocalDateTime.now());
