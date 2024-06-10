@@ -124,14 +124,32 @@ public class TicketService implements TicketInterface {
         if (ticket == null)
             throw new EntityNotFoundException("Ticket not found");
 
+        ReporterDetail reporterDetail = ReporterDetail.builder()
+                .nama(ticket.getReporterName())
+                .account_number(ticket.getReporterAccountNumber())
+                .address(ticket.getReporterAddress())
+                .no_handphone(ticket.getReporterPhoneNumber())
+                .build();
+
+        ReportDetail reportDetail = ReportDetail.builder()
+                .transactionDate(ticket.getCreatedAt().toString()) // Assuming transaction date is the created date of the ticket
+                .amount(ticket.getTransaction().getAmount()) // Assuming transaction amount is available in transaction
+                .category(ticket.getTicketCategory().name())
+                .description(ticket.getDescription())
+                .referenceNum(ticket.getReferenceNumber())
+                .build();
+
         TicketResponseDTO responseDTO = TicketResponseDTO.builder()
                 .id(ticket.getId())
-                .ticketNumber(ticket.getTicketNumber())
-                .ticketCategory(ticket.getTicketCategory())
-                .status(ticket.getTicketStatus())
-                .description(ticket.getDescription())
-                .referenceNumber(ticket.getReferenceNumber())
-                .report_date(ticket.getCreatedAt())
+                .ticket_number(ticket.getTicketNumber())
+                .ticket_category(ticket.getTicketCategory())
+                .status(switch (ticket.getTicketStatus()) {
+                    case Diajukan -> "Diajukan";
+                    case DalamProses -> "Dalam Proses";
+                    case Selesai -> "Selesai";
+                })
+                .report_detail(reportDetail)
+                .reporter_detail(reporterDetail)
                 .created_at(ticket.getCreatedAt())
                 .updated_at(ticket.getUpdatedAt())
                 .build();
@@ -141,10 +159,10 @@ public class TicketService implements TicketInterface {
 
     @Override
     public String createTicketNumber(Transaction transaction) {
-        String categoryCode = switch (transaction.getCategory()) {
-            case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
-            case TopUp -> "TU"; // ID kategori 2 untuk Gagal Top Up
-            case Payment -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
+        String categoryCode = switch (transaction.getCategory().name()) {
+            case "Gagal_Transfer" -> "TF"; // ID kategori 1 untuk Gagal Transfer
+            case "Gagal_TopUp" -> "TU"; // ID kategori 2 untuk Gagal Top Up
+            case "Gagal_Payment" -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
             default -> ""; // ID kategori tidak valid
         };
 
@@ -231,9 +249,9 @@ public class TicketService implements TicketInterface {
             if (category != null) {
                 // Convert String category to TicketCategories enum
                 TicketCategories ticketCategoryEnum = switch (category.toLowerCase()) {
-                    case "\"gagal transfer\"" -> TicketCategories.Transfer;
-                    case "\"gagal topup\"" -> TicketCategories.TopUp;
-                    case "\"gagal payment\"" -> TicketCategories.Payment;
+                    case "gagal transfer" -> TicketCategories.Transfer;
+                    case "gagal topup" -> TicketCategories.TopUp;
+                    case "gagal payment" -> TicketCategories.Payment;
                     default -> null;
                 };
 
@@ -272,9 +290,8 @@ public class TicketService implements TicketInterface {
         List<TicketResponseDTO> ticketResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketResponseDTO.builder()
                         .id(ticket.getId())
-                        .ticketNumber(ticket.getTicketNumber())
-                        .ticketCategory(ticket.getTicketCategory())
                         .ticket_number(ticket.getTicketNumber())
+                        .ticket_category(ticket.getTicketCategory())
                         .category(switch (ticket.getTicketCategory()) {
                             case Transfer -> "Gagal Transfer";
                             case TopUp -> "Gagal TopUp";
@@ -282,7 +299,11 @@ public class TicketService implements TicketInterface {
                             default -> null;
                         })
                         .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
-                        .status(ticket.getTicketStatus())
+                        .status(switch (ticket.getTicketStatus()) {
+                            case Diajukan -> "Diajukan";
+                            case DalamProses -> "Dalam Proses";
+                            case Selesai -> "Selesai";
+                        })
                         .division_target(ticket.getDivisionTarget())
                         .rating(switch (ticket.getTicketFeedbacks() == null ? StarRating.Empat : ticket.getTicketFeedbacks().getStarRating()) {
                             case Satu -> 1;
@@ -340,7 +361,7 @@ public class TicketService implements TicketInterface {
 
         return TicketResponseDTO.builder()
                 .id(savedTicket.getId())
-                .ticketCategory(savedTicket.getTicketCategory())
+                .ticket_category(savedTicket.getTicketCategory())
                 .ticket_number(savedTicket.getTicketNumber())
                 .category(switch (ticket.getTicketCategory()) {
                     case Transfer -> "Gagal Transfer";

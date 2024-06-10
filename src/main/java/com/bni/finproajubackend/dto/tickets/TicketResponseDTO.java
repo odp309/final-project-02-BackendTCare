@@ -16,16 +16,17 @@ public class TicketResponseDTO {
     private long id;
     private String ticket_number;
     private String category;
+    private TicketCategories ticket_category;
     private long time_response;
     private DivisionTarget division_target;
-    private TicketStatus status;
+    private String status;
     private long rating;
-    private String ticketNumber;
     private Transaction transaction;
-    private TicketCategories ticketCategory;
     private String description;
-    private String referenceNumber;
+    private String reference_number;
     private LocalDateTime report_date;
+    private ReporterDetail reporter_detail;
+    private ReportDetail report_detail;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime created_at;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")

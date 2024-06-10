@@ -99,9 +99,9 @@ public class DataLoader {
         nasabah.setAddress("Balige");
         nasabah.setAge(24);
         nasabah.setEmail("daji18201@gmail.com");
-        nasabah.setFirstName("Dimas");
+        nasabah.setFirst_name("Dimas");
         nasabah.setGender(Gender.Male);
-        nasabah.setLastName("Pangestu");
+        nasabah.setLast_name("Pangestu");
         nasabah.setNik("1212784693778572");
         nasabah.setNoHP("082265746357");
         nasabah.setUser(user);
@@ -157,9 +157,9 @@ public class DataLoader {
     }
 
     private void loadTickets(Transaction transaction) {
-        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
-                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
-                : TicketCategories.Transfer;
+        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Gagal_Payment
+                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.Gagal_TopUp
+                : TicketCategories.Gagal_Transfer;
 
         DivisionTarget divisionTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisionTarget.DGO
                 : transaction.getCategory() == TransactionCategories.TopUp ? DivisionTarget.WPP

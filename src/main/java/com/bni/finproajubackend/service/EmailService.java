@@ -21,7 +21,7 @@ public class EmailService {
         String to = ticket.getTransaction().getAccount().getNasabah().getEmail();
         String subject = "Pembaruan Status Tiket";
 
-        String recipient = ticket.getTransaction().getAccount().getNasabah().getFirstName();
+        String recipient = ticket.getTransaction().getAccount().getNasabah().getFirst_name();
         String ticketId = ticket.getTicketNumber();
         LocalDateTime transactionDate = ticket.getTransaction().getCreatedAt();
         Long amount = ticket.getTransaction().getAmount();

@@ -58,4 +58,9 @@ public class Tickets {
     private List<TicketHistory> ticketHistory;
     @OneToOne(mappedBy = "ticket")
     private TicketResponseTime ticketResponseTime;
+
+    private String reporterName;
+    private String reporterAccountNumber;
+    private String reporterAddress;
+    private String reporterPhoneNumber;
 }

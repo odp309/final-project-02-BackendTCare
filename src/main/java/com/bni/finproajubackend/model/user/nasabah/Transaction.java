@@ -38,7 +38,7 @@ public class Transaction {
     private String status;
 
     @Column(name = "amount")
-    private Long amount;
+    private int amount;
 
     @Column(name = "category") // Menambahkan properti untuk enum
     @Enumerated(EnumType.STRING) // Menyimpan nilai enum sebagai string dalam database
@@ -55,4 +55,16 @@ public class Transaction {
     @Column(name = "updated_at")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
+
+    @Column(name = "reporter_name")
+    private String reporterName;
+
+    @Column(name = "reporter_account_name")
+    private String reporterAccountNumber;
+
+
+    private String reporterAddress;
+    private String reporterPhoneNumber;
+
+
 }
