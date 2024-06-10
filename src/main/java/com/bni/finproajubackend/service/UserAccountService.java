@@ -34,15 +34,8 @@ public class UserAccountService implements UserAccountInterface {
 
         return UserAccountDTO.builder()
                 .id(user.getNasabah().getId())
-                .email(user.getNasabah().getEmail())
-                .firstName(user.getNasabah().getFirstName())
-                .lastName(user.getNasabah().getLastName())
-                .gender(user.getNasabah().getGender())
-                .age(user.getNasabah().getAge())
-                .noHp(user.getNasabah().getNoHP())
-                .address(user.getNasabah().getAddress())
-                .nasabahCode(user.getNasabah() != null ? user.getNasabah().getNik() : null)
-                .accountList(accountDTOList)
+                .name(user.getNasabah().getFirstName() + " " + user.getNasabah().getLastName())
+                .account_list(accountDTOList)
                 .build();
     }
 
