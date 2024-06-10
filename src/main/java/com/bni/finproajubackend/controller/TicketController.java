@@ -31,7 +31,7 @@ public class TicketController {
     private Map<String, Object> errorDetails = new HashMap<>();
 
     @RequiresPermission("admin")
-    @PatchMapping("/{id}/update-status")
+    @PatchMapping("/admin/ticket-reports/{id}/update-status")
     public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, Authentication authentication) {
         try {
             Tickets result = ticketService.updateTicketStatus(id, authentication);
