@@ -5,8 +5,11 @@ import com.bni.finproajubackend.interfaces.ReportInterface;
 import com.bni.finproajubackend.model.enumobject.StarRating;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.repository.TicketsRepository;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
@@ -57,16 +60,19 @@ public class ReportService implements ReportInterface {
 
             // Filter by rate
             if (rate != null) {
-                StarRating starRating = switch (rate) {
-                    case 1 -> StarRating.Satu;
-                    case 2 -> StarRating.Dua;
-                    case 3 -> StarRating.Tiga;
-                    case 4 -> StarRating.Empat;
-                    case 5 -> StarRating.Lima;
-                    default -> null;
-                };
-                if (starRating != null) {
-                    predicates.add(builder.equal(root.get("starRating"), starRating));
+                if (rate == 4) {
+                    // Jika rating null, cari rating null atau bernilai 4
+                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
+                    predicates.add(
+                            builder.or(
+                                    builder.isNull(feedbackJoin.get("starRating")),
+                                    builder.equal(feedbackJoin.get("starRating"), StarRating.Empat)
+                            )
+                    );
+                } else {
+                    // Jika rating tidak null, cari berdasarkan nilai rating tersebut
+                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
+                    predicates.add(builder.equal(feedbackJoin.get("starRating"), StarRating.fromValue(rate)));
                 }
             }
 

@@ -5,7 +5,6 @@ import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
-import com.bni.finproajubackend.dto.TicketStatusUpdateDTO;
 import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
@@ -26,7 +25,6 @@ public class TicketController {
 
     @Autowired
     private TicketInterface ticketService;
-
     @Autowired
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
@@ -44,8 +42,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, err.getCause() == null ? "Something went wrong" : err.getMessage()));
         }
     }
-
-    @PostMapping(value = "/create", produces = "application/json")
+    @PostMapping(value = "/ticket/create", produces = "application/json")
     public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         try {
             TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
@@ -56,7 +53,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("admin/ticket-reports")
+    @GetMapping("/admin/ticket-reports")
     public ResponseEntity getAllTickets(
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
@@ -81,10 +78,10 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/detail")
-    public ResponseEntity getTicketDetails(@PathVariable Long ticketId) {
+    @GetMapping("/admin/ticket-reports/{id}/reporter-detail")
+    public ResponseEntity getTicketDetails(@PathVariable String id) {
         try {
-            TicketResponseDTO result = ticketService.getTicketDetails(ticketId);
+            TicketResponseDTO result = ticketService.getTicketDetails(id);
             if (result == null)
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
