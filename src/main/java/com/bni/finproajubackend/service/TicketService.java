@@ -114,6 +114,48 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
+    public CustomerTicketDetailsReportDTO getCustomerTicketDetails(String ticketNumber) {
+        Tickets ticket = ticketsRepository.findByTicketNumber(ticketNumber);
+        if (ticket == null) {
+            throw new EntityNotFoundException("Ticket not found");
+        }
+
+        return CustomerTicketDetailsReportDTO.builder()
+                .reporter_detail(
+                        CustomerTicketDetailsReportDTO.ReporterDetail.builder()
+                                .nama(ticket.getTransaction().getAccount().getNasabah().getFirst_name())
+                                .account_number(ticket.getTransaction().getAccount().getAccount_number())
+                                .build()
+                )
+                .report_detail(
+                        CustomerTicketDetailsReportDTO.ReportDetail.builder()
+                                .transaction_date(ticket.getTransaction().getCreatedAt())
+                                .transaction_number(ticket.getTransaction().getId().toString())
+                                .amount(ticket.getTransaction().getAmount())
+                                .category(switch (ticket.getTicketCategory()) {
+                                    case Payment -> "Gagal Payment";
+                                    case TopUp -> "Gagal Top Up";
+                                    case Transfer -> "Transfer";
+                                })
+                                .description(ticket.getDescription())
+                                .build()
+                )
+                .report_status_detail(
+                        CustomerTicketDetailsReportDTO.ReportStatusDetail.builder()
+                                .report_date(ticket.getCreatedAt())
+                                .ticket_number(ticket.getTicketNumber())
+                                .status(switch (ticket.getTicketStatus()) {
+                                    case Diajukan -> "Diajukan";
+                                    case DalamProses -> "Dalam proses";
+                                    case Selesai -> "Selesai";
+                                })
+                                .reference_num(ticket.getReferenceNumber())
+                                .build()
+                )
+                .build();
+    }
+
+    @Override
     public TicketDetailsReportDTO getTicketDetails(String ticketNumber) {
         Tickets ticket = ticketsRepository.findByTicketNumber(ticketNumber);
         if (ticket == null) {
@@ -123,10 +165,10 @@ public class TicketService implements TicketInterface {
         return TicketDetailsReportDTO.builder()
                 .reporter_detail(
                         TicketDetailsReportDTO.ReporterDetail.builder()
-                                .nama(ticket.getReporterName())
-                                .account_number(ticket.getReporterAccountNumber())
-                                .address(ticket.getReporterAddress())
-                                .no_handphone(ticket.getReporterPhoneNumber())
+                                .nama(ticket.getTransaction().getAccount().getNasabah().getFirst_name())
+                                .account_number(ticket.getTransaction().getAccount().getAccount_number())
+                                .address(ticket.getTransaction().getAccount().getNasabah().getAddress())
+                                .no_handphone(ticket.getTransaction().getAccount().getNasabah().getNoHP())
                                 .build()
                 )
                 .report_detail(
@@ -274,5 +316,6 @@ public class TicketService implements TicketInterface {
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
     }
+
 
 }

@@ -15,6 +15,8 @@ import java.util.List;
 public interface TicketInterface {
     Tickets updateTicketStatus(Long ticketId, Authentication authentication);
 
+    CustomerTicketDetailsReportDTO getCustomerTicketDetails(String ticketNumber);
+
     TicketDetailsReportDTO getTicketDetails(String id);
 
     String createTicketNumber(Transaction transaction);

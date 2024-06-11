@@ -1,13 +1,10 @@
 package com.bni.finproajubackend.controller;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
-import com.bni.finproajubackend.dto.tickets.TicketDetailsReportDTO;
-import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
-import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
+import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
 import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
-import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.interfaces.TicketReportsInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
@@ -94,6 +91,19 @@ public class TicketController {
     public ResponseEntity getTicketDetails(@PathVariable String ticket_number) {
         try {
             TicketDetailsReportDTO result = ticketService.getTicketDetails(ticket_number);
+            if (result == null)
+                return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+        }
+    }
+
+    @GetMapping("/customer/ticket-reports/{ticket_number}/reporter-detail")
+    public ResponseEntity getCustomerTicketDetails(@PathVariable String ticket_number) {
+        try {
+            CustomerTicketDetailsReportDTO result = ticketService.getCustomerTicketDetails(ticket_number);
             if (result == null)
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
