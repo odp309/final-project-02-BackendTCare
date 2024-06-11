@@ -8,6 +8,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/admin/ticket-reports")
+@RequestMapping("/api/v1")
 public class TicketHistoryController {
     @Autowired
     private TemplateResInterface responseService;
@@ -27,7 +28,7 @@ public class TicketHistoryController {
     @Autowired
     private Map<String, Object> errorDetails = new HashMap<>();
 
-    @GetMapping(value = "/{id}/track-report-status", produces = "application/json")
+    @GetMapping(value = "/admin/ticket-reports/{id}/track-report-status", produces = "application/json")
     public ResponseEntity<TemplateResponseDTO<List<TrackTicketStatusResponseDTO>>> getTicketHistoryDetail(@PathVariable Long id) {
         try {
             List<TrackTicketStatusResponseDTO> responseDTOList = ticketHistoryStatusService.trackTicketStatus(id);
@@ -39,6 +40,18 @@ public class TicketHistoryController {
             errorDetails.put("message", err.getMessage());
             err.printStackTrace();  // Print stack trace to debug the exact cause
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseService.apiFailed(null, "Something went wrong: " + err.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/customer/ticket-reports/{id}/track-report-status", produces = "application/json")
+    public ResponseEntity<TemplateResponseDTO<List<TrackTicketStatusResponseDTO>>> getMyTicketHistoryDetail(Authentication authentication, @PathVariable Long id){
+        try{
+            List<TrackTicketStatusResponseDTO> responseDTOList = ticketHistoryStatusService.trackMyTicketStatus(authentication, id);
+            return ResponseEntity.ok(responseService.apiSuccess(responseDTOList, "Success"));
+        }
+        catch (Exception e){
+            errorDetails.put("message", "Ticket not found: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, "Ticket not found"));
         }
     }
 
