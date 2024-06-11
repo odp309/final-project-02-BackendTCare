@@ -211,6 +211,7 @@ public class TicketService implements TicketInterface {
 
     @Override
     public PaginationDTO<TicketsResponseDTO> getAllTickets(
+            String user,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,

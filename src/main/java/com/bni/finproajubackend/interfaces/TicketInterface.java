@@ -22,6 +22,7 @@ public interface TicketInterface {
     List<TicketHistoryResponseDTO> getTicketHistory(long id);
 
     PaginationDTO<TicketsResponseDTO> getAllTickets(
+            String user,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
