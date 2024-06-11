@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/private/user")
+@RequestMapping("/api/v1/private")
 public class UserAccountController {
     @Autowired
     private UserAccountService userAccountService;
@@ -24,7 +24,7 @@ public class UserAccountController {
     private Map<String, Object> errorDetails = new HashMap<>();
 
     //@RequiresPermission("getUserAccount")
-    @GetMapping(value = "/account", produces = "application/json")
+    @GetMapping(value = "/customer/homepage", produces = "application/json")
     public ResponseEntity getUserAccountDetail(Authentication authentication){
         try {
             UserAccountDTO userAccountDTO = userAccountService.getUserAccount(authentication);

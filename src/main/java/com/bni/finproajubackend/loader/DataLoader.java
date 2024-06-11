@@ -186,7 +186,6 @@ public class DataLoader {
             default -> TicketStatus.Diajukan; // Nilai default jika terjadi kesalahan
         };
 
-
         // Membuat objek tiket baru
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))

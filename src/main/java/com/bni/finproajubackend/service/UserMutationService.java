@@ -4,6 +4,7 @@ import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
 import com.bni.finproajubackend.dto.userAccount.UserMutationDTO;
 import com.bni.finproajubackend.interfaces.UserMutationInterface;
 //import com.bni.finproajubackend.model.user.Person;
+import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.enumobject.TransactionType;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
@@ -14,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,11 +56,17 @@ public class UserMutationService implements UserMutationInterface {
 
     private TransactionDTO convertToTransactionDTO(Transaction transaction){
         String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
+        String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
+                : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
+                : "Diajukan";
+
         TransactionDTO transactionDTO = new TransactionDTO();
         transactionDTO.setId(transaction.getId());
-        transactionDTO.setTransaction_detail(transaction.getDetail());
+        transactionDTO.setTransaction_description(transaction.getDetail());
         transactionDTO.setTransaction_type(transactionType);
-        transactionDTO.setStatus(transaction.getStatus());
+        transactionDTO.setDate(formattedDateTime);
+        transactionDTO.setTicket_status(ticketStatus);
         return transactionDTO;
     }
 }
