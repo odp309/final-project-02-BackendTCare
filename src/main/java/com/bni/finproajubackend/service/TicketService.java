@@ -134,10 +134,10 @@ public class TicketService implements TicketInterface {
         return TicketDetailsReportDTO.builder()
                 .reporter_detail(
                         TicketDetailsReportDTO.ReporterDetail.builder()
-                                .nama(ticket.getReporterName())
-                                .account_number(ticket.getReporterAccountNumber())
-                                .address(ticket.getReporterAddress())
-                                .no_handphone(ticket.getReporterPhoneNumber())
+                                .nama(ticket.getTransaction().getAccount().getNasabah().getFirst_name())
+                                .account_number(ticket.getTransaction().getAccount().getAccount_number())
+                                .address(ticket.getTransaction().getAccount().getNasabah().getAddress())
+                                .no_handphone(ticket.getTransaction().getAccount().getNasabah().getNoHP())
                                 .build()
                 )
                 .report_detail(

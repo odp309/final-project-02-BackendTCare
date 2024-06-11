@@ -37,5 +37,19 @@ public class UserMutationController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong" : e.getMessage()));
         }
     }
+
+    @GetMapping(value = "/customer/list-transaction", produces = "application/json")
+    public ResponseEntity getUserListTransactions(Authentication authentication){
+        try {
+            UserMutationDTO userMutationDTO = userMutationService.getUserListTransaction(authentication);
+            if(userMutationDTO == null){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, "Data not found"));
+            }
+            return ResponseEntity.ok(responseService.apiSuccess(userMutationDTO, "Success"));
+        }catch (Exception e){
+            errorDetails.put("message", e.getCause()==null ? "Not Permitted" : e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong!" : e.getMessage()));
+        }
+    }
 }
 
