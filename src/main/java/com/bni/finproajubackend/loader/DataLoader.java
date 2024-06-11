@@ -117,7 +117,7 @@ public class DataLoader {
         Account account = new Account();
         account.setNasabah(nasabah);
         account.setType("Rekening Tabungan");
-        account.setAccount_number("1234567890");
+        account.setAccountNumber("1234567890");
         account.setBalance(1000000L);
         account.setCreatedAt(LocalDateTime.now());
         account.setUpdatedAt(LocalDateTime.now());
