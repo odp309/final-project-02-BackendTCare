@@ -5,4 +5,5 @@ import org.springframework.security.core.Authentication;
 
 public interface UserMutationInterface {
     UserMutationDTO getUserMutations(Authentication authentication);
+    UserMutationDTO getUserListTransaction(Authentication authentication);
 }

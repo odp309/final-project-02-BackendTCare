@@ -2,6 +2,7 @@ package com.bni.finproajubackend.repository;
 
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -31,4 +32,6 @@ public interface TicketsRepository extends JpaRepository<Tickets, Long>, JpaSpec
     Page<Tickets> findAll(Specification<Tickets> spec, Pageable pageable);
     List<Tickets> findAll(Specification<Tickets> spec, Sort by);
     List<Tickets> findAll(Specification<Tickets> spec);
+
+    List<Tickets> findByTransaction(Transaction transaction);
 }

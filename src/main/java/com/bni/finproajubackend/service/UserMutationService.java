@@ -3,7 +3,8 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
 import com.bni.finproajubackend.dto.userAccount.UserMutationDTO;
 import com.bni.finproajubackend.interfaces.UserMutationInterface;
-//import com.bni.finproajubackend.model.user.Person;
+import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.enumobject.TransactionType;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
@@ -13,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,26 +38,65 @@ public class UserMutationService implements UserMutationInterface {
             throw new RuntimeException("User not found");
         }
 
-
         Nasabah nasabah = nasabahRepository.findByUser(user);
 
         Account account = accountRepository.findByNasabah(nasabah);
 
         List<Transaction> transactions = transactionRepository.findByAccount(account);
         List<TransactionDTO> transactionDTOList = transactions.stream()
-                .map(this::convertToTransactionDTO)
+                .map(transaction -> {
+                    String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
+                    String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
+                            : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
+                            : "Diajukan";
+
+                    return new TransactionDTO(
+                            transaction.getId(),
+                            transaction.getDetail(),
+                            transactionType,
+                            formattedDateTime,
+                            ticketStatus
+                    );
+                })
                 .collect(Collectors.toList());
 
-        return UserMutationDTO.builder()
-                .transactionList(transactionDTOList)
-                .build();
+        return new UserMutationDTO(transactionDTOList);
     }
 
-    private TransactionDTO convertToTransactionDTO(Transaction transaction){
-        TransactionDTO transactionDTO = new TransactionDTO();
-        transactionDTO.setId(transaction.getId());
-        transactionDTO.setTransactionDetail(transaction.getDetail());
-        transactionDTO.setStatus(transaction.getStatus());
-        return transactionDTO;
+    @Override
+    public UserMutationDTO getUserListTransaction(Authentication authentication) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        Account account = accountRepository.findByNasabah(user.getNasabah());
+
+        List<Transaction> transactions = transactionRepository.findByAccount(account);
+
+        List<TransactionDTO> transactionDTOList = transactions.stream()
+                .filter(transaction -> transaction.getTransaction_type() == TransactionType.Out) // Filter hanya transaksi Out
+                .map(transaction -> {
+                    String transactionType = "Out"; // Di sini sudah pasti TransactionType adalah Out
+                    String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
+                            : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
+                            : "Diajukan";
+
+                    return new TransactionDTO(
+                            transaction.getId(),
+                            transaction.getDetail(),
+                            transactionType,
+                            formattedDateTime,
+                            ticketStatus
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new UserMutationDTO(transactionDTOList);
     }
+
 }

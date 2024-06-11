@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/private/user")
+@RequestMapping("/api/v1/private")
 public class UserMutationController {
     @Autowired
     private UserMutationService userMutationService;
@@ -24,7 +24,7 @@ public class UserMutationController {
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
 
-    @GetMapping(value = "/mutation", produces = "application/json")
+    @GetMapping(value = "/customer/history-transaction", produces = "application/json")
     public ResponseEntity getUserMutationDetail(Authentication authentication){
         try {
             UserMutationDTO userMutationDTO = userMutationService.getUserMutations(authentication);
@@ -35,6 +35,20 @@ public class UserMutationController {
         }catch (Exception e){
             errorDetails.put("message", e.getCause()== null ? "Not Permitted": e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong" : e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/customer/list-transaction", produces = "application/json")
+    public ResponseEntity getUserListTransactions(Authentication authentication){
+        try {
+            UserMutationDTO userMutationDTO = userMutationService.getUserListTransaction(authentication);
+            if(userMutationDTO == null){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, "Data not found"));
+            }
+            return ResponseEntity.ok(responseService.apiSuccess(userMutationDTO, "Success"));
+        }catch (Exception e){
+            errorDetails.put("message", e.getCause()==null ? "Not Permitted" : e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong!" : e.getMessage()));
         }
     }
 }

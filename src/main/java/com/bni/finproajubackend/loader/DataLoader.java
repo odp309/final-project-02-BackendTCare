@@ -154,6 +154,7 @@ public class DataLoader {
         transaction.setAmount(amount);
         transaction.setStatus(status);
         transaction.setCategory(category);
+        transaction.setTransaction_type(new Random().nextBoolean() ? TransactionType.In : TransactionType.Out);
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setUpdatedAt(LocalDateTime.now());
 
@@ -185,7 +186,6 @@ public class DataLoader {
             default -> TicketStatus.Diajukan; // Nilai default jika terjadi kesalahan
         };
 
-
         // Membuat objek tiket baru
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
@@ -210,7 +210,7 @@ public class DataLoader {
 
     private void createTicketHistory(Tickets ticket, TransactionCategories category) {
         Admin admin = adminRepository.findByUsername("admin12");
-        String[] statuses = {"Transaksi Dibuat", "Laporan Diajukan", "Laporan Dalam Proses", "Laporan Selesai Diproses", "Laporan Diterima Pelapor"};
+        String[] statuses = {"Laporan Diajukan", "Laporan Diajukan", "Laporan Dalam Proses", "Laporan Selesai Diproses", "Laporan Selesai Diproses"};
 
         int counter = switch (ticket.getTicketStatus()) {
             case Diajukan -> 2;

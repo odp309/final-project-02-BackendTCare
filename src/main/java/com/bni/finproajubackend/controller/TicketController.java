@@ -1,14 +1,12 @@
 package com.bni.finproajubackend.controller;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
-import com.bni.finproajubackend.dto.tickets.TicketDetailsReportDTO;
-import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
-import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
+import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
 import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
-import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
+import com.bni.finproajubackend.interfaces.TicketReportsInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.ticket.Tickets;
@@ -31,6 +29,8 @@ public class TicketController {
 
     @Autowired
     private TicketInterface ticketService;
+    @Autowired
+    private TicketReportsInterface ticketReportsService;
     @Autowired
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
@@ -59,8 +59,10 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/admin/ticket-reports")
+    @GetMapping("/{user}/ticket-reports")
     public ResponseEntity getAllTickets(
+            @PathVariable String user,
+            @RequestParam(required = false) String account_number,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
@@ -74,7 +76,7 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
         try {
-            PaginationDTO<TicketsResponseDTO> result = ticketService.getAllTickets(category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
+            PaginationDTO result = ticketReportsService.getAllTickets(user, account_number, category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
             return ResponseEntity.ok(responseService.apiSuccessPagination(result, "Success get ticket details"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
@@ -89,6 +91,19 @@ public class TicketController {
     public ResponseEntity getTicketDetails(@PathVariable String ticket_number) {
         try {
             TicketDetailsReportDTO result = ticketService.getTicketDetails(ticket_number);
+            if (result == null)
+                return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+        }
+    }
+
+    @GetMapping("/customer/ticket-reports/{ticket_number}/reporter-detail")
+    public ResponseEntity getCustomerTicketDetails(@PathVariable String ticket_number) {
+        try {
+            CustomerTicketDetailsReportDTO result = ticketService.getCustomerTicketDetails(ticket_number);
             if (result == null)
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
