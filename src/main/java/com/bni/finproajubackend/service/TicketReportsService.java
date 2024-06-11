@@ -11,8 +11,9 @@ import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import com.bni.finproajubackend.model.user.admin.Admin;
+import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.repository.*;
-import com.bni.finproajubackend.specification.TicketsSpecifications;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
@@ -21,8 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.webjars.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -39,6 +42,10 @@ public class TicketReportsService implements TicketReportsInterface {
 
     @Autowired
     private TicketsRepository ticketsRepository;
+    @Autowired
+    private AccountRepository accountRepository;
+    @Autowired
+    private UserRepository userRepository;
 
     @Override
     public PaginationDTO getAllTickets(
@@ -54,13 +61,14 @@ public class TicketReportsService implements TicketReportsInterface {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "created_at") String sort_by,
-            @RequestParam(required = false, defaultValue = "asc") String order
-    ) {
+            @RequestParam(required = false, defaultValue = "asc") String order,
+            Authentication authentication
+    ) throws IllegalAccessException {
         switch (user.toLowerCase()) {
             case "admin":
-                return adminTicketReports(category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
+                return adminTicketReports(category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order, authentication);
             case "customer":
-                return nasabahTicketReports(account_number, status, sort_by, order);
+                return nasabahTicketReports(account_number, status, sort_by, order, authentication);
             default:
                 throw new IllegalArgumentException("Path is not valid");
         }
@@ -70,8 +78,13 @@ public class TicketReportsService implements TicketReportsInterface {
             String account_number,
             String status,
             String sort_by,
-            String order
-    ) {
+            String order,
+            Authentication authentication
+    ) throws IllegalAccessException {
+        Account account = accountRepository.findByAccountNumber(account_number);
+        if (account == null) throw new NotFoundException("Account not found");
+        if (!account.getNasabah().getUser().getUsername().equals(authentication.getName())) throw new IllegalAccessException("User is not the owner");
+
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
 
@@ -117,8 +130,13 @@ public class TicketReportsService implements TicketReportsInterface {
             int page,
             int limit,
             String sort_by,
-            String order
-    ) {
+            String order,
+            Authentication authentication
+    ) throws IllegalAccessException {
+        Admin admin = userRepository.findByUsername(authentication.getName()).getAdmin();
+        if (admin == null || !admin.getRole().getRoleName().equals("admin"))
+            throw new IllegalAccessException("Not Admin");
+
         sort_by = convertSortBy(sort_by);
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         List<Sort.Order> orders = new ArrayList<>();
@@ -237,7 +255,7 @@ public class TicketReportsService implements TicketReportsInterface {
 
             Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
 
-            Optional.ofNullable(account_number).ifPresent(acc -> predicates.add(builder.equal(root.get("transaction").get("account").get("account_number"), acc)));
+            Optional.ofNullable(account_number).ifPresent(acc -> predicates.add(builder.equal(root.get("transaction").get("account").get("accountNumber"), acc)));
 
             return builder.and(predicates.toArray(new Predicate[0]));
         };

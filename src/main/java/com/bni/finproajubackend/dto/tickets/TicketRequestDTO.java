@@ -11,9 +11,10 @@ import lombok.Setter;
 @Data
 public class TicketRequestDTO {
 
-    private Long transactionId;
-    private TicketCategories ticketCategory;
-    private TicketStatus status;
-    private String description;
+    private Long transaction_id;
+    private String account_number;
+    private String ticket_category;
+    private boolean reopen_ticket;
+    private String reference_number;
 
 }

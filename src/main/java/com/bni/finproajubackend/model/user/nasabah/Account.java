@@ -25,8 +25,8 @@ public class Account {
     @JoinColumn(name = "nasabah_id", referencedColumnName = "id")
     private Nasabah nasabah;
     private String type;
-    @Column(unique = true)
-    private String account_number;
+    @Column(name="account_number", unique = true)
+    private String accountNumber;
     private Long balance;
     @CreatedDate
     @Column(name = "created_at", updatable = false)

@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.interfaces;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.RequestParam;
 
 public interface TicketReportsInterface {
@@ -17,6 +18,7 @@ public interface TicketReportsInterface {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "created_at") String sort_by,
-            @RequestParam(required = false, defaultValue = "asc") String order
-    );
+            @RequestParam(required = false, defaultValue = "asc") String order,
+            Authentication authentication
+    ) throws IllegalAccessException;
 }

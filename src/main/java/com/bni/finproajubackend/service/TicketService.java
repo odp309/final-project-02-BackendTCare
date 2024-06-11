@@ -124,7 +124,7 @@ public class TicketService implements TicketInterface {
                 .reporter_detail(
                         CustomerTicketDetailsReportDTO.ReporterDetail.builder()
                                 .nama(ticket.getTransaction().getAccount().getNasabah().getFirst_name())
-                                .account_number(ticket.getTransaction().getAccount().getAccount_number())
+                                .account_number(ticket.getTransaction().getAccount().getAccountNumber())
                                 .build()
                 )
                 .report_detail(
@@ -166,7 +166,7 @@ public class TicketService implements TicketInterface {
                 .reporter_detail(
                         TicketDetailsReportDTO.ReporterDetail.builder()
                                 .nama(ticket.getTransaction().getAccount().getNasabah().getFirst_name())
-                                .account_number(ticket.getTransaction().getAccount().getAccount_number())
+                                .account_number(ticket.getTransaction().getAccount().getAccountNumber())
                                 .address(ticket.getTransaction().getAccount().getNasabah().getAddress())
                                 .no_handphone(ticket.getTransaction().getAccount().getNasabah().getNoHP())
                                 .build()
@@ -242,7 +242,7 @@ public class TicketService implements TicketInterface {
 
     @Override
     public TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO) {
-        Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransactionId())
+        Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransaction_id())
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
 
         TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
@@ -257,9 +257,10 @@ public class TicketService implements TicketInterface {
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
                 .ticketCategory(categories)
-                .description(ticketRequestDTO.getDescription())
+                .description("Complaint Ticket")
                 .divisionTarget(divisiTarget)
                 .ticketStatus(TicketStatus.Diajukan)
+                .referenceNumber(ticketRequestDTO.isReopen_ticket() ? ticketRequestDTO.getReference_number() : null)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -273,7 +274,7 @@ public class TicketService implements TicketInterface {
                 .id(savedTicket.getId())
                 .ticket_category(savedTicket.getTicketCategory())
                 .ticket_number(savedTicket.getTicketNumber())
-                .category(switch (ticket.getTicketCategory()) {
+                .category(switch (savedTicket.getTicketCategory()) {
                     case Transfer -> "Gagal Transfer";
                     case TopUp -> "Gagal TopUp";
                     case Payment -> "Gagal Payang";
@@ -293,6 +294,10 @@ public class TicketService implements TicketInterface {
                     case Lima -> 5;
                     default -> 4;
                 })
+                .transaction(savedTicket.getTransaction())
+                .description("Complaint Form")
+                .reference_number(savedTicket.getReferenceNumber())
+                .report_date(savedTicket.getCreatedAt())
                 .created_at(savedTicket.getCreatedAt())
                 .updated_at(savedTicket.getCreatedAt())
                 .build();
@@ -304,13 +309,25 @@ public class TicketService implements TicketInterface {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Laporan " + ticket.getTicketStatus());
+        ticketHistory.setDescription("Laporan Dibukan");
         ticketHistory.setDate(new Date());
         ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
         ticketHistory.setCreatedAt(LocalDateTime.now());
         ticketHistory.setUpdatedAt(LocalDateTime.now());
 
         ticketHistoryRepository.save(ticketHistory);
+
+        TicketHistory ticketHistory2 = new TicketHistory();
+
+        ticketHistory2.setTicket(ticket);
+        ticketHistory2.setAdmin(admin);
+        ticketHistory2.setDescription("Laporan " + ticket.getTicketStatus());
+        ticketHistory2.setDate(new Date());
+        ticketHistory2.setLevel(2L); // Assuming level 1 for ticket creation
+        ticketHistory2.setCreatedAt(LocalDateTime.now());
+        ticketHistory2.setUpdatedAt(LocalDateTime.now());
+
+        ticketHistoryRepository.save(ticketHistory2);
     }
 
     public String getAdminFullName(@NotNull Admin admin) {
