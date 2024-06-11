@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.controller;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
+import com.bni.finproajubackend.dto.tickets.TicketDetailsReportDTO;
 import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
 import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
 import com.bni.finproajubackend.annotation.RequiresPermission;
@@ -11,6 +12,8 @@ import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +26,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/private")
 public class TicketController {
+
+    private static final Logger logger = LoggerFactory.getLogger(TicketController.class);
 
     @Autowired
     private TicketInterface ticketService;
@@ -80,10 +85,10 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/admin/ticket-reports/{id}/reporter-detail")
-    public ResponseEntity getTicketDetails(@PathVariable String id) {
+    @GetMapping("/admin/ticket-reports/{ticket_number}/reporter-detail")
+    public ResponseEntity getTicketDetails(@PathVariable String ticket_number) {
         try {
-            TicketResponseDTO result = ticketService.getTicketDetails(id);
+            TicketDetailsReportDTO result = ticketService.getTicketDetails(ticket_number);
             if (result == null)
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));

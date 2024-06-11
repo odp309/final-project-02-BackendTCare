@@ -34,7 +34,7 @@ public class UserAccountService implements UserAccountInterface {
 
         return UserAccountDTO.builder()
                 .id(user.getNasabah().getId())
-                .name(user.getNasabah().getFirstName() + " " + user.getNasabah().getLastName())
+                .name(user.getNasabah().getFirst_name() + " " + user.getNasabah().getLast_name())
                 .account_list(accountDTOList)
                 .build();
     }
@@ -43,7 +43,7 @@ public class UserAccountService implements UserAccountInterface {
 
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setId(account.getId());
-        accountDTO.setAccountNumber(account.getAccount_number());
+        accountDTO.setAccount_number(account.getAccount_number());
         accountDTO.setBalance(account.getBalance());
         accountDTO.setType(account.getType());
         //accountDTO.setTransactionList(transactionDTOList);

@@ -11,6 +11,7 @@ import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.*;
+import com.bni.finproajubackend.specification.TicketsSpecifications;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
@@ -34,11 +35,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -127,25 +125,45 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public TicketResponseDTO getTicketDetails(String ticketNumber) {
+    public TicketDetailsReportDTO getTicketDetails(String ticketNumber) {
         Tickets ticket = ticketsRepository.findByTicketNumber(ticketNumber);
-        if (ticket == null)
+        if (ticket == null) {
             throw new EntityNotFoundException("Ticket not found");
+        }
 
-        return TicketResponseDTO.builder()
-                .id(ticket.getId())
-                .ticket_number(ticket.getTicketNumber())
-                .ticket_category(ticket.getTicketCategory())
-                .status(switch (ticket.getTicketStatus()) {
-                    case Diajukan -> "Diajukan";
-                    case DalamProses -> "Dalam Proses";
-                    case Selesai -> "Selesai";
-                })
-                .description(ticket.getDescription())
-                .reference_number(ticket.getReferenceNumber())
-                .report_date(ticket.getCreatedAt())
-                .created_at(ticket.getCreatedAt())
-                .updated_at(ticket.getUpdatedAt())
+        return TicketDetailsReportDTO.builder()
+                .reporter_detail(
+                        TicketDetailsReportDTO.ReporterDetail.builder()
+                                .nama(ticket.getReporterName())
+                                .account_number(ticket.getReporterAccountNumber())
+                                .address(ticket.getReporterAddress())
+                                .no_handphone(ticket.getReporterPhoneNumber())
+                                .build()
+                )
+                .report_detail(
+                        TicketDetailsReportDTO.ReportDetail.builder()
+                                .transaction_date(ticket.getTransaction().getCreatedAt())
+                                .amount(ticket.getTransaction().getAmount())
+                                .category(switch (ticket.getTicketCategory()) {
+                                    case Payment -> "Gagal Payment";
+                                    case TopUp -> "Gagal Top Up";
+                                    case Transfer -> "Gagal Transfer";
+                                })
+                                .description(ticket.getDescription())
+                                .reference_num(ticket.getReferenceNumber())
+                                .build()
+                )
+                .report_status_detail(
+                        TicketDetailsReportDTO.ReportStatusDetail.builder()
+                                .report_date(ticket.getCreatedAt())
+                                .ticket_number(ticket.getTicketNumber())
+                                .status(switch (ticket.getTicketStatus()) {
+                                    case Diajukan -> "Diajukan";
+                                    case DalamProses -> "Dalam Proses";
+                                    case Selesai -> "Selesai";
+                                })
+                                .build()
+                )
                 .build();
     }
 
@@ -202,16 +220,26 @@ public class TicketService implements TicketInterface {
             @RequestParam(required = false) String created_at,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
+            @RequestParam(required = false, defaultValue = "created_at") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
+        // Convert sort_by to camel case field names
+        sort_by = switch (sort_by.toLowerCase()) {
+            case "ticket_number" -> "ticketNumber";
+            case "created_at" -> "createdAt";
+            case "status" -> "ticketStatus";
+            default -> sort_by;
+        };
 
         // Determine sort direction
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        sort_by = sort_by.equalsIgnoreCase("ticket_number") ? "ticketNumber" : (sort_by.equalsIgnoreCase("created_at") ? "createdAt" : sort_by);
+
+        // Multi-sort configuration
+        List<Sort.Order> orders = new ArrayList<>();
+        orders.add(new Sort.Order(sortDirection, sort_by));
 
         // Build pageable object for pagination
-        Pageable pageable = PageRequest.of(page, limit, Sort.by(sortDirection, sort_by));
+        Pageable pageable = PageRequest.of(page, limit, Sort.by(orders));
 
         // Define date formatter
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
@@ -288,8 +316,11 @@ public class TicketService implements TicketInterface {
             return builder.and(predicates.toArray(new Predicate[0]));
         };
 
+        // Gabungkan spec filtering dengan spec sorting
+        Specification<Tickets> combinedSpec = spec.and(TicketsSpecifications.orderByStatus());
+
         // Perform query with Specification and pageable
-        Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
+        Page<Tickets> ticketsPage = ticketsRepository.findAllWithCustomOrder(combinedSpec, pageable);
 
         // Ensure non-empty results
         if (ticketsPage.isEmpty()) {
@@ -411,4 +442,5 @@ public class TicketService implements TicketInterface {
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
     }
+
 }

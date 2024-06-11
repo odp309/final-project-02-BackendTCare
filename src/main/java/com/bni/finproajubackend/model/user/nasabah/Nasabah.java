@@ -28,9 +28,9 @@ public class Nasabah {
     @Column(name = "phone_number", unique = true)
     private String noHP;
     @Column(name = "first_name")
-    private String firstName;
+    private String first_name;
     @Column(name = "last_name")
-    private String lastName;
+    private String last_name;
     @Enumerated(EnumType.STRING)
     private Gender gender;
     private int age;
