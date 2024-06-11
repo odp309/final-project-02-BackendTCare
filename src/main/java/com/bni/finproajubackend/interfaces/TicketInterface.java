@@ -1,10 +1,7 @@
 package com.bni.finproajubackend.interfaces;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
-import com.bni.finproajubackend.dto.tickets.TicketHistoryResponseDTO;
-import com.bni.finproajubackend.dto.tickets.TicketRequestDTO;
-import com.bni.finproajubackend.dto.tickets.TicketResponseDTO;
-import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
+import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -17,7 +14,9 @@ import java.util.List;
 
 public interface TicketInterface {
     Tickets updateTicketStatus(Long ticketId, Authentication authentication);
-    TicketResponseDTO getTicketDetails(String ticketNumber);
+
+    TicketDetailsReportDTO getTicketDetails(String id);
+
     String createTicketNumber(Transaction transaction);
 
     List<TicketHistoryResponseDTO> getTicketHistory(long id);

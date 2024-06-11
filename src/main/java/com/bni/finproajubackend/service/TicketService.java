@@ -124,39 +124,45 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public TicketResponseDTO getTicketDetails(String ticketNumber) {
+    public TicketDetailsReportDTO getTicketDetails(String ticketNumber) {
         Tickets ticket = ticketsRepository.findByTicketNumber(ticketNumber);
-        if (ticket == null)
+        if (ticket == null) {
             throw new EntityNotFoundException("Ticket not found");
+        }
 
-        return TicketResponseDTO.builder()
-                .id(ticket.getId())
-                .reporter_detail(Map.of(
-                        "nama", ticket.getReporterName(),
-                        "account_number", ticket.getReporterAccountNumber(),
-                        "address", ticket.getReporterAddress(),
-                        "no_handphone", ticket.getReporterPhoneNumber()
-                ))
-                .report_detail(Map.of(
-                        "transaction_date", ticket.getTransaction().getCreatedAt(),
-                        "amount", ticket.getTransaction().getAmount(),
-                        "category", switch (ticket.getTicketCategory()) {
-                            case Payment -> "Gagal Payment";
-                            case TopUp -> "Gagal Top Up";
-                            case Transfer -> "Gagal Transfer";
-                        },
-                        "description", ticket.getDescription(),
-                        "reference_number", ticket.getReferenceNumber()
-                ))
-                .report_status_detail(Map.of(
-                        "report_date", ticket.getCreatedAt(),
-                        "ticket_number", ticket.getTicketNumber(),
-                        "status", switch (ticket.getTicketStatus()) {
-                            case Diajukan -> "Diajukan";
-                            case DalamProses -> "Dalam Proses";
-                            case Selesai -> "Selesai";
-                        }
-                ))
+        return TicketDetailsReportDTO.builder()
+                .reporter_detail(
+                        TicketDetailsReportDTO.ReporterDetail.builder()
+                                .nama(ticket.getReporterName())
+                                .account_number(ticket.getReporterAccountNumber())
+                                .address(ticket.getReporterAddress())
+                                .no_handphone(ticket.getReporterPhoneNumber())
+                                .build()
+                )
+                .report_detail(
+                        TicketDetailsReportDTO.ReportDetail.builder()
+                                .transaction_date(ticket.getTransaction().getCreatedAt())
+                                .amount(ticket.getTransaction().getAmount())
+                                .category(switch (ticket.getTicketCategory()) {
+                                    case Payment -> "Gagal Payment";
+                                    case TopUp -> "Gagal Top Up";
+                                    case Transfer -> "Gagal Transfer";
+                                })
+                                .description(ticket.getDescription())
+                                .reference_num(ticket.getReferenceNumber())
+                                .build()
+                )
+                .report_status_detail(
+                        TicketDetailsReportDTO.ReportStatusDetail.builder()
+                                .report_date(ticket.getCreatedAt())
+                                .ticket_number(ticket.getTicketNumber())
+                                .status(switch (ticket.getTicketStatus()) {
+                                    case Diajukan -> "Diajukan";
+                                    case DalamProses -> "Dalam Proses";
+                                    case Selesai -> "Selesai";
+                                })
+                                .build()
+                )
                 .build();
     }
 
@@ -422,4 +428,5 @@ public class TicketService implements TicketInterface {
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
     }
+
 }
