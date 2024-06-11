@@ -64,8 +64,8 @@ public class UserService implements UserInterface {
             user.getAdmin().setLastName(request.getLastName());
         }
         if (user.getNasabah() != null) {
-            user.getNasabah().setFirstName(request.getFirstName());
-            user.getNasabah().setLastName(request.getLastName());
+            user.getNasabah().setFirst_name(request.getFirstName());
+            user.getNasabah().setLast_name(request.getLastName());
         }
         userRepository.save(user);
         return user;

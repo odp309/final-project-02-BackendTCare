@@ -7,8 +7,9 @@ import java.util.List;
 @Data
 public class AccountDTO {
     private Long id;
-    private String accountNumber;
+    private String account_number;
     private Long balance;
     private String type;
+    private int amount;
     //private List<TransactionDTO> transactionList;
 }
