@@ -2,6 +2,7 @@ package com.bni.finproajubackend.model.user.nasabah;
 
 import com.bni.finproajubackend.model.bank.Bank;
 import com.bni.finproajubackend.model.enumobject.TransactionCategories;
+import com.bni.finproajubackend.model.enumobject.TransactionType;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -39,6 +40,10 @@ public class Transaction {
 
     @Column(name = "amount")
     private Long amount;
+
+    @Column(name = "transaction_type")
+    @Enumerated(EnumType.STRING)
+    private TransactionType transaction_type;
 
     @Column(name = "category") // Menambahkan properti untuk enum
     @Enumerated(EnumType.STRING) // Menyimpan nilai enum sebagai string dalam database

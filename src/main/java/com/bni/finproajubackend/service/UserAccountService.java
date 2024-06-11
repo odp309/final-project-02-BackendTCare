@@ -34,22 +34,12 @@ public class UserAccountService implements UserAccountInterface {
 
         return UserAccountDTO.builder()
                 .id(user.getNasabah().getId())
-                .email(user.getNasabah().getEmail())
-                .firstName(user.getNasabah().getFirst_name())
-                .lastName(user.getNasabah().getLast_name())
-                .gender(user.getNasabah().getGender())
-                .age(user.getNasabah().getAge())
-                .noHp(user.getNasabah().getNoHP())
-                .address(user.getNasabah().getAddress())
-                .nasabahCode(user.getNasabah() != null ? user.getNasabah().getNik() : null)
-                .accountList(accountDTOList)
+                .name(user.getNasabah().getFirst_name() + " " + user.getNasabah().getLast_name())
+                .account_list(accountDTOList)
                 .build();
     }
 
     private AccountDTO convertToAccountDTO(Account account) {
-        List<TransactionDTO> transactionDTOList = account.getTransaction().stream()
-                .map(this::convertToTransactionDTO)
-                .toList();
 
         AccountDTO accountDTO = new AccountDTO();
         accountDTO.setId(account.getId());
@@ -60,11 +50,4 @@ public class UserAccountService implements UserAccountInterface {
         return accountDTO;
     }
 
-    private TransactionDTO convertToTransactionDTO(Transaction transaction) {
-        TransactionDTO transactionDTO = new TransactionDTO();
-        transactionDTO.setId(transaction.getId());
-        transactionDTO.setTransactionDetail(transaction.getDetail());
-        transactionDTO.setStatus(transaction.getStatus());
-        return transactionDTO;
-    }
 }

@@ -16,7 +16,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/v1/private/user")
+@RequestMapping("/api/v1/private")
 public class UserMutationController {
     @Autowired
     private UserMutationService userMutationService;
@@ -24,7 +24,7 @@ public class UserMutationController {
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
 
-    @GetMapping(value = "/mutation", produces = "application/json")
+    @GetMapping(value = "/customer/history-transaction", produces = "application/json")
     public ResponseEntity getUserMutationDetail(Authentication authentication){
         try {
             UserMutationDTO userMutationDTO = userMutationService.getUserMutations(authentication);

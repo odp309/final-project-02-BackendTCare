@@ -7,5 +7,5 @@ import java.util.List;
 @Builder
 @Data
 public class UserMutationDTO {
-    private List<TransactionDTO> transactionList;
+    private List<TransactionDTO> transaction_list;
 }

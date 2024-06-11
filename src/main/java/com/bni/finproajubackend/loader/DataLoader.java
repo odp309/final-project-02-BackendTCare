@@ -154,6 +154,7 @@ public class DataLoader {
         transaction.setAmount(amount);
         transaction.setStatus(status);
         transaction.setCategory(category);
+        transaction.setTransaction_type(new Random().nextBoolean() ? TransactionType.In : TransactionType.Out);
         transaction.setCreatedAt(LocalDateTime.now());
         transaction.setUpdatedAt(LocalDateTime.now());
 
@@ -184,7 +185,6 @@ public class DataLoader {
             case 2 -> TicketStatus.Selesai;
             default -> TicketStatus.Diajukan; // Nilai default jika terjadi kesalahan
         };
-
 
         // Membuat objek tiket baru
         Tickets ticket = Tickets.builder()

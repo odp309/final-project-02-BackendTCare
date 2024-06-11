@@ -10,13 +10,6 @@ import java.util.List;
 @Builder
 public class UserAccountDTO {
     private Long id;
-    private String email;
-    private String firstName;
-    private String lastName;
-    private Gender gender;
-    private Integer age;
-    private String noHp;
-    private String address;
-    private String nasabahCode;
-    private List<AccountDTO> accountList;
+    private String name;
+    private List<AccountDTO> account_list;
 }
