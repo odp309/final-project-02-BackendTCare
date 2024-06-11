@@ -105,9 +105,9 @@ public class DataLoader {
         nasabah.setAddress("Balige");
         nasabah.setAge(24);
         nasabah.setEmail("daji18201@gmail.com");
-        nasabah.setFirstName("Dimas");
+        nasabah.setFirst_name("Dimas");
         nasabah.setGender(Gender.Male);
-        nasabah.setLastName("Pangestu");
+        nasabah.setLast_name("Pangestu");
         nasabah.setNik("1212784693778572");
         nasabah.setNoHP("082265746357");
         nasabah.setUser(user);

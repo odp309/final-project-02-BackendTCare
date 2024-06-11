@@ -4,12 +4,14 @@ import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -26,4 +28,7 @@ public interface TicketsRepository extends JpaRepository<Tickets, Long>, JpaSpec
             "WHEN 'Selesai' THEN 3 " +
             "ELSE 4 END ASC")
     Page<Tickets> findAllWithCustomOrder(Specification<Tickets> spec, Pageable pageable);
+    Page<Tickets> findAll(Specification<Tickets> spec, Pageable pageable);
+    List<Tickets> findAll(Specification<Tickets> spec, Sort by);
+    List<Tickets> findAll(Specification<Tickets> spec);
 }

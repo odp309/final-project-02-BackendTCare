@@ -35,11 +35,8 @@ import org.springframework.data.jpa.domain.Specification;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.time.LocalDate;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -128,25 +125,45 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public TicketResponseDTO getTicketDetails(String ticketNumber) {
+    public TicketDetailsReportDTO getTicketDetails(String ticketNumber) {
         Tickets ticket = ticketsRepository.findByTicketNumber(ticketNumber);
-        if (ticket == null)
+        if (ticket == null) {
             throw new EntityNotFoundException("Ticket not found");
+        }
 
-        return TicketResponseDTO.builder()
-                .id(ticket.getId())
-                .ticket_number(ticket.getTicketNumber())
-                .ticket_category(ticket.getTicketCategory())
-                .status(switch (ticket.getTicketStatus()) {
-                    case Diajukan -> "Diajukan";
-                    case DalamProses -> "Dalam Proses";
-                    case Selesai -> "Selesai";
-                })
-                .description(ticket.getDescription())
-                .reference_number(ticket.getReferenceNumber())
-                .report_date(ticket.getCreatedAt())
-                .created_at(ticket.getCreatedAt())
-                .updated_at(ticket.getUpdatedAt())
+        return TicketDetailsReportDTO.builder()
+                .reporter_detail(
+                        TicketDetailsReportDTO.ReporterDetail.builder()
+                                .nama(ticket.getReporterName())
+                                .account_number(ticket.getReporterAccountNumber())
+                                .address(ticket.getReporterAddress())
+                                .no_handphone(ticket.getReporterPhoneNumber())
+                                .build()
+                )
+                .report_detail(
+                        TicketDetailsReportDTO.ReportDetail.builder()
+                                .transaction_date(ticket.getTransaction().getCreatedAt())
+                                .amount(ticket.getTransaction().getAmount())
+                                .category(switch (ticket.getTicketCategory()) {
+                                    case Payment -> "Gagal Payment";
+                                    case TopUp -> "Gagal Top Up";
+                                    case Transfer -> "Gagal Transfer";
+                                })
+                                .description(ticket.getDescription())
+                                .reference_num(ticket.getReferenceNumber())
+                                .build()
+                )
+                .report_status_detail(
+                        TicketDetailsReportDTO.ReportStatusDetail.builder()
+                                .report_date(ticket.getCreatedAt())
+                                .ticket_number(ticket.getTicketNumber())
+                                .status(switch (ticket.getTicketStatus()) {
+                                    case Diajukan -> "Diajukan";
+                                    case DalamProses -> "Dalam Proses";
+                                    case Selesai -> "Selesai";
+                                })
+                                .build()
+                )
                 .build();
     }
 
@@ -425,4 +442,5 @@ public class TicketService implements TicketInterface {
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
     }
+
 }
