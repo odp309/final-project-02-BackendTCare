@@ -8,7 +8,7 @@ import java.util.List;
 @Data
 @Builder
 public class PaginationDTO<T> {
-    private List<T> data;
+    private T data;
     private int currentPage;
     private int currentItem;
     private int totalPage;

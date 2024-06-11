@@ -9,6 +9,7 @@ import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
 import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
+import com.bni.finproajubackend.interfaces.TicketReportsInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.ticket.Tickets;
@@ -31,6 +32,8 @@ public class TicketController {
 
     @Autowired
     private TicketInterface ticketService;
+    @Autowired
+    private TicketReportsInterface ticketReportsService;
     @Autowired
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
@@ -62,6 +65,7 @@ public class TicketController {
     @GetMapping("/{user}/ticket-reports")
     public ResponseEntity getAllTickets(
             @PathVariable String user,
+            @RequestParam(required = false) String account_number,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
@@ -75,7 +79,7 @@ public class TicketController {
             @RequestParam(required = false, defaultValue = "asc") String order
     ) {
         try {
-            PaginationDTO<TicketsResponseDTO> result = ticketService.getAllTickets(user, category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
+            PaginationDTO result = ticketReportsService.getAllTickets(user, account_number, category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
             return ResponseEntity.ok(responseService.apiSuccessPagination(result, "Success get ticket details"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

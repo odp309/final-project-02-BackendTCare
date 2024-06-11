@@ -6,5 +6,5 @@ import java.util.List;
 
 @Data
 public class TemplatePaginationResponseDTO<T> extends PaginationResponseDTO {
-    private List<T> result;
+    private T result;
 }
