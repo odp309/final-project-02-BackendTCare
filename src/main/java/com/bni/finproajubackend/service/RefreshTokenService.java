@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.interfaces.RefreshTokenInterface;
 import com.bni.finproajubackend.model.RefreshToken;
 import com.bni.finproajubackend.model.user.User;
@@ -10,6 +11,10 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import java.time.Instant;
 import java.util.Optional;
 import java.util.UUID;
@@ -25,8 +30,14 @@ public class RefreshTokenService implements RefreshTokenInterface {
     @Autowired
     private UserRepository userRepository;
 
+    private static final Logger logger = LoggerFactory.getLogger(RefreshTokenService.class);
+    private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
+    @Autowired
+    private LoggerService loggerService;
+
     @Override
     public RefreshToken createRefreshToken(String username) {
+        logger.info(SECURITY_MARKER, "IP {}, Creating a new refresh token for user: {}", loggerService.getClientIp(), username);
         User user = userRepository.findByUsername(username);
 
         Optional<RefreshToken> existingTokenOptional = refreshTokenRepository.findByUserId(user.getId());

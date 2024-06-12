@@ -11,6 +11,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.webjars.NotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,8 +32,9 @@ public class SettingController {
         try{
             SettingDTO settingDTO = settingService.getNasabahName(authentication);
             return ResponseEntity.ok(responseService.apiSuccess(settingDTO, "Success"));
-        }
-        catch (Exception e){
+        } catch (NotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiNotFound(null, e.getCause()==null ? "Something went wrong" : e.getMessage()));
+        } catch (Exception e){
             errorDetails.put("message", e.getCause()== null ? "Not Permitted": e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong" : e.getMessage()));
         }
