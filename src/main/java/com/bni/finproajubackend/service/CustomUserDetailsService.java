@@ -39,7 +39,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                             .username(user.getUsername())
                             .password(user.getPassword())
                             .build();
-            logger.info(SECURITY_MARKER, "IP {} Loaded user by username: {}", loggerService.getClientIp(), username);
+            logger.info(SECURITY_MARKER, "IP {}, Loaded user by username: {}", loggerService.getClientIp(), username);
             return userDetails;
         } catch (RuntimeException e) {
             logger.error(SECURITY_MARKER, "Failed load user data", e);

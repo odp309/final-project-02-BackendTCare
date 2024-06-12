@@ -119,7 +119,7 @@ public class ReportService implements ReportInterface {
 
     @Override
     public ReportResponseDTO getCategory(String category, long year) {
-        logger.debug(REPORT_MARKER, "IP {} access getCategory", loggerService.getClientIp());
+        logger.debug(REPORT_MARKER, "IP {}, access getCategory", loggerService.getClientIp());
         Specification<Tickets> spec = getSpecification(category, null, null, year);
         List<Tickets> tickets = ticketsRepository.findAll(spec);
         return buildReportResponse(tickets, year);
@@ -127,7 +127,7 @@ public class ReportService implements ReportInterface {
 
     @Override
     public ReportResponseDTO getStatus(String status, long year) {
-        logger.debug(REPORT_MARKER, "IP {} access getStatus", loggerService.getClientIp());
+        logger.debug(REPORT_MARKER, "IP {}, access getStatus", loggerService.getClientIp());
         Specification<Tickets> spec = getSpecification(null, status, null, year);
         List<Tickets> tickets = ticketsRepository.findAll(spec);
         return buildReportResponse(tickets, year);
@@ -135,7 +135,7 @@ public class ReportService implements ReportInterface {
 
     @Override
     public ReportResponseDTO getRating(Integer rate, long year) {
-        logger.debug(REPORT_MARKER, "IP {} access getRating", loggerService.getClientIp());
+        logger.debug(REPORT_MARKER, "IP {}, access getRating", loggerService.getClientIp());
         Specification<Tickets> spec = getSpecification(null, null, rate, year);
         List<Tickets> tickets = ticketsRepository.findAll(spec);
         return buildReportResponse(tickets, year);

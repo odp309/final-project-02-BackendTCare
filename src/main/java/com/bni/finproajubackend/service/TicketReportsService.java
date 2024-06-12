@@ -119,7 +119,7 @@ public class TicketReportsService implements TicketReportsInterface {
                 .list_tickets(ticketsResponseDTOList)
                 .build();
 
-        logger.info(TICKET_MARKER, "IP {} List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
+        logger.info(TICKET_MARKER, "IP {}, List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
 
         return PaginationDTO.builder()
                 .data(listTicketNasabahResponseDTO)
@@ -191,7 +191,7 @@ public class TicketReportsService implements TicketReportsInterface {
 
         if (ticketsResponseDTOList.isEmpty()) return null;
 
-        logger.info(TICKET_MARKER, "IP {} Ticket Response List", loggerService.getClientIp());
+        logger.info(TICKET_MARKER, "IP {}, Ticket Response List", loggerService.getClientIp());
 
         return PaginationDTO.builder()
                 .data(ticketsResponseDTOList)
