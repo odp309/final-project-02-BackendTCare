@@ -35,7 +35,7 @@ public class SettingService implements SettingInterface {
         SettingDTO settingDTO = new SettingDTO();
         settingDTO.setName(user.getNasabah().getFirst_name());
 
-        logger.info(NASABAH_MARKER, "IP {} Settings acquired", loggerService.getClientIp());
+        logger.info(NASABAH_MARKER, "IP {}, Settings acquired", loggerService.getClientIp());
 
         return settingDTO;
     }

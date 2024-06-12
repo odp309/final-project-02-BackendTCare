@@ -42,7 +42,7 @@ public class UserAccountService implements UserAccountInterface {
         List<AccountDTO> accountDTOList = user.getNasabah() != null ?
                 user.getNasabah().getAccount().stream().map(this::convertToAccountDTO).collect(Collectors.toList()) : List.of();
 
-        logger.info(ACCOUNT_MARKER, "IP {} User {} has {} account(s)", loggerService.getClientIp(), username, accountDTOList.size());
+        logger.info(ACCOUNT_MARKER, "IP {}, User {} has {} account(s)", loggerService.getClientIp(), username, accountDTOList.size());
         return UserAccountDTO.builder()
                 .id(user.getNasabah().getId())
                 .name(user.getNasabah().getFirst_name() + " " + user.getNasabah().getLast_name())

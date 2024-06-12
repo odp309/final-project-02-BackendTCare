@@ -34,7 +34,7 @@ public class JWTService implements JWTInterface {
     public String generateToken(User user) {
         Instant now = Instant.now();
         Instant expirationTime = now.plusSeconds(86400);
-        logger.info(SECURITY_MARKER, "IP {} Generating token", loggerService.getClientIp());
+        logger.info(SECURITY_MARKER, "IP {}, Generating token", loggerService.getClientIp());
         return Jwts
                 .builder()
                 .subject(user.getUsername())

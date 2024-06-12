@@ -9,6 +9,7 @@ import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.*;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -50,7 +51,7 @@ public class TicketService implements TicketInterface {
     private EmailService emailService;
 
     @Transactional
-    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) {
+    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
         Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
         TicketStatus oldStatus = ticket.getTicketStatus();
         if (oldStatus != TicketStatus.Selesai) {

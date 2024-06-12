@@ -64,7 +64,7 @@ public class AuthService implements AuthInterface {
 
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(username);
 
-            logger.info(SECURITY_MARKER, "IP {} User {} successfully logged in", loggerService.getClientIp(), username);
+            logger.info(SECURITY_MARKER, "IP {}, User {} successfully logged in", loggerService.getClientIp(), username);
 
             return LoginResponseDTO.builder()
                     .accessToken(jwtService.generateToken(user))

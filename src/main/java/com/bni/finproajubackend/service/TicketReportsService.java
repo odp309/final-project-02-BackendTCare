@@ -119,7 +119,7 @@ public class TicketReportsService implements TicketReportsInterface {
                 .list_tickets(ticketsResponseDTOList)
                 .build();
 
-        logger.info(TICKET_MARKER, "IP {} List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
+        logger.info(TICKET_MARKER, "IP {}, List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
 
         return PaginationDTO.builder()
                 .data(listTicketNasabahResponseDTO)
@@ -191,7 +191,7 @@ public class TicketReportsService implements TicketReportsInterface {
 
         if (ticketsResponseDTOList.isEmpty()) return null;
 
-        logger.info(TICKET_MARKER, "IP {} Ticket Response List", loggerService.getClientIp());
+        logger.info(TICKET_MARKER, "IP {}, Ticket Response List", loggerService.getClientIp());
 
         return PaginationDTO.builder()
                 .data(ticketsResponseDTOList)
@@ -268,7 +268,7 @@ public class TicketReportsService implements TicketReportsInterface {
             Optional.ofNullable(created_at).map(LocalDate::parse)
                     .ifPresent(date -> predicates.add(builder.equal(root.get("createdAt").as(LocalDate.class), date)));
 
-            Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
+            Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.like(root.get("ticketNumber"), "%" + tn + "%")));
 
             Optional.ofNullable(account_number).ifPresent(acc -> predicates.add(builder.equal(root.get("transaction").get("account").get("accountNumber"), acc)));
 

@@ -72,7 +72,7 @@ public class EmailService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy HH:mm:ss", new Locale("id", "ID"));
             String formattedDateTime = transactionDate.format(formatter);
 
-            logger.info(EMAIL_MARKER, "IP {} Sending complete email to {} with subject {}", loggerService.getClientIp(), ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
+            logger.info(EMAIL_MARKER, "IP {}, Sending complete email to {} with subject {}", loggerService.getClientIp(), ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
 
             return String.format(
                     "<html><body>" +
@@ -112,7 +112,7 @@ public class EmailService {
 
             String formattedResolutionStatus = formatTicketStatus(resolutionStatus);
 
-            logger.info(EMAIL_MARKER, "IP {} Sending update email to {} with subject {}", loggerService.getClientIp(), ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
+            logger.info(EMAIL_MARKER, "IP {}, Sending update email to {} with subject {}", loggerService.getClientIp(), ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
 
             return String.format(
                     "<html><body>" +

@@ -37,7 +37,7 @@ public class RefreshTokenService implements RefreshTokenInterface {
 
     @Override
     public RefreshToken createRefreshToken(String username) {
-        logger.info(SECURITY_MARKER, "IP {} Creating a new refresh token for user: {}", loggerService.getClientIp(), username);
+        logger.info(SECURITY_MARKER, "IP {}, Creating a new refresh token for user: {}", loggerService.getClientIp(), username);
         User user = userRepository.findByUsername(username);
 
         Optional<RefreshToken> existingTokenOptional = refreshTokenRepository.findByUserId(user.getId());
