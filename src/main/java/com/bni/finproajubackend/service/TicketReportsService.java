@@ -86,8 +86,7 @@ public class TicketReportsService implements TicketReportsInterface {
         if (account_number == null) throw new IllegalArgumentException("Account number cannot be empty");
         Account account = accountRepository.findByAccountNumber(account_number);
         if (account == null) throw new NotFoundException("Account not found");
-        if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
-            throw new IllegalAccessException("User is not the owner");
+        if (!account.getNasabah().getUser().getUsername().equals(authentication.getName())) throw new IllegalAccessException("User is not the owner");
 
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
@@ -103,6 +102,7 @@ public class TicketReportsService implements TicketReportsInterface {
                         .transaction_type(ticket.getTransaction().getTransaction_type().toString())
                         .ticket_date(ticket.getCreatedAt().toString())
                         .amount(ticket.getTransaction().getAmount())
+                        .ticket_description(ticket.getDescription())
                         .ticket_status(ticket.getTicketStatus().toString())
                         .build())
                 .collect(Collectors.toList());
