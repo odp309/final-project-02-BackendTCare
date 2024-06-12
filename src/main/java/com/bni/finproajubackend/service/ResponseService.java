@@ -74,6 +74,10 @@ public class ResponseService implements TemplateResInterface {
         return reportDetails;
     }
 
+    @Override
+    public <T> TemplateResponseDTO<T> apiNotFound(T data, String message) {
+        return createResponse(data, HttpStatus.NOT_FOUND, message);
+    }
 
     @Override
     public <T> TemplateResponseDTO<T> apiFailed(T data, String message) {

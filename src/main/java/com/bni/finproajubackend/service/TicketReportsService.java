@@ -20,6 +20,8 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -39,7 +41,8 @@ import java.util.stream.Collectors;
 @Service
 public class TicketReportsService implements TicketReportsInterface {
 
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(TicketReportsService.class);
+    private static final Marker TICKET_MARKER = MarkerFactory.getMarker("TICKET");
 
     @Autowired
     private TicketsRepository ticketsRepository;
@@ -47,6 +50,8 @@ public class TicketReportsService implements TicketReportsInterface {
     private AccountRepository accountRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private LoggerService loggerService;
 
     @Override
     public PaginationDTO getAllTickets(
@@ -113,6 +118,8 @@ public class TicketReportsService implements TicketReportsInterface {
                 .account_number(account_number)
                 .list_tickets(ticketsResponseDTOList)
                 .build();
+
+        logger.info(TICKET_MARKER, "IP {} List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
 
         return PaginationDTO.builder()
                 .data(listTicketNasabahResponseDTO)
@@ -183,6 +190,8 @@ public class TicketReportsService implements TicketReportsInterface {
                 .collect(Collectors.toList());
 
         if (ticketsResponseDTOList.isEmpty()) return null;
+
+        logger.info(TICKET_MARKER, "IP {} Ticket Response List", loggerService.getClientIp());
 
         return PaginationDTO.builder()
                 .data(ticketsResponseDTOList)

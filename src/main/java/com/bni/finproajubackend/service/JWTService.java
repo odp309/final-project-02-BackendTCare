@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.service;
 
+import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.interfaces.JWTInterface;
 import com.bni.finproajubackend.model.user.User;
 import io.jsonwebtoken.Claims;
@@ -7,8 +8,13 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
@@ -19,11 +25,16 @@ public class JWTService implements JWTInterface {
 
     @Value("${my.secret.key}")
     private String mySecretKey;
+    private static final Logger logger = LoggerFactory.getLogger(JWTService.class);
+    private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
+    @Autowired
+    private LoggerService loggerService;
 
     @Override
     public String generateToken(User user) {
         Instant now = Instant.now();
         Instant expirationTime = now.plusSeconds(86400);
+        logger.info(SECURITY_MARKER, "IP {} Generating token", loggerService.getClientIp());
         return Jwts
                 .builder()
                 .subject(user.getUsername())
