@@ -32,8 +32,10 @@ public class ReportService implements ReportInterface {
 
     @Autowired
     private TicketsRepository ticketsRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(ReportService.class);
     private static final Marker REPORT_MARKER = MarkerFactory.getMarker("REPORT");
+    @Autowired
+    private LoggerService loggerService;
 
     private Specification<Tickets> getSpecification(String category, String status, Integer rate, long year) {
         return (root, query, builder) -> {
@@ -117,7 +119,7 @@ public class ReportService implements ReportInterface {
 
     @Override
     public ReportResponseDTO getCategory(String category, long year) {
-        logger.debug(REPORT_MARKER, "getCategory");
+        logger.debug(REPORT_MARKER, "IP {} access getCategory", loggerService.getClientIp());
         Specification<Tickets> spec = getSpecification(category, null, null, year);
         List<Tickets> tickets = ticketsRepository.findAll(spec);
         return buildReportResponse(tickets, year);
@@ -125,7 +127,7 @@ public class ReportService implements ReportInterface {
 
     @Override
     public ReportResponseDTO getStatus(String status, long year) {
-        logger.debug(REPORT_MARKER, "getStatus");
+        logger.debug(REPORT_MARKER, "IP {} access getStatus", loggerService.getClientIp());
         Specification<Tickets> spec = getSpecification(null, status, null, year);
         List<Tickets> tickets = ticketsRepository.findAll(spec);
         return buildReportResponse(tickets, year);
@@ -133,7 +135,7 @@ public class ReportService implements ReportInterface {
 
     @Override
     public ReportResponseDTO getRating(Integer rate, long year) {
-        logger.debug(REPORT_MARKER, "getRating");
+        logger.debug(REPORT_MARKER, "IP {} access getRating", loggerService.getClientIp());
         Specification<Tickets> spec = getSpecification(null, null, rate, year);
         List<Tickets> tickets = ticketsRepository.findAll(spec);
         return buildReportResponse(tickets, year);

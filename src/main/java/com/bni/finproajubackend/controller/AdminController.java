@@ -24,8 +24,6 @@ public class AdminController {
     private AdminInterface adminService;
     @Autowired
     private TemplateResInterface responseService;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
-    private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
 
     @RequiresPermission("admin")
     @GetMapping(value = "/profile", produces = "application/json")

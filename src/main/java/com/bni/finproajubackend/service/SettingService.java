@@ -19,8 +19,10 @@ import org.webjars.NotFoundException;
 public class SettingService implements SettingInterface {
     @Autowired
     private UserRepository userRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(SettingService.class);
     private static final Marker NASABAH_MARKER = MarkerFactory.getMarker("NASABAH");
+    @Autowired
+    private LoggerService loggerService;
 
     @Override
     public SettingDTO getNasabahName(Authentication authentication) {
@@ -33,7 +35,7 @@ public class SettingService implements SettingInterface {
         SettingDTO settingDTO = new SettingDTO();
         settingDTO.setName(user.getNasabah().getFirst_name());
 
-        logger.info(NASABAH_MARKER, "Settings acquired");
+        logger.info(NASABAH_MARKER, "IP {} Settings acquired", loggerService.getClientIp());
 
         return settingDTO;
     }

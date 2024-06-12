@@ -25,7 +25,7 @@ public class TokenRevocationListService implements TokenRevocationListInterface 
 
     @Autowired
     private JWTInterface jwtService;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(TokenRevocationListService.class);
     private static final Marker TRL_MARKER = MarkerFactory.getMarker("TRL");
 
     @Override

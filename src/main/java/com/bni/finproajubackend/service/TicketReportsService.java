@@ -41,9 +41,8 @@ import java.util.stream.Collectors;
 @Service
 public class TicketReportsService implements TicketReportsInterface {
 
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(TicketReportsService.class);
     private static final Marker TICKET_MARKER = MarkerFactory.getMarker("TICKET");
-
 
     @Autowired
     private TicketsRepository ticketsRepository;
@@ -51,6 +50,8 @@ public class TicketReportsService implements TicketReportsInterface {
     private AccountRepository accountRepository;
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private LoggerService loggerService;
 
     @Override
     public PaginationDTO getAllTickets(
@@ -118,7 +119,7 @@ public class TicketReportsService implements TicketReportsInterface {
                 .list_tickets(ticketsResponseDTOList)
                 .build();
 
-        logger.info(TICKET_MARKER, "List Ticket for Nasabah");
+        logger.info(TICKET_MARKER, "IP {} List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
 
         return PaginationDTO.builder()
                 .data(listTicketNasabahResponseDTO)
@@ -190,7 +191,7 @@ public class TicketReportsService implements TicketReportsInterface {
 
         if (ticketsResponseDTOList.isEmpty()) return null;
 
-        logger.info(TICKET_MARKER, "Ticket Response List");
+        logger.info(TICKET_MARKER, "IP {} Ticket Response List", loggerService.getClientIp());
 
         return PaginationDTO.builder()
                 .data(ticketsResponseDTOList)

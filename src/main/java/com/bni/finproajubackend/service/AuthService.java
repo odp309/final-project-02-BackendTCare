@@ -1,6 +1,5 @@
 package com.bni.finproajubackend.service;
 
-import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.dto.login.LoginRequestDTO;
 import com.bni.finproajubackend.dto.login.LoginResponseDTO;
 import com.bni.finproajubackend.dto.refreshToken.RefreshTokenRequestDTO;
@@ -18,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -34,8 +34,10 @@ public class AuthService implements AuthInterface {
     private final AuthenticationManager authenticationManager;
     private RefreshTokenInterface refreshTokenService;
     private TokenRevocationListInterface tokenRevocationListService;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(AuthService.class);
     private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
+    @Autowired
+    private LoggerService loggerService;
 
     public AuthService(UserRepository userRepository, RoleRepository roleRepository, JWTInterface jwtService, PasswordEncoder passwordEncoder, AuthenticationManager authenticationManager, RefreshTokenService refreshTokenService, TokenRevocationListInterface tokenRevocationListService) {
         this.userRepository = userRepository;
@@ -62,7 +64,7 @@ public class AuthService implements AuthInterface {
 
             RefreshToken refreshToken = refreshTokenService.createRefreshToken(username);
 
-            logger.info(SECURITY_MARKER, "User {} successfully logged in", username);
+            logger.info(SECURITY_MARKER, "IP {} User {} successfully logged in", loggerService.getClientIp(), username);
 
             return LoginResponseDTO.builder()
                     .accessToken(jwtService.generateToken(user))

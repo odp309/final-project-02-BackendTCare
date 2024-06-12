@@ -9,6 +9,7 @@ import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.bni.finproajubackend.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -24,8 +25,12 @@ import java.util.stream.Collectors;
 public class UserAccountService implements UserAccountInterface {
     @Autowired
     private UserRepository userRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserAccountService.class);
     private static final Marker ACCOUNT_MARKER = MarkerFactory.getMarker("ACCOUNT");
+    @Autowired
+    private LoggerService loggerService;
+    @Autowired
+    private HttpServletRequest httpServletRequest;
 
     @Override
     public UserAccountDTO getUserAccount(Authentication authentication) {
@@ -37,7 +42,7 @@ public class UserAccountService implements UserAccountInterface {
         List<AccountDTO> accountDTOList = user.getNasabah() != null ?
                 user.getNasabah().getAccount().stream().map(this::convertToAccountDTO).collect(Collectors.toList()) : List.of();
 
-        logger.info(ACCOUNT_MARKER, "User {} has {} account(s)", username, accountDTOList.size());
+        logger.info(ACCOUNT_MARKER, "IP {} User {} has {} account(s)", loggerService.getClientIp(), username, accountDTOList.size());
         return UserAccountDTO.builder()
                 .id(user.getNasabah().getId())
                 .name(user.getNasabah().getFirst_name() + " " + user.getNasabah().getLast_name())

@@ -19,7 +19,7 @@ public class AdminService implements AdminInterface {
 
     @Autowired
     private UserRepository userRepository;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(AdminService.class);
     private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
 
     @Override

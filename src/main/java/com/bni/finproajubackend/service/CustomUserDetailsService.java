@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -19,12 +20,14 @@ import java.util.List;
 public class CustomUserDetailsService implements UserDetailsService {
 
     private final UserRepository userRepository;
+    @Autowired
+    private LoggerService loggerService;
 
     public CustomUserDetailsService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(CustomUserDetailsService.class);
     private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
 
     @Override
@@ -36,7 +39,7 @@ public class CustomUserDetailsService implements UserDetailsService {
                             .username(user.getUsername())
                             .password(user.getPassword())
                             .build();
-            logger.info(SECURITY_MARKER, "Loaded user by username: {}", username);
+            logger.info(SECURITY_MARKER, "IP {} Loaded user by username: {}", loggerService.getClientIp(), username);
             return userDetails;
         } catch (RuntimeException e) {
             logger.error(SECURITY_MARKER, "Failed load user data", e);

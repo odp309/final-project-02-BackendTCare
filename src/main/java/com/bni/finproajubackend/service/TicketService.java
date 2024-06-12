@@ -32,7 +32,7 @@ import java.time.LocalDate;
 @Service
 public class TicketService implements TicketInterface {
 
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
 
     @Autowired
     private TransactionRepository transactionRepository;

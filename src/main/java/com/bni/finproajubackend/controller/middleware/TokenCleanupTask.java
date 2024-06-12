@@ -24,7 +24,7 @@ public class TokenCleanupTask {
     @Autowired
     private TokenRevocationListService tokenRevocationListService;
 
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(TokenCleanupTask.class);
     private static final Marker TOKEN_MARKER = MarkerFactory.getMarker("TOKEN");
 
     @Scheduled(fixedRate = 600000)

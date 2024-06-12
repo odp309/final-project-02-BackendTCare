@@ -30,12 +30,14 @@ public class RefreshTokenService implements RefreshTokenInterface {
     @Autowired
     private UserRepository userRepository;
 
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(RefreshTokenService.class);
     private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
+    @Autowired
+    private LoggerService loggerService;
 
     @Override
     public RefreshToken createRefreshToken(String username) {
-        logger.info(SECURITY_MARKER, "Creating a new refresh token for user: {}", username);
+        logger.info(SECURITY_MARKER, "IP {} Creating a new refresh token for user: {}", loggerService.getClientIp(), username);
         User user = userRepository.findByUsername(username);
 
         Optional<RefreshToken> existingTokenOptional = refreshTokenRepository.findByUserId(user.getId());

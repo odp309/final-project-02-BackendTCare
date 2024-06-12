@@ -8,6 +8,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -24,14 +25,16 @@ public class JWTService implements JWTInterface {
 
     @Value("${my.secret.key}")
     private String mySecretKey;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(JWTService.class);
     private static final Marker SECURITY_MARKER = MarkerFactory.getMarker("SECURITY");
+    @Autowired
+    private LoggerService loggerService;
 
     @Override
     public String generateToken(User user) {
         Instant now = Instant.now();
         Instant expirationTime = now.plusSeconds(86400);
-        logger.info(SECURITY_MARKER, "Generating token");
+        logger.info(SECURITY_MARKER, "IP {} Generating token", loggerService.getClientIp());
         return Jwts
                 .builder()
                 .subject(user.getUsername())

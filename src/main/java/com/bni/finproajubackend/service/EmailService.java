@@ -3,6 +3,7 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import jakarta.validation.constraints.Email;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -22,8 +23,10 @@ public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private static final Marker EMAIL_MARKER = MarkerFactory.getMarker("EMAIL");
+    @Autowired
+    private LoggerService loggerService;
 
     @Async
     public void sendNotification(Tickets ticket) {
@@ -58,7 +61,7 @@ public class EmailService {
                     recipient, ticketId, formattedDateTime, amount, description, formattedResolutionStatus, division
             );
             sendEmail(to, subject, message);
-            logger.info(EMAIL_MARKER, "Sending email to {} with subject {}", ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
+            logger.info(EMAIL_MARKER, "IP {} Sending email to {} with subject {}", loggerService.getClientIp(), ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
         } catch (RuntimeException e) {
             logger.error(EMAIL_MARKER, "Error sending email", e);
             throw new RuntimeException("Email Failed");
