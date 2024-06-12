@@ -82,6 +82,9 @@ public class TicketController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(responseService.apiFailed(null, e.getMessage()));
+        } catch (IllegalAccessException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(responseService.apiUnauthorized(null, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(responseService.apiFailed(null, e.getMessage()));
