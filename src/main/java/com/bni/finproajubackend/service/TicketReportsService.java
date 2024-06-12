@@ -83,6 +83,7 @@ public class TicketReportsService implements TicketReportsInterface {
             String order,
             Authentication authentication
     ) throws IllegalAccessException {
+        if (account_number == null) throw new IllegalArgumentException("Account number cannot be empty");
         Account account = accountRepository.findByAccountNumber(account_number);
         if (account == null) throw new NotFoundException("Account not found");
         if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
