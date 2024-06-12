@@ -35,6 +35,7 @@ public class TicketController {
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
 
+    @CrossOrigin(origins = "http://localhost:4200")
     @RequiresPermission("admin")
     @PatchMapping("/admin/ticket-reports/{id}/update-status")
     public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, Authentication authentication) {
@@ -48,6 +49,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, err.getCause() == null ? "Something went wrong" : err.getMessage()));
         }
     }
+
     @PostMapping(value = "/ticket/create", produces = "application/json")
     public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         try {
