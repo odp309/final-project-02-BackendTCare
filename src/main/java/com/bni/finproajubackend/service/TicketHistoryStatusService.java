@@ -32,6 +32,13 @@ public class TicketHistoryStatusService implements TrackTicketStatusInterface {
     @Autowired
     private TicketsHistoryRepository ticketsHistoryRepository;
 
+    private void checkAccountOwnership(User user, Account account) {
+        Nasabah nasabah = nasabahRepository.findByUser(user);
+        if (!account.getNasabah().equals(nasabah)) {
+            throw new RuntimeException("You're not the account owner!");
+        }
+    }
+
     @Override
     public List<TrackTicketStatusResponseDTO> trackTicketStatus(Long id) {
         Tickets ticket = ticketsRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
@@ -49,7 +56,7 @@ public class TicketHistoryStatusService implements TrackTicketStatusInterface {
     }
 
     @Override
-    public List<TrackTicketStatusResponseDTO> trackMyTicketStatus(Authentication authentication, Long id) {
+    public List<TrackTicketStatusResponseDTO> trackMyTicketStatus(Authentication authentication, Long id, String account_number) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username);
 
@@ -57,14 +64,15 @@ public class TicketHistoryStatusService implements TrackTicketStatusInterface {
             throw new RuntimeException("User not found");
         }
 
-        Nasabah nasabah = nasabahRepository.findByUser(user);
-        Account account = accountRepository.findByNasabah(nasabah);
+        //Nasabah nasabah = nasabahRepository.findByUser(user);
+        Account account = accountRepository.findByAccountNumber(account_number);
+        checkAccountOwnership(user, account);
 
         // Find the ticket by ID
         Tickets ticket = ticketsRepository.findById(id).orElseThrow(() -> new EntityNotFoundException("Ticket not found"));
 
         // Check if the ticket belongs to the user's account via transactions
-        if (!transactionRepository.findByAccount(account).contains(ticket.getTransaction())) {
+        if (!ticket.getTransaction().getAccount().equals(account)) {
             throw new RuntimeException("Ticket does not belong to the user");
         }
 
@@ -79,4 +87,5 @@ public class TicketHistoryStatusService implements TrackTicketStatusInterface {
             return response;
         }).collect(Collectors.toList());
     }
+
 }

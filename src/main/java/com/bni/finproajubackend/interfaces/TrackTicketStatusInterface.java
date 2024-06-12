@@ -8,5 +8,5 @@ import java.util.List;
 
 public interface TrackTicketStatusInterface {
     List<TrackTicketStatusResponseDTO> trackTicketStatus(Long id);
-    List<TrackTicketStatusResponseDTO> trackMyTicketStatus(Authentication authentication, Long id);
+    List<TrackTicketStatusResponseDTO> trackMyTicketStatus(Authentication authentication, Long id, String account_number);
 }
