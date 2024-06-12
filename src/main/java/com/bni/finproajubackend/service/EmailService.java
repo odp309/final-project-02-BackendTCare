@@ -5,6 +5,7 @@ import com.bni.finproajubackend.model.ticket.Tickets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -17,6 +18,7 @@ public class EmailService {
     @Autowired
     private JavaMailSender mailSender;
 
+    @Async
     public void sendNotification(Tickets ticket) {
         String to = ticket.getTransaction().getAccount().getNasabah().getEmail();
         String subject = "Pembaruan Status Tiket";
