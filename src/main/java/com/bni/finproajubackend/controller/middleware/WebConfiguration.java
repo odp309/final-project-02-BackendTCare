@@ -28,7 +28,8 @@ public class WebConfiguration {
         config.setAllowCredentials(true);
 
         // path to frontend
-        config.addAllowedOrigin("http://localhost:4200");
+//        config.addAllowedOrigin("http://localhost:4200");
+        config.addAllowedOrigin("*");
 
         // typical headers backend must accept
         config.setAllowedHeaders(Arrays.asList(

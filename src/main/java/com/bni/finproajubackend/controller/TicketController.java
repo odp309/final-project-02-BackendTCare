@@ -35,7 +35,6 @@ public class TicketController {
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
 
-    @CrossOrigin(origins = "http://localhost:4200")
     @RequiresPermission("admin")
     @PatchMapping("/admin/ticket-reports/{id}/update-status")
     public ResponseEntity<TemplateResponseDTO<TicketStatusResponseDTO>> updateTicketStatus(@PathVariable Long id, Authentication authentication) {
