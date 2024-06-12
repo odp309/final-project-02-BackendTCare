@@ -20,6 +20,8 @@ import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -40,6 +42,8 @@ import java.util.stream.Collectors;
 public class TicketReportsService implements TicketReportsInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Marker TICKET_MARKER = MarkerFactory.getMarker("TICKET");
+
 
     @Autowired
     private TicketsRepository ticketsRepository;
@@ -114,6 +118,8 @@ public class TicketReportsService implements TicketReportsInterface {
                 .list_tickets(ticketsResponseDTOList)
                 .build();
 
+        logger.info(TICKET_MARKER, "List Ticket for Nasabah");
+
         return PaginationDTO.builder()
                 .data(listTicketNasabahResponseDTO)
                 .currentPage(ticketsPage.getNumber())
@@ -183,6 +189,8 @@ public class TicketReportsService implements TicketReportsInterface {
                 .collect(Collectors.toList());
 
         if (ticketsResponseDTOList.isEmpty()) return null;
+
+        logger.info(TICKET_MARKER, "Ticket Response List");
 
         return PaginationDTO.builder()
                 .data(ticketsResponseDTOList)

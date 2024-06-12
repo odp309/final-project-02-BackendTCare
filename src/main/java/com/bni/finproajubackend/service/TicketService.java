@@ -200,31 +200,6 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public String createTicketNumber(Transaction transaction) {
-        String categoryCode = switch (transaction.getCategory()) {
-            case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
-            case TopUp -> "TU"; // ID kategori 2 untuk Gagal Top Up
-            case Payment -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
-            default -> ""; // ID kategori tidak valid
-        };
-
-        LocalDateTime createdAt = transaction.getCreatedAt();
-        String year = String.valueOf(createdAt.getYear());
-        String month = String.format("%02d", createdAt.getMonthValue());
-        String day = String.format("%02d", createdAt.getDayOfMonth());
-
-        String transactionId = String.valueOf(transaction.getId());
-        String baseTicketNumber = categoryCode + year + month + day + transactionId;
-
-        if (baseTicketNumber.length() < 15) {
-            int zerosToAdd = 15 - baseTicketNumber.length();
-            transactionId = "0".repeat(zerosToAdd) + transactionId;
-        }
-
-        return categoryCode + year + month + day + transactionId;
-    }
-
-    @Override
     public List<TicketHistoryResponseDTO> getTicketHistory(long id) {
         List<TicketHistory> ticketHistoryList = ticketHistoryRepository.findAll();
         List<TicketHistoryResponseDTO> responseDTOList = new ArrayList<>();
@@ -242,24 +217,47 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
+    public String createTicketNumber(Transaction transaction) {
+        String categoryCode = switch (transaction.getCategory()) {
+            case Transfer -> "TF";
+            case TopUp -> "TU";
+            case Payment -> "PY";
+            default -> "";
+        };
+
+        LocalDateTime createdAt = transaction.getCreatedAt();
+        String year = String.valueOf(createdAt.getYear());
+        String month = String.format("%02d", createdAt.getMonthValue());
+        String day = String.format("%02d", createdAt.getDayOfMonth());
+
+        String transactionId = String.format("%010d", transaction.getId());
+
+        return categoryCode + year + month + day + transactionId;
+    }
+
+    @Override
     public TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO) {
         Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransaction_id())
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
 
-        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
-                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
-                : TicketCategories.Transfer;
+        TicketCategories category = switch (transaction.getCategory()) {
+            case Payment -> TicketCategories.Payment;
+            case TopUp -> TicketCategories.TopUp;
+            default -> TicketCategories.Transfer;
+        };
 
-        DivisionTarget divisiTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisionTarget.DGO
-                : transaction.getCategory() == TransactionCategories.TopUp ? DivisionTarget.WPP
-                : DivisionTarget.CXC;
+        DivisionTarget divisionTarget = switch (transaction.getCategory()) {
+            case Payment -> DivisionTarget.DGO;
+            case TopUp -> DivisionTarget.WPP;
+            default -> DivisionTarget.CXC;
+        };
 
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
-                .ticketCategory(categories)
+                .ticketCategory(category)
                 .description("Complaint Ticket")
-                .divisionTarget(divisiTarget)
+                .divisionTarget(divisionTarget)
                 .ticketStatus(TicketStatus.Diajukan)
                 .referenceNumber(ticketRequestDTO.isReopen_ticket() ? ticketRequestDTO.getReference_number() : null)
                 .createdAt(LocalDateTime.now())
@@ -268,7 +266,6 @@ public class TicketService implements TicketInterface {
 
         Tickets savedTicket = ticketsRepository.save(ticket);
 
-        // Load ticket history
         createTicketHistory(savedTicket);
 
         return TicketResponseDTO.builder()
@@ -278,8 +275,7 @@ public class TicketService implements TicketInterface {
                 .category(switch (savedTicket.getTicketCategory()) {
                     case Transfer -> "Gagal Transfer";
                     case TopUp -> "Gagal TopUp";
-                    case Payment -> "Gagal Payang";
-                    default -> null;
+                    case Payment -> "Gagal Pembayaran";
                 })
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
                 .status(switch (savedTicket.getTicketStatus()) {
@@ -300,36 +296,30 @@ public class TicketService implements TicketInterface {
                 .reference_number(savedTicket.getReferenceNumber())
                 .report_date(savedTicket.getCreatedAt())
                 .created_at(savedTicket.getCreatedAt())
-                .updated_at(savedTicket.getCreatedAt())
+                .updated_at(savedTicket.getUpdatedAt())
                 .build();
     }
 
     private void createTicketHistory(Tickets ticket) {
         Admin admin = adminRepository.findByUsername("admin12");
 
+        createSingleTicketHistory(ticket, admin, "Laporan Dibuka", 1L);
+        createSingleTicketHistory(ticket, admin, "Laporan " + ticket.getTicketStatus(), 2L);
+    }
+
+    private void createSingleTicketHistory(Tickets ticket, Admin admin, String description, Long level) {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Laporan Dibukan");
+        ticketHistory.setDescription(description);
         ticketHistory.setDate(new Date());
-        ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
+        ticketHistory.setLevel(level);
         ticketHistory.setCreatedAt(LocalDateTime.now());
         ticketHistory.setUpdatedAt(LocalDateTime.now());
 
         ticketHistoryRepository.save(ticketHistory);
-
-        TicketHistory ticketHistory2 = new TicketHistory();
-
-        ticketHistory2.setTicket(ticket);
-        ticketHistory2.setAdmin(admin);
-        ticketHistory2.setDescription("Laporan " + ticket.getTicketStatus());
-        ticketHistory2.setDate(new Date());
-        ticketHistory2.setLevel(2L); // Assuming level 1 for ticket creation
-        ticketHistory2.setCreatedAt(LocalDateTime.now());
-        ticketHistory2.setUpdatedAt(LocalDateTime.now());
-
-        ticketHistoryRepository.save(ticketHistory2);
     }
+
 
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
