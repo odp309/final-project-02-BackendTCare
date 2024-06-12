@@ -6,6 +6,7 @@ import com.bni.finproajubackend.dto.tickets.ListTicketNasabahResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketsNasabahResponseDTO;
 import com.bni.finproajubackend.dto.tickets.TicketsResponseDTO;
 import com.bni.finproajubackend.interfaces.TicketReportsInterface;
+import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.StarRating;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
@@ -58,6 +59,7 @@ public class TicketReportsService implements TicketReportsInterface {
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
             @RequestParam(required = false) String created_at,
+            @RequestParam(required = false) String division,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "created_at") String sort_by,
@@ -66,7 +68,7 @@ public class TicketReportsService implements TicketReportsInterface {
     ) throws IllegalAccessException {
         switch (user.toLowerCase()) {
             case "admin":
-                return adminTicketReports(category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order, authentication);
+                return adminTicketReports(category, rating, status, start_date, end_date, ticket_number, created_at, division, page, limit, sort_by, order, authentication);
             case "customer":
                 return nasabahTicketReports(account_number, status, sort_by, order, authentication);
             default:
@@ -81,6 +83,7 @@ public class TicketReportsService implements TicketReportsInterface {
             String order,
             Authentication authentication
     ) throws IllegalAccessException {
+        if (account_number == null) throw new IllegalArgumentException("Account number cannot be empty");
         Account account = accountRepository.findByAccountNumber(account_number);
         if (account == null) throw new NotFoundException("Account not found");
         if (!account.getNasabah().getUser().getUsername().equals(authentication.getName())) throw new IllegalAccessException("User is not the owner");
@@ -88,7 +91,7 @@ public class TicketReportsService implements TicketReportsInterface {
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
 
-        Specification<Tickets> spec = getSpec(account_number, null, null, status, null, null, null, null);
+        Specification<Tickets> spec = getSpec(account_number, null, null, status, null, null, null, null, null);
 
         Pageable pageable = PageRequest.of(0, ticketsRepository.findAll().size(), Sort.by(orders));
         Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
@@ -99,6 +102,7 @@ public class TicketReportsService implements TicketReportsInterface {
                         .transaction_type(ticket.getTransaction().getTransaction_type().toString())
                         .ticket_date(ticket.getCreatedAt().toString())
                         .amount(ticket.getTransaction().getAmount())
+                        .ticket_description(ticket.getDescription())
                         .ticket_status(ticket.getTicketStatus().toString())
                         .build())
                 .collect(Collectors.toList());
@@ -127,6 +131,7 @@ public class TicketReportsService implements TicketReportsInterface {
             String end_date,
             String ticket_number,
             String created_at,
+            String division,
             int page,
             int limit,
             String sort_by,
@@ -140,11 +145,11 @@ public class TicketReportsService implements TicketReportsInterface {
         sort_by = convertSortBy(sort_by);
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         List<Sort.Order> orders = new ArrayList<>();
-        orders.add(new Sort.Order(sortDirection, "ticketStatus"));
+        orders.add(new Sort.Order(Sort.Direction.ASC, "ticketStatus"));
         orders.add(new Sort.Order(sortDirection, sort_by));
         Pageable pageable = PageRequest.of(page, limit, Sort.by(orders));
 
-        Specification<Tickets> spec = getSpec(null, category, rating, status, start_date, end_date, ticket_number, created_at);
+        Specification<Tickets> spec = getSpec(null, category, rating, status, start_date, end_date, ticket_number, created_at, division);
 
         Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
 
@@ -205,7 +210,8 @@ public class TicketReportsService implements TicketReportsInterface {
             String start_date,
             String end_date,
             String ticket_number,
-            String created_at
+            String created_at,
+            String division
     ) {
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
@@ -256,6 +262,16 @@ public class TicketReportsService implements TicketReportsInterface {
             Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
 
             Optional.ofNullable(account_number).ifPresent(acc -> predicates.add(builder.equal(root.get("transaction").get("account").get("accountNumber"), acc)));
+
+            Optional.ofNullable(division).ifPresent(acc -> {
+                DivisionTarget divisionTarget = switch (acc.toLowerCase()) {
+                    case "dgo" -> DivisionTarget.DGO;
+                    case "cxc" -> DivisionTarget.CXC;
+                    case "wpp" -> DivisionTarget.WPP;
+                    default -> null;
+                };
+                predicates.add(builder.equal(root.get("divisionTarget"), divisionTarget));
+            });
 
             return builder.and(predicates.toArray(new Predicate[0]));
         };

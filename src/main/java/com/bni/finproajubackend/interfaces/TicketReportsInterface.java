@@ -15,6 +15,7 @@ public interface TicketReportsInterface {
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
             @RequestParam(required = false) String created_at,
+            @RequestParam(required = false) String division,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "created_at") String sort_by,

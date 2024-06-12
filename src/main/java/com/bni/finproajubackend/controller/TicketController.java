@@ -70,6 +70,7 @@ public class TicketController {
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
             @RequestParam(required = false) String created_at,
+            @RequestParam(required = false) String division,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
@@ -77,11 +78,14 @@ public class TicketController {
             Authentication authentication
     ) {
         try {
-            PaginationDTO result = ticketReportsService.getAllTickets(user, account_number, category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order, authentication);
+            PaginationDTO result = ticketReportsService.getAllTickets(user, account_number, category, rating, status, start_date, end_date, ticket_number, created_at, division, page, limit, sort_by, order, authentication);
             return ResponseEntity.ok(responseService.apiSuccessPagination(result, "Success get ticket details"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(responseService.apiFailed(null, e.getMessage()));
+        } catch (IllegalAccessException e){
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(responseService.apiUnauthorized(null, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(responseService.apiFailed(null, e.getMessage()));
