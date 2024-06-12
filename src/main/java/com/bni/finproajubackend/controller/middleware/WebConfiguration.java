@@ -28,8 +28,7 @@ public class WebConfiguration {
         config.setAllowCredentials(true);
 
         // path to frontend
-//        config.addAllowedOrigin("http://localhost:4200");
-        config.addAllowedOrigin("*");
+        config.addAllowedOrigin("http://localhost:4200");
 
         // typical headers backend must accept
         config.setAllowedHeaders(Arrays.asList(
@@ -45,6 +44,7 @@ public class WebConfiguration {
                 HttpMethod.GET.name(),
                 HttpMethod.POST.name(),
                 HttpMethod.PUT.name(),
+                HttpMethod.PATCH.name(),
                 HttpMethod.DELETE.name()));
 
         // time the cors config is accepted => 30 minutes
