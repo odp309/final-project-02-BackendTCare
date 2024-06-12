@@ -268,7 +268,7 @@ public class TicketReportsService implements TicketReportsInterface {
             Optional.ofNullable(created_at).map(LocalDate::parse)
                     .ifPresent(date -> predicates.add(builder.equal(root.get("createdAt").as(LocalDate.class), date)));
 
-            Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
+            Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.like(root.get("ticketNumber"), "%" + tn + "%")));
 
             Optional.ofNullable(account_number).ifPresent(acc -> predicates.add(builder.equal(root.get("transaction").get("account").get("accountNumber"), acc)));
 
