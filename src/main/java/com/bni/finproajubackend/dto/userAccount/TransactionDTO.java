@@ -14,6 +14,7 @@ public class TransactionDTO {
     private Long id;
     private String transaction_description;
     private String transaction_type;
+    private Long balance;
     private String date;
     private String ticket_status;
 

@@ -29,6 +29,13 @@ public class UserMutationService implements UserMutationInterface {
     @Autowired
     private AccountRepository accountRepository;
 
+    private void checkAccountOwnership(User user, Account account) {
+        Nasabah nasabah = nasabahRepository.findByUser(user);
+        if (!account.getNasabah().equals(nasabah)) {
+            throw new RuntimeException("You're not the account owner");
+        }
+    }
+
     @Override
     public UserMutationDTO getUserMutations(Authentication authentication) {
         String username = authentication.getName();
@@ -39,7 +46,6 @@ public class UserMutationService implements UserMutationInterface {
         }
 
         Nasabah nasabah = nasabahRepository.findByUser(user);
-
         Account account = accountRepository.findByNasabah(nasabah);
 
         List<Transaction> transactions = transactionRepository.findByAccount(account);
@@ -55,6 +61,7 @@ public class UserMutationService implements UserMutationInterface {
                             transaction.getId(),
                             transaction.getDetail(),
                             transactionType,
+                            transaction.getAmount(),
                             formattedDateTime,
                             ticketStatus
                     );
@@ -65,7 +72,7 @@ public class UserMutationService implements UserMutationInterface {
     }
 
     @Override
-    public UserMutationDTO getUserListTransaction(Authentication authentication) {
+    public UserMutationDTO getUserListTransaction(Authentication authentication, String account_number) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username);
 
@@ -73,7 +80,8 @@ public class UserMutationService implements UserMutationInterface {
             throw new RuntimeException("User not found");
         }
 
-        Account account = accountRepository.findByNasabah(user.getNasabah());
+        Account account = accountRepository.findByAccountNumber(account_number);
+        checkAccountOwnership(user, account);
 
         List<Transaction> transactions = transactionRepository.findByAccount(account);
 
@@ -90,6 +98,7 @@ public class UserMutationService implements UserMutationInterface {
                             transaction.getId(),
                             transaction.getDetail(),
                             transactionType,
+                            transaction.getAmount(),
                             formattedDateTime,
                             ticketStatus
                     );
@@ -99,4 +108,39 @@ public class UserMutationService implements UserMutationInterface {
         return new UserMutationDTO(transactionDTOList);
     }
 
+    @Override
+    public UserMutationDTO getUserTransactionsByAccountNo(Authentication authentication, String account_number) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        Account account = accountRepository.findByAccountNumber(account_number);
+        checkAccountOwnership(user, account);
+
+        List<Transaction> transactions = transactionRepository.findByAccount(account);
+
+        List<TransactionDTO> transactionDTOList = transactions.stream()
+                .map(transaction -> {
+                    String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
+                    String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+                    String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
+                            : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
+                            : "Diajukan";
+
+                    return new TransactionDTO(
+                            transaction.getId(),
+                            transaction.getDetail(),
+                            transactionType,
+                            transaction.getAmount(),
+                            formattedDateTime,
+                            ticketStatus
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new UserMutationDTO(transactionDTOList);
+    }
 }

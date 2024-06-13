@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
-@NoArgsConstructor
+//@NoArgsConstructor
 @Getter
 @Setter
 @Builder
@@ -64,4 +64,19 @@ public class Tickets {
     private String reporterAccountNumber;
     private String reporterAddress;
     private String reporterPhoneNumber;
+
+    public Tickets() {
+    }
+
+    // Getters and setters...
+
+    public void addTicketHistory(TicketHistory history) {
+        ticketHistory.add(history);
+        history.setTicket(this);
+    }
+
+    public void removeTicketHistory(TicketHistory history) {
+        ticketHistory.remove(history);
+        history.setTicket(null);
+    }
 }

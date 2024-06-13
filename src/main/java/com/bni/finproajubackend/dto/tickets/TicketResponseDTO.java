@@ -13,23 +13,11 @@ import java.time.LocalDateTime;
 @Builder
 public class TicketResponseDTO {
 
-    private long id;
-    private String ticket_number;
-    private String category;
-    private TicketCategories ticket_category;
-    private long time_response;
-    private DivisionTarget division_target;
-    private String status;
-    private long rating;
-    private Transaction transaction;
-    private String description;
+    private long transaction_id;
+    private String account_number;
+    private String ticket_category;
+    private Boolean reopen_ticket;
     private String reference_number;
-    private LocalDateTime report_date;
-
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime created_at;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
-    private LocalDateTime updated_at;
 }
 
 
