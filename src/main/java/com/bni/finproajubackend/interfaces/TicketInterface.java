@@ -26,4 +26,6 @@ public interface TicketInterface {
 
     TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO);
     String getAdminFullName(@NotNull Admin admin);
+
+    ComplaintResponseDTO getFormComplaint(long id) throws Exception;
 }

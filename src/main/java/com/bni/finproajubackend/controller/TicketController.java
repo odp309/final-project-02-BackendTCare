@@ -10,6 +10,7 @@ import com.bni.finproajubackend.interfaces.TicketReportsInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.webjars.NotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -49,7 +51,7 @@ public class TicketController {
         }
     }
 
-    @PostMapping(value = "/ticket/create", produces = "application/json")
+    @PostMapping(value = "/customer/transaction/complaint-form", produces = "application/json")
     public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         try {
             TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
@@ -84,7 +86,7 @@ public class TicketController {
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(responseService.apiFailed(null, e.getMessage()));
-        } catch (IllegalAccessException e){
+        } catch (IllegalAccessException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(responseService.apiUnauthorized(null, e.getMessage()));
         } catch (Exception e) {
@@ -116,6 +118,18 @@ public class TicketController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/customer/transaction/{id}/complaint-form", produces = "application/json")
+    public ResponseEntity getFormComplaint(@PathVariable Long id) {
+        try {
+            ComplaintResponseDTO result = ticketService.getFormComplaint(id);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiNotFound(null, e.getCause() == null ? "Something went wrong" : e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
 }
