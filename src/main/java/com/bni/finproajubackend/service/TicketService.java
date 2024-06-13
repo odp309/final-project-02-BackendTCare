@@ -14,6 +14,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
@@ -34,6 +36,7 @@ import java.time.LocalDate;
 public class TicketService implements TicketInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
+    private static final Marker TICKETS_MARKER = MarkerFactory.getMarker("TICKETS");
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -49,6 +52,8 @@ public class TicketService implements TicketInterface {
     private TicketResponseTimeRepository ticketResponseTimeRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private LoggerService loggerService;
 
     @Transactional
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
@@ -270,34 +275,11 @@ public class TicketService implements TicketInterface {
         createTicketHistory(savedTicket);
 
         return TicketResponseDTO.builder()
-                .id(savedTicket.getId())
-                .ticket_category(savedTicket.getTicketCategory())
-                .ticket_number(savedTicket.getTicketNumber())
-                .category(switch (savedTicket.getTicketCategory()) {
-                    case Transfer -> "Gagal Transfer";
-                    case TopUp -> "Gagal TopUp";
-                    case Payment -> "Gagal Pembayaran";
-                })
-                .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
-                .status(switch (savedTicket.getTicketStatus()) {
-                    case Diajukan -> "Diajukan";
-                    case DalamProses -> "Dalam Proses";
-                    case Selesai -> "Selesai";
-                })
-                .division_target(savedTicket.getDivisionTarget())
-                .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
-                    case Satu -> 1;
-                    case Dua -> 2;
-                    case Tiga -> 3;
-                    case Lima -> 5;
-                    default -> 4;
-                })
-                .transaction(savedTicket.getTransaction())
-                .description("Complaint Form")
-                .reference_number(savedTicket.getReferenceNumber())
-                .report_date(savedTicket.getCreatedAt())
-                .created_at(savedTicket.getCreatedAt())
-                .updated_at(savedTicket.getUpdatedAt())
+                .transaction_id(transaction.getId())
+                .account_number(transaction.getAccount().getAccountNumber())
+                .ticket_category(savedTicket.getTicketCategory().toString())
+                .reopen_ticket(savedTicket.getReferenceNumber() != null)
+                .reference_number(savedTicket.getReferenceNumber() != null ? savedTicket.getReferenceNumber() : null)
                 .build();
     }
 
@@ -321,9 +303,28 @@ public class TicketService implements TicketInterface {
         ticketHistoryRepository.save(ticketHistory);
     }
 
-
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
+    }
+
+    @Override
+    public ComplaintResponseDTO getFormComplaint(long id) throws Exception {
+        logger.debug(TICKETS_MARKER, "IP {}, Form Complaint Requested", loggerService.getClientIp());
+        try {
+            Transaction transaction = transactionRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
+            logger.info(TICKETS_MARKER, "IP {}, Transaction Detail acquired for Form Complaint", loggerService.getClientIp());
+            return ComplaintResponseDTO.builder()
+                    .transaction_id(transaction.getId())
+                    .account_number(transaction.getAccount().getAccountNumber())
+                    .ticket_category(transaction.getCategory().toString())
+                    .reopen_ticket(transaction.getTickets() != null)
+                    .reference_number(transaction.getTickets() != null ? transaction.getTickets().getTicketNumber() : null)
+                    .build();
+        } catch (Exception e) {
+            logger.error(TICKETS_MARKER, "IP {}, Error getting form complaint", loggerService.getClientIp(), e);
+            throw new Exception ("Error getting customer ticket details");
+        }
     }
 
 
