@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -28,6 +29,8 @@ public class UserMutationService implements UserMutationInterface {
     private NasabahRepository nasabahRepository;
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private TicketsRepository ticketsRepository;
 
     private void checkAccountOwnership(User user, Account account) {
         Nasabah nasabah = nasabahRepository.findByUser(user);
@@ -53,9 +56,17 @@ public class UserMutationService implements UserMutationInterface {
                 .map(transaction -> {
                     String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
                     String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
-                            : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
-                            : "Diajukan";
+
+                    // Ensure tickets is not null and handle its status
+                    String ticketStatus = Optional.ofNullable(transaction.getTickets())
+                            .map(ticket -> {
+                                TicketStatus status = ticket.getTicketStatus();
+                                if (status == TicketStatus.Selesai) return "Selesai";
+                                if (status == TicketStatus.DalamProses) return "Dalam Proses";
+                                if (status == TicketStatus.Diajukan) return "Diajukan";
+                                return null;
+                            })
+                            .orElse("No Ticket");
 
                     return new TransactionDTO(
                             transaction.getId(),
@@ -90,9 +101,17 @@ public class UserMutationService implements UserMutationInterface {
                 .map(transaction -> {
                     String transactionType = "Out"; // Di sini sudah pasti TransactionType adalah Out
                     String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
-                            : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
-                            : "Diajukan";
+
+                    // Ensure tickets is not null and handle its status
+                    String ticketStatus = Optional.ofNullable(transaction.getTickets())
+                            .map(ticket -> {
+                                TicketStatus status = ticket.getTicketStatus();
+                                if (status == TicketStatus.Selesai) return "Selesai";
+                                if (status == TicketStatus.DalamProses) return "Dalam Proses";
+                                if (status == TicketStatus.Diajukan) return "Diajukan";
+                                return null;
+                            })
+                            .orElse("No Ticket");
 
                     return new TransactionDTO(
                             transaction.getId(),
@@ -126,9 +145,17 @@ public class UserMutationService implements UserMutationInterface {
                 .map(transaction -> {
                     String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
                     String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-                    String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
-                            : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
-                            : "Diajukan";
+
+                    // Ensure tickets is not null and handle its status
+                    String ticketStatus = Optional.ofNullable(transaction.getTickets())
+                            .map(ticket -> {
+                                TicketStatus status = ticket.getTicketStatus();
+                                if (status == TicketStatus.Selesai) return "Selesai";
+                                if (status == TicketStatus.DalamProses) return "Dalam Proses";
+                                if (status == TicketStatus.Diajukan) return "Diajukan";
+                                return null;
+                            })
+                            .orElse(null);
 
                     return new TransactionDTO(
                             transaction.getId(),
