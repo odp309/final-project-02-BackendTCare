@@ -1,27 +1,13 @@
 package com.bni.finproajubackend.service;
 
-import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
-import jakarta.validation.constraints.Email;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Locale;
-
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
-import com.bni.finproajubackend.model.ticket.Tickets;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -31,37 +17,73 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Optional;
 
 @Service
 public class EmailService {
 
     @Autowired
     private JavaMailSender mailSender;
+
     private static final Logger logger = LoggerFactory.getLogger(EmailService.class);
     private static final Marker EMAIL_MARKER = MarkerFactory.getMarker("EMAIL");
+
     @Autowired
     private LoggerService loggerService;
 
     @Async
     public void sendNotification(Tickets ticket) throws MessagingException {
-        String to = ticket.getTransaction().getAccount().getNasabah().getEmail();
+        logger.info(EMAIL_MARKER, "sendNotification called with ticket: {}", ticket);
+
+        if (ticket == null) {
+            logger.error(EMAIL_MARKER, "Ticket is null");
+            throw new IllegalArgumentException("Ticket cannot be null");
+        }
+
+        if (mailSender == null) {
+            logger.error(EMAIL_MARKER, "JavaMailSender is not initialized");
+            throw new IllegalStateException("JavaMailSender is not initialized");
+        }
+
+        if (loggerService == null) {
+            logger.error(EMAIL_MARKER, "LoggerService is not initialized");
+            throw new IllegalStateException("LoggerService is not initialized");
+        }
+
+        String to = Optional.ofNullable(ticket.getTransaction())
+                .map(t -> t.getAccount().getNasabah().getEmail())
+                .orElseThrow(() -> {
+                    logger.error(EMAIL_MARKER, "Email address is null for ticket: {}", ticket);
+                    return new IllegalArgumentException("Email address cannot be null");
+                });
+
+        logger.info(EMAIL_MARKER, "Sending email to: {}", to);
+
         String subject;
         String message;
 
-        if (ticket.getTicketStatus() == TicketStatus.Selesai) {
-            subject = "Tiket Anda Telah Selesai";
-            message = createCompletedTicketMessage(ticket);
-        } else {
-            subject = "Pembaruan Status Tiket";
-            message = createUpdatedTicketMessage(ticket);
+        try {
+            if (ticket.getTicketStatus() == TicketStatus.Selesai) {
+                subject = "Tiket Anda Telah Selesai";
+                message = createCompletedTicketMessage(ticket);
+            } else {
+                subject = "Pembaruan Status Tiket";
+                message = createUpdatedTicketMessage(ticket);
+            }
+            sendEmail(to, subject, message);
+        } catch (Exception e) {
+            logger.error(EMAIL_MARKER, "Error occurred while preparing to send email", e);
+            throw new MessagingException("Failed to send email", e);
         }
 
-        sendEmail(to, subject, message);
+        logger.info(EMAIL_MARKER, "Email sent successfully to: {}", to);
     }
 
     private String createCompletedTicketMessage(Tickets ticket) {
         try {
-            String recipient = ticket.getTransaction().getAccount().getNasabah().getFirst_name();
+            String recipient = Optional.ofNullable(ticket.getTransaction())
+                    .map(t -> t.getAccount().getNasabah().getFirst_name())
+                    .orElse("Nasabah");
             String ticketId = ticket.getTicketNumber();
             LocalDateTime transactionDate = ticket.getTransaction().getCreatedAt();
             Long amount = ticket.getTransaction().getAmount();
@@ -72,7 +94,7 @@ public class EmailService {
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy HH:mm:ss", new Locale("id", "ID"));
             String formattedDateTime = transactionDate.format(formatter);
 
-            logger.info(EMAIL_MARKER, "IP {}, Sending complete email to {} with subject {}", loggerService.getClientIp(), ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
+            logger.info(EMAIL_MARKER, "Creating completed ticket email for ticket: {}", ticket);
 
             return String.format(
                     "<html><body>" +
@@ -83,7 +105,7 @@ public class EmailService {
                             "Jumlah: <b>Rp.%s</b><br>" +
                             "Deskripsi: %s<br>" +
                             "Status: <b>%s</b><br><br>" +
-                            "Anda memiliki waktu 3 hari setelah laporan selesai untuk memberikan penilaian dan mengajukan pengaduan ulang jika masalah yang Anda alami belum benar-benar terselesaikan dengan baik.<br><br>" +
+                            "Anda memiliki waktu 3 hari setelah laporan selesai untuk memberikan penilaian dan mengajukan pengaduan ulang jika masalah yang Anda alami belum benar-benar terselesaikan. Pengaduan ulang dapat dilakukan sendiri melalui fitur T-Care dengan melihat detail tiket dan mengajukan pengaduan ulang.<br><br>" +
                             "Terima kasih atas kesabaran dan kerja sama Anda selama proses pengaduan ini.<br><br>" +
                             "Hormat kami,<br><br>" +
                             "<b>%s</b>" +
@@ -99,7 +121,9 @@ public class EmailService {
 
     private String createUpdatedTicketMessage(Tickets ticket) {
         try {
-            String recipient = ticket.getTransaction().getAccount().getNasabah().getFirst_name();
+            String recipient = Optional.ofNullable(ticket.getTransaction())
+                    .map(t -> t.getAccount().getNasabah().getFirst_name())
+                    .orElse("Nasabah");
             String ticketId = ticket.getTicketNumber();
             LocalDateTime transactionDate = ticket.getTransaction().getCreatedAt();
             Long amount = ticket.getTransaction().getAmount();
@@ -112,7 +136,7 @@ public class EmailService {
 
             String formattedResolutionStatus = formatTicketStatus(resolutionStatus);
 
-            logger.info(EMAIL_MARKER, "IP {}, Sending update email to {} with subject {}", loggerService.getClientIp(), ticket.getTransaction().getAccount().getNasabah().getEmail(), "Pembaruan Status Tiket");
+            logger.info(EMAIL_MARKER, "Creating updated ticket email for ticket: {}", ticket);
 
             return String.format(
                     "<html><body>" +
@@ -145,9 +169,10 @@ public class EmailService {
             helper.setSubject(subject);
             helper.setText(body, true); // set the second parameter to 'true' to indicate HTML content
             mailSender.send(message);
+            logger.info(EMAIL_MARKER, "Email sent successfully to: {}", to);
         } catch (MessagingException e) {
-            logger.error(EMAIL_MARKER, "Error sending email", e);
-            throw new MessagingException("Failed sending email"); // handle error appropriately
+            logger.error(EMAIL_MARKER, "Error sending email to: {}", to, e);
+            throw new MessagingException("Failed sending email", e); // handle error appropriately
         }
     }
 
@@ -157,7 +182,6 @@ public class EmailService {
                 return "Dalam Proses";
             case Selesai:
                 return "Selesai";
-            // Tambahkan case lain jika ada
             default:
                 return status.toString();
         }
