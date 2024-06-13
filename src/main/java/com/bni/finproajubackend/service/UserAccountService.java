@@ -57,7 +57,6 @@ public class UserAccountService implements UserAccountInterface {
         accountDTO.setAccount_number(account.getAccountNumber());
         accountDTO.setBalance(account.getBalance());
         accountDTO.setType(account.getType());
-        //accountDTO.setTransactionList(transactionDTOList);
         return accountDTO;
     }
 
