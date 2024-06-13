@@ -1,8 +1,6 @@
 package com.bni.finproajubackend.controller;
 
-import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
 import com.bni.finproajubackend.dto.receipt.TransactionResponseDTO;
-import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
 import com.bni.finproajubackend.interfaces.ReceiptInterface;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import jakarta.persistence.EntityNotFoundException;
@@ -11,7 +9,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.webjars.NotFoundException;
 
 @RestController
 @RequestMapping("/api/v1/private")

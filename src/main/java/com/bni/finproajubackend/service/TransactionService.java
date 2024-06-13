@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+import org.springframework.stereotype.Service;
 
+@Service
 public class TransactionService implements ReceiptInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(TransactionService.class);
