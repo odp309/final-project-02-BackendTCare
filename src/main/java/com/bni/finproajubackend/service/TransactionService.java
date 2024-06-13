@@ -39,9 +39,9 @@ public class TransactionService implements ReceiptInterface {
                     .sender_account_number(tx.getAccount().getAccountNumber().toString())
                     .sender_name(tx.getAccount().getNasabah().getFirst_name() + " " + tx.getAccount().getNasabah().getLast_name())
                     .sender_company(tx.getBank().getBankName())
-                    .recipient_account_number("123456789")
-                    .recipient_name("Why u")
-                    .recipient_company("PT. Hacker")
+                    .recipient_account_number(tx.getRecipient_account().getAccountNumber())
+                    .recipient_name(tx.getRecipient_account().getNasabah().getFirst_name() + " " + tx.getRecipient_account().getNasabah().getLast_name())
+                    .recipient_company(tx.getRecipient_bank().getBankName())
                     .build();
         } catch (Exception e) {
             logger.error(TRANSACTION_MARKER, "IP {}, Error getting transaction details", loggerService.getClientIp(), e);

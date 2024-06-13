@@ -45,9 +45,17 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionType transaction_type;
 
+    @ManyToOne
+    @JoinColumn(name = "recipient_bank_id", referencedColumnName = "id")
+    private Bank recipient_bank;
+
     @Column(name = "category") // Menambahkan properti untuk enum
     @Enumerated(EnumType.STRING) // Menyimpan nilai enum sebagai string dalam database
     private TransactionCategories category; // Properti yang menggunakan enum
+
+    @ManyToOne
+    @JoinColumn(name = "recipient_rekening_id", referencedColumnName = "id")
+    private Account recipient_account;
 
     @OneToOne(mappedBy = "transaction")
     @JsonIgnore

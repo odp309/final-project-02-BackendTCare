@@ -27,4 +27,8 @@ public class Bank {
     @OneToMany(mappedBy = "bank")
     @JsonIgnore
     private List<Transaction> transactions;
+
+    @OneToMany(mappedBy = "recipient_bank")
+    @JsonIgnore
+    private List<Transaction> recipient_transactions;
 }
