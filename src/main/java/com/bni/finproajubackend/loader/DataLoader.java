@@ -556,48 +556,51 @@ public class DataLoader {
     }
 
     private void loadTickets(Transaction transaction) {
-        // Mengatur kategori tiket berdasarkan kategori transaksi
-        TicketCategories categories = switch (transaction.getCategory()) {
-            case Transfer -> TicketCategories.Transfer;
-            case TopUp -> TicketCategories.TopUp;
-            case Payment -> TicketCategories.Payment;
-        };
+        if (transaction.getTransaction_type() == TransactionType.Out){
+            // Mengatur kategori tiket berdasarkan kategori transaksi
+            TicketCategories categories = switch (transaction.getCategory()) {
+                case Transfer -> TicketCategories.Transfer;
+                case TopUp -> TicketCategories.TopUp;
+                case Payment -> TicketCategories.Payment;
+            };
 
-        // Mengatur target divisi berdasarkan kategori transaksi
-        DivisionTarget divisionTarget = switch (transaction.getCategory()) {
-            case Transfer -> DivisionTarget.CXC;
-            case TopUp -> DivisionTarget.WPP;
-            case Payment -> DivisionTarget.DGO;
-        };
+            // Mengatur target divisi berdasarkan kategori transaksi
+            DivisionTarget divisionTarget = switch (transaction.getCategory()) {
+                case Transfer -> DivisionTarget.CXC;
+                case TopUp -> DivisionTarget.WPP;
+                case Payment -> DivisionTarget.DGO;
+            };
 
-        // Mengatur status tiket secara acak
-        TicketStatus ticketStatus = switch (new Random().nextInt(3)) {
-            case 0 -> TicketStatus.Diajukan;
-            case 1 -> TicketStatus.DalamProses;
-            case 2 -> TicketStatus.Selesai;
-            default -> TicketStatus.Diajukan; // Nilai default jika terjadi kesalahan
-        };
+            // Mengatur status tiket secara acak
+            TicketStatus ticketStatus = switch (new Random().nextInt(3)) {
+                case 0 -> TicketStatus.Diajukan;
+                case 1 -> TicketStatus.DalamProses;
+                case 2 -> TicketStatus.Selesai;
+                default -> TicketStatus.Diajukan; // Nilai default jika terjadi kesalahan
+            };
 
-        // Membuat objek tiket baru
-        Tickets ticket = Tickets.builder()
-                .ticketNumber(createTicketNumber(transaction))
-                .transaction(transaction)
-                .ticketCategory(categories)
-                .ticketStatus(ticketStatus)
-                .divisionTarget(divisionTarget)
-                .description("Ticket for " + transaction.getDetail())
-                .createdAt(generateRandomDateTime(null))
-                .updatedAt(generateRandomDateTime(null))
-                .build();
-        ticketsRepository.save(ticket);
+            // Membuat objek tiket baru
+            Tickets ticket = Tickets.builder()
+                    .ticketNumber(createTicketNumber(transaction))
+                    .transaction(transaction)
+                    .ticketCategory(categories)
+                    .ticketStatus(ticketStatus)
+                    .divisionTarget(divisionTarget)
+                    .description("Ticket for " + transaction.getDetail())
+                    .createdAt(generateRandomDateTime(null))
+                    .updatedAt(generateRandomDateTime(null))
+                    .build();
+            ticketsRepository.save(ticket);
 
-        // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
-        if (ticketStatus == TicketStatus.Selesai) {
-            addTicketFeedback(ticket);
+            // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
+            if (ticketStatus == TicketStatus.Selesai) {
+                addTicketFeedback(ticket);
+            }
+
+            // Load ticket history
+            createTicketHistory(ticket, transaction.getCategory());
         }
 
-        // Load ticket history
-        createTicketHistory(ticket, transaction.getCategory());
     }
 
     private void createTicketHistory(Tickets ticket, TransactionCategories category) {
