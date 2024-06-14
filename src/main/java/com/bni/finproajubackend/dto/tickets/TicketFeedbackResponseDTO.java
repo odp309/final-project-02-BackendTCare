@@ -8,14 +8,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 @Getter
+@Setter
 @Data
 @Builder
 public class TicketFeedbackResponseDTO {
-
-    @Setter
     private Integer rating;
-
-    @Setter
     private String comment;
 }
 
