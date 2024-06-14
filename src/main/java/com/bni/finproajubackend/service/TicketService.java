@@ -1,6 +1,5 @@
 package com.bni.finproajubackend.service;
 
-import ch.qos.logback.core.util.COWArrayList;
 import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;

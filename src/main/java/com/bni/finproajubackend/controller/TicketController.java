@@ -134,7 +134,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
-    @GetMapping("/admin/ticket-reports/{id}/feedback")
+    @GetMapping(value = "/admin/ticket-reports/{id}/feedback", produces = "application/json")
     public ResponseEntity<?> getTicketFeedback(@PathVariable("id") Long ticket_id) {
         try {
             TicketFeedbackResponseDTO result = ticketService.getTicketFeedback(ticket_id);
@@ -155,19 +155,4 @@ public class TicketController {
                     .body(responseService.apiFailed(null, e.getMessage()));
         }
     }
-
-//    @PostMapping(value = "/customer/ticket-reports/{id}/create-feedback", produces = "application/json")
-//    public ResponseEntity<TemplateResponseDTO<CreateFeedbackDTO>> createTicketFeedback(
-//            @PathVariable Long ticket_id,
-//            @RequestBody String ticket_number, Authentication authentication) {
-//        try {
-//            TicketFeedback result = ticketService.createTicketFeedback(ticket_number, authentication);
-//            TicketFeedback ticketFeedback = result.getTicket().getTicketFeedback();
-//            CreateFeedbackDTO responseDTO = new CreateFeedbackDTO(ticketFeedback);
-//            return ResponseEntity.ok(responseService.apiSuccess(responseDTO, "Feedback created successfully"));
-//        } catch (Exception err) {
-//            errorDetails.put("message", err.getCause() == null ? "Not Permitted" : err.getMessage());
-//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, err.getCause() == null ? "Feedback Failed Created" : err.getMessage()));
-//        }
-//    }
 }

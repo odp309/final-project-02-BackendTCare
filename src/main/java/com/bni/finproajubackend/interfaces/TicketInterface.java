@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.interfaces;
 
 import com.bni.finproajubackend.dto.tickets.*;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
