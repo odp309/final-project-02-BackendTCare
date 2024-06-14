@@ -1,7 +1,6 @@
 package com.bni.finproajubackend.service;
 
 import ch.qos.logback.core.util.COWArrayList;
-import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -339,15 +337,39 @@ public class TicketService implements TicketInterface {
                     Tickets ticket = ticketsRepository.findById(ticket_id)
                             .orElseThrow(() -> new RuntimeException("Ticket not found"));
                     TicketFeedback newFeedback = new TicketFeedback();
-//                    newFeedback.setTicket(ticket);
-//                    newFeedback.setStar_rating(StarRating.Satu); // Default rating
-//                    newFeedback.setComment(""); // Default comment
+                    newFeedback.setTicket(ticket);
+                    newFeedback.setStar_rating(StarRating.Empat);
+                    newFeedback.setComment("");
+                    return ticketFeedbackRepository.save(newFeedback);
+                });
+
+        int rating = switch (ticketFeedback.getStar_rating()) {
+            case Satu -> 1;
+            case Dua -> 2;
+            case Tiga -> 3;
+            case Lima -> 5;
+            default -> 4;
+        };
+
+        return TicketFeedbackResponseDTO.builder()
+                .rating(rating)
+                .comment(ticketFeedback.getComment())
+                .build();
+    }
+
+    @Override
+    public CustomerTicketDetailsReportDTO getCustomerTicketFeedback(Long ticket_id) {
+        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicketId(ticket_id)
+                .orElseGet(() -> {
+                    Tickets ticket = ticketsRepository.findById(ticket_id)
+                            .orElseThrow(() -> new RuntimeException("Ticket not found"));
+                    TicketFeedback newFeedback = new TicketFeedback();
                     return ticketFeedbackRepository.save(newFeedback);
                 });
 
         int rating = mapStarRatingToInt(ticketFeedback.getStar_rating());
 
-        return TicketFeedbackResponseDTO.builder()
+        return CustomerTicketDetailsReportDTO.builder()
                 .rating(rating)
                 .comment(ticketFeedback.getComment())
                 .build();
