@@ -145,7 +145,7 @@ public class TicketController {
         }
     }
 
-    @GetMapping("/customer/ticket-reports/{id}/feedback")
+    @GetMapping(value = "/customer/ticket-reports/{id}/feedback", produces = "application/json")
     public ResponseEntity<?> getCustomerTicketFeedback(@PathVariable("id") Long ticket_id) {
         try {
             CustomerTicketFeedbackResponseDTO result = ticketService.getCustomerTicketFeedback(ticket_id);

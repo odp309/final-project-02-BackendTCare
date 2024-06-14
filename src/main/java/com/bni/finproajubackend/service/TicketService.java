@@ -56,7 +56,6 @@ public class TicketService implements TicketInterface {
     private LoggerService loggerService;
     @Autowired
     private TicketFeedbackRepository ticketFeedbackRepository;
-    private COWArrayList<Object> optionalTicket;
 
     @Transactional
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
@@ -366,7 +365,6 @@ public class TicketService implements TicketInterface {
                     TicketFeedback newFeedback = new TicketFeedback();
                     newFeedback.setTicket(ticket);
                     newFeedback.setStar_rating(StarRating.Empat);
-                    newFeedback.setComment("");
                     return ticketFeedbackRepository.save(newFeedback);
                 });
 
@@ -380,7 +378,6 @@ public class TicketService implements TicketInterface {
 
         return CustomerTicketFeedbackResponseDTO.builder()
                 .rating(rating)
-                .comment(ticketFeedback.getComment())
                 .build();
     }
 }
