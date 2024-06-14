@@ -180,12 +180,12 @@ public class DataLoader {
         LocalDateTime now = LocalDateTime.now();
         boolean isOutgoing = new Random().nextBoolean();
 
-        Transaction transaction = createTransaction(account, bank, detail, amount, account.getBalance() - amount, status, category, recipientAccount, isOutgoing, now);
+        Transaction transaction = createTransaction(account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, now);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         if (size % 2 == 0) {
-            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, recipientAccount.getBalance() + amount, status, category, account, !isOutgoing, now);
+            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, now);
             recipientTransaction.setReferenced_id(savedTransaction.getId());
 
             Transaction savedRecipientTransaction = transactionRepository.save(recipientTransaction);

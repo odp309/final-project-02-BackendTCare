@@ -64,11 +64,6 @@ public class Tickets {
     @OneToOne(mappedBy = "ticket")
     private TicketResponseTime ticketResponseTime;
 
-    private String reporterName;
-    private String reporterAccountNumber;
-    private String reporterAddress;
-    private String reporterPhoneNumber;
-
     public Tickets() {
     }
 
