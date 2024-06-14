@@ -1,9 +1,7 @@
 package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.aspect.PermissionAspect;
-import com.bni.finproajubackend.dto.userAccount.AccountDTO;
-import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
-import com.bni.finproajubackend.dto.userAccount.UserAccountDTO;
+import com.bni.finproajubackend.dto.userAccount.*;
 import com.bni.finproajubackend.interfaces.UserAccountInterface;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
@@ -50,6 +48,24 @@ public class UserAccountService implements UserAccountInterface {
                 .build();
     }
 
+    @Override
+    public ListAccountNumberDTO getMyAccountNumber(Authentication authentication) {
+        String username =authentication.getName();
+        User user = userRepository.findByUsername(username);
+
+        if(user == null) throw new RuntimeException("User not found");
+
+        List<AccountNumberDTO> accountNumberList = user.getNasabah() != null ?
+                user.getNasabah().getAccount().stream().map(this::convertToAccountNumberDTO).collect(Collectors.toList()) : List.of();
+
+        logger.info(ACCOUNT_MARKER, "IP {}, User {} has {} account(s)", loggerService.getClientIp(), username, accountNumberList.size());
+        //ListAccountNumberDTO listAccount = new ListAccountNumberDTO();
+
+        return ListAccountNumberDTO.builder()
+                .list_account(accountNumberList)
+                .build();
+    }
+
     private AccountDTO convertToAccountDTO(Account account) {
 
         AccountDTO accountDTO = new AccountDTO();
@@ -58,6 +74,12 @@ public class UserAccountService implements UserAccountInterface {
         accountDTO.setBalance(account.getBalance());
         accountDTO.setType(account.getType());
         return accountDTO;
+    }
+
+    private AccountNumberDTO convertToAccountNumberDTO(Account account){
+        AccountNumberDTO accountNumberDTO = new AccountNumberDTO();
+        accountNumberDTO.setAccount_number(account.getAccountNumber());
+        return accountNumberDTO;
     }
 
 }

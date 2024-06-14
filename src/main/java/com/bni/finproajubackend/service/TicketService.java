@@ -8,15 +8,22 @@ import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
+import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.JoinType;
+import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -55,6 +62,10 @@ public class TicketService implements TicketInterface {
     private LoggerService loggerService;
     @Autowired
     private TicketFeedbackRepository ticketFeedbackRepository;
+    @Autowired
+    private NasabahRepository nasabahRepository;
+    @Autowired
+    private AccountRepository accountRepository;
 
     @Transactional
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
@@ -275,6 +286,8 @@ public class TicketService implements TicketInterface {
 
         createTicketHistory(savedTicket);
 
+        checkProblem(transaction);
+
         return TicketResponseDTO.builder()
                 .transaction_id(transaction.getId())
                 .account_number(transaction.getAccount().getAccountNumber())
@@ -283,6 +296,45 @@ public class TicketService implements TicketInterface {
                 .reference_number(savedTicket.getReferenceNumber() != null ? savedTicket.getReferenceNumber() : null)
                 .build();
     }
+
+    @Async
+    private void checkProblem(Transaction transaction) {
+        Transaction transactionSender = transaction;
+        Account accountRecipient = transaction.getRecipient_account();
+
+        Specification<Transaction> spec = (root, query, builder) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            Optional.ofNullable(transactionSender.getId()).ifPresent(id ->
+                    predicates.add(builder.equal(root.get("referenced_id"), id))
+            );
+
+            Optional.of(transactionSender.getTransaction_type() != TransactionType.In ? TransactionType.Out : TransactionType.In).ifPresent(type ->
+                    predicates.add(builder.equal(root.get("transaction_type"), type))
+            );
+
+            return builder.and(predicates.toArray(new Predicate[0]));
+        };
+
+        List<Transaction> transactionRecipient = transactionRepository.findAll(spec);
+        int recipientSize = transactionRecipient.size();
+
+        if (recipientSize == 0) {
+            processTicket(transaction, "IP {}, Transaction not found, Continuing ticket to division");
+        } else if (recipientSize > 1) {
+            processTicket(transaction, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
+        } else {
+            processTicket(transaction, "IP {}, Transaction found, Closing Tickets by System");
+            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "Laporan Selesai", 4L);
+            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "Laporan Diterima Pelapora", 5L);
+        }
+    }
+
+    private void processTicket(Transaction transaction, String logMessage) {
+        createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "Laporan Diproses", 3L);
+        logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
+    }
+
 
     private void createTicketHistory(Tickets ticket) {
         Admin admin = adminRepository.findByUsername("admin12");
@@ -324,7 +376,7 @@ public class TicketService implements TicketInterface {
                     .build();
         } catch (Exception e) {
             logger.error(TICKETS_MARKER, "IP {}, Error getting form complaint", loggerService.getClientIp(), e);
-            throw new Exception ("Error getting customer ticket details");
+            throw new Exception("Error getting customer ticket details");
         }
     }
 

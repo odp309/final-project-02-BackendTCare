@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.controller;
 
+import com.bni.finproajubackend.dto.userAccount.ListAccountNumberDTO;
 import com.bni.finproajubackend.dto.userAccount.UserAccountDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.service.UserAccountService;
@@ -31,6 +32,21 @@ public class UserAccountController {
             if(userAccountDTO == null)
                 return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null,"Data not found"));
             return ResponseEntity.ok(responseService.apiSuccess(userAccountDTO, "Success get data"));
+        }
+        catch (Exception e){
+            errorDetails.put("message", e.getCause()== null ? "Not Permitted": e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong" : e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/customer/account-numbers", produces = "application/json")
+    public ResponseEntity getMyAccountNumberList(Authentication authentication){
+        try {
+            ListAccountNumberDTO listAccountNumberDTO = userAccountService.getMyAccountNumber(authentication);
+            if(listAccountNumberDTO == null){
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, "Data not found!"));
+            }
+            return ResponseEntity.ok(responseService.apiSuccess(listAccountNumberDTO, "Success"));
         }
         catch (Exception e){
             errorDetails.put("message", e.getCause()== null ? "Not Permitted": e.getMessage());

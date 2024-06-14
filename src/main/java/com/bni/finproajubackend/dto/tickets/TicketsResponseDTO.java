@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 @Builder
 public class TicketsResponseDTO {
     private long id;
+    private long transaction_id;
     private String ticket_number;
     private String category;
     private long time_response;
