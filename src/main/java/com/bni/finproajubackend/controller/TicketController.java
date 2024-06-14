@@ -148,7 +148,7 @@ public class TicketController {
     @GetMapping("/customer/ticket-reports/{id}/feedback")
     public ResponseEntity<?> getCustomerTicketFeedback(@PathVariable("id") Long ticket_id) {
         try {
-            CustomerTicketDetailsReportDTO result = ticketService.getCustomerTicketDetails(ticket_id);
+            CustomerTicketFeedbackResponseDTO result = ticketService.getCustomerTicketFeedback(ticket_id);
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket feedback"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
