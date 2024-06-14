@@ -24,6 +24,9 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(unique = true)
+    private Long referenced_id;
+
     @ManyToOne
     @JoinColumn(name = "bank_id", referencedColumnName = "id")
     private Bank bank;
@@ -38,8 +41,9 @@ public class Transaction {
     @Column(name = "transaction_status")
     private String status;
 
-    @Column(name = "amount")
     private Long amount;
+
+    private Long total_amount;
 
     @Column(name = "transaction_type")
     @Enumerated(EnumType.STRING)
