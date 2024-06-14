@@ -142,9 +142,17 @@ public class TicketController {
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(responseService.apiFailed(null, e.getMessage()));
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(responseService.apiFailed(null, "An unexpected error occurred"));
+        }
+    }
+
+    @GetMapping("/customer/ticket-reports/{id}/feedback")
+    public ResponseEntity<?> getCustomerTicketFeedback(@PathVariable("id") Long ticket_id) {
+        try {
+            CustomerTicketDetailsReportDTO result = ticketService.getCustomerTicketDetails(ticket_id);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket feedback"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiFailed(null, e.getMessage()));
         }
     }
 }
