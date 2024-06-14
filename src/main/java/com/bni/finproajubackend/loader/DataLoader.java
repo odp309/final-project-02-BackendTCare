@@ -156,9 +156,7 @@ public class DataLoader {
                         }
                     }
                 }
-
             }
-
         }
     }
 
@@ -180,12 +178,12 @@ public class DataLoader {
         LocalDateTime now = LocalDateTime.now();
         boolean isOutgoing = new Random().nextBoolean();
 
-        Transaction transaction = createTransaction(account, bank, detail, amount, account.getBalance() - amount, status, category, recipientAccount, isOutgoing, now);
+        Transaction transaction = createTransaction(account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, now);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         if (size % 2 == 0) {
-            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, recipientAccount.getBalance() + amount, status, category, account, !isOutgoing, now);
+            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, now);
             recipientTransaction.setReferenced_id(savedTransaction.getId());
 
             Transaction savedRecipientTransaction = transactionRepository.save(recipientTransaction);
@@ -266,7 +264,7 @@ public class DataLoader {
 
     private void createTicketHistory(Tickets ticket, TransactionCategories category) {
         Admin admin = adminRepository.findByUsername("admin12");
-        String[] statuses = {"Laporan Diajukan", "Laporan Diajukan", "Laporan Dalam Proses", "Laporan Selesai Diproses", "Laporan Selesai Diproses"};
+        String[] statuses = {"transaksi dilakukan", "laporan diajukan", "laporan dalam proses", "laporan selesai diproses", "laporan diterima pelapor"};
 
         int counter = switch (ticket.getTicketStatus()) {
             case Diajukan -> 2;
@@ -318,7 +316,7 @@ public class DataLoader {
         StarRating starRating = StarRating.values()[new Random().nextInt(StarRating.values().length)];
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicket(ticket);
-        feedback.setStarRating(starRating);
+        feedback.setStar_rating(starRating);
         feedback.setComment("Terima kasih atas pelayanan yang baik.");
 
         // Menyimpan masukan tiket

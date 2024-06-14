@@ -187,7 +187,7 @@ public class TicketReportsService implements TicketReportsInterface {
                             case Selesai -> "Selesai";
                         })
                         .division_target(ticket.getDivisionTarget())
-                        .rating(ticket.getTicketFeedbacks() == null ? 4 : ticket.getTicketFeedbacks().getStarRating().getValue())
+                        .rating(ticket.getTicketFeedback() == null ? 4 : ticket.getTicketFeedback().getStar_rating().getValue())
                         .created_at(ticket.getCreatedAt())
                         .updated_at(ticket.getUpdatedAt())
                         .build())

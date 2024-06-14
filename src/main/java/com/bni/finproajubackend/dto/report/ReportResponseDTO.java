@@ -4,25 +4,15 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+import java.util.Map;
+
 @Data
 @Builder
 @AllArgsConstructor
 public class ReportResponseDTO {
-    private long january;
-    private long february;
-    private long march;
-    private long april;
-    private long may;
-    private long june;
-    private long july;
-    private long august;
-    private long september;
-    private long october;
-    private long november;
-    private long december;
-
-    private long total;
-    private long totalAllReports;
-    private long year;
+    private Map<String, Object> result;
+    private int total;
+    private int total_reports;
+    private String year;
 }
 

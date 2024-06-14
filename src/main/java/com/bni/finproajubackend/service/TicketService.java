@@ -3,6 +3,7 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
 import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
@@ -59,6 +60,8 @@ public class TicketService implements TicketInterface {
     private EmailService emailService;
     @Autowired
     private LoggerService loggerService;
+    @Autowired
+    private TicketFeedbackRepository ticketFeedbackRepository;
     @Autowired
     private NasabahRepository nasabahRepository;
     @Autowired
@@ -344,7 +347,7 @@ public class TicketService implements TicketInterface {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription(description);
+        ticketHistory.setDescription("Laporan Dibukan");
         ticketHistory.setDate(new Date());
         ticketHistory.setLevel(level);
         ticketHistory.setCreatedAt(LocalDateTime.now());
@@ -377,5 +380,55 @@ public class TicketService implements TicketInterface {
         }
     }
 
+    @Override
+    public TicketFeedbackResponseDTO getTicketFeedback(Long ticket_id) {
+        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicketId(ticket_id)
+                .orElseGet(() -> {
+                    Tickets ticket = ticketsRepository.findById(ticket_id)
+                            .orElseThrow(() -> new RuntimeException("Ticket not found"));
+                    TicketFeedback newFeedback = new TicketFeedback();
+                    newFeedback.setTicket(ticket);
+                    newFeedback.setStar_rating(StarRating.Empat);
+                    newFeedback.setComment("");
+                    return ticketFeedbackRepository.save(newFeedback);
+                });
 
+        int rating = switch (ticketFeedback.getStar_rating()) {
+            case Satu -> 1;
+            case Dua -> 2;
+            case Tiga -> 3;
+            case Lima -> 5;
+            default -> 4;
+        };
+
+        return TicketFeedbackResponseDTO.builder()
+                .rating(rating)
+                .comment(ticketFeedback.getComment())
+                .build();
+    }
+
+    @Override
+    public CustomerTicketFeedbackResponseDTO getCustomerTicketFeedback(Long ticket_id) {
+        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicketId(ticket_id)
+                .orElseGet(() -> {
+                    Tickets ticket = ticketsRepository.findById(ticket_id)
+                            .orElseThrow(() -> new RuntimeException("Ticket not found"));
+                    TicketFeedback newFeedback = new TicketFeedback();
+                    newFeedback.setTicket(ticket);
+                    newFeedback.setStar_rating(StarRating.Empat);
+                    return ticketFeedbackRepository.save(newFeedback);
+                });
+
+        int rating = switch (ticketFeedback.getStar_rating()) {
+            case Satu -> 1;
+            case Dua -> 2;
+            case Tiga -> 3;
+            case Lima -> 5;
+            default -> 4;
+        };
+
+        return CustomerTicketFeedbackResponseDTO.builder()
+                .rating(rating)
+                .build();
+    }
 }

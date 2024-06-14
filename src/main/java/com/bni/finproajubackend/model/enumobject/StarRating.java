@@ -21,3 +21,4 @@ public enum StarRating {
         throw new IllegalArgumentException("Unknown rating value: " + value);
     }
 }
+

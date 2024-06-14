@@ -1,6 +1,5 @@
 package com.bni.finproajubackend.repository;
 
-import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import org.springframework.data.domain.Page;
