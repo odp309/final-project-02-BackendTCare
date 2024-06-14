@@ -27,21 +27,21 @@ public class UserMutationController {
     private UserMutationService userMutationService;
     @Autowired
     private TemplateResInterface responseService;
-    private Map<String, Object> errorDetails = new HashMap<>();
 
-    @GetMapping(value = "/customer/history-transaction", produces = "application/json")
-    public ResponseEntity getUserMutationDetail(Authentication authentication){
-        try {
-            UserMutationDTO userMutationDTO = userMutationService.getUserMutations(authentication);
-            if (userMutationDTO == null){
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, "Data not found!"));
-            }
-            return ResponseEntity.ok(responseService.apiSuccess(userMutationDTO, "Success!"));
-        }catch (Exception e){
-            errorDetails.put("message", e.getCause()== null ? "Not Permitted": e.getMessage());
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong" : e.getMessage()));
-        }
-    }
+//    @GetMapping(value = "/customer/history-transaction", produces = "application/json")
+//    public ResponseEntity getUserMutationDetail(Authentication authentication){
+//        try {
+//            UserMutationDTO userMutationDTO = userMutationService.getUserMutations(authentication);
+//            if (userMutationDTO == null){
+//                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, "Data not found!"));
+//            }
+//            return ResponseEntity.ok(responseService.apiSuccess(userMutationDTO, "Success!"));
+//        }catch (Exception e){
+//            errorDetails.put("message", e.getCause()== null ? "Not Permitted": e.getMessage());
+//            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong" : e.getMessage()));
+//        }
+//    }
+
 //    @GetMapping(value = "/customer/list-transaction", produces = "application/json")
 //    public ResponseEntity getUserListTransactions(Authentication authentication, @RequestParam String account_number){
 //        try {
@@ -69,7 +69,6 @@ public class UserMutationController {
             }
             return ResponseEntity.ok(responseService.apiSuccess(userMutationDTO, "Success"));
         } catch (Exception e) {
-            errorDetails.put("message", e.getCause() == null ? "Not Permitted" : e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Something went wrong!" : e.getMessage()));
         }
     }
@@ -87,7 +86,6 @@ public class UserMutationController {
             }
             return ResponseEntity.ok(responseService.apiSuccess(userMutationDTO, "Success"));
         }catch (Exception e){
-            errorDetails.put("message", e.getCause()==null ? "Not Permitted" : e.getMessage());
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause()==null ? "Something went wrong!" : e.getMessage()));
         }
     }
