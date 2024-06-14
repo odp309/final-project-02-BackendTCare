@@ -1,13 +1,14 @@
 package com.bni.finproajubackend.controller;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
+import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
 import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
-import com.bni.finproajubackend.dto.templateResponse.TemplateResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ public class TicketController {
     @Autowired
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
+
 
     @RequiresPermission("admin")
     @PatchMapping("/admin/ticket-reports/{id}/update-status")
@@ -106,6 +108,19 @@ public class TicketController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+        }
+    }
+    @GetMapping("/admin/ticket-reports/{id}/feedback")
+    public ResponseEntity<?> getTicketFeedback(@PathVariable("id") Long ticket_id) {
+        try {
+            TicketFeedbackResponseDTO result = ticketService.getTicketFeedback(ticket_id);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket feedback"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiFailed(null, e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(responseService.apiFailed(null, "An unexpected error occurred"));
         }
     }
 }

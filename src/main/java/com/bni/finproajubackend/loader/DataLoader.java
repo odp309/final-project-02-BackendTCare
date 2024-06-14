@@ -262,7 +262,7 @@ public class DataLoader {
         StarRating starRating = StarRating.values()[new Random().nextInt(StarRating.values().length)];
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicket(ticket);
-        feedback.setStarRating(starRating);
+        feedback.setStar_rating(starRating);
         feedback.setComment("Terima kasih atas pelayanan yang baik.");
 
         // Menyimpan masukan tiket

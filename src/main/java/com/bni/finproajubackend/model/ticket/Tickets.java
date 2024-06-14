@@ -53,15 +53,10 @@ public class Tickets {
 
     @OneToOne(mappedBy = "ticket", cascade = CascadeType.ALL)
     @JsonIgnore
-    private TicketFeedback ticketFeedbacks;
+    private TicketFeedback ticketFeedback;
     @OneToMany(mappedBy = "ticket", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonIgnore
     private List<TicketHistory> ticketHistory;
     @OneToOne(mappedBy = "ticket")
     private TicketResponseTime ticketResponseTime;
-
-    private String reporterName;
-    private String reporterAccountNumber;
-    private String reporterAddress;
-    private String reporterPhoneNumber;
 }

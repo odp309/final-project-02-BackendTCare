@@ -1,5 +1,6 @@
 package com.bni.finproajubackend.service;
 
+import ch.qos.logback.core.util.COWArrayList;
 import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.*;
@@ -58,6 +59,9 @@ public class TicketService implements TicketInterface {
     private TicketResponseTimeRepository ticketResponseTimeRepository;
     @Autowired
     private EmailService emailService;
+    @Autowired
+    private TicketFeedbackRepository ticketFeedbackRepository;
+    private COWArrayList<Object> optionalTicket;
 
     @Transactional
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) {
@@ -391,7 +395,7 @@ public class TicketService implements TicketInterface {
                             case Selesai -> "Selesai";
                         })
                         .division_target(ticket.getDivisionTarget())
-                        .rating(ticket.getTicketFeedbacks() == null ? 4 : ticket.getTicketFeedbacks().getStarRating().getValue())
+                        .rating(ticket.getTicketFeedback() == null ? 4 : ticket.getTicketFeedback().getStar_rating().getValue())
                         .created_at(ticket.getCreatedAt())
                         .updated_at(ticket.getUpdatedAt())
                         .build())
@@ -426,9 +430,10 @@ public class TicketService implements TicketInterface {
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
                 .ticketCategory(categories)
-                .description(ticketRequestDTO.getDescription())
+                .description("Complaint Ticket")
                 .divisionTarget(divisiTarget)
                 .ticketStatus(TicketStatus.Diajukan)
+                .referenceNumber(ticketRequestDTO.isReopen_ticket() ? ticketRequestDTO.getReference_number() : null)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -442,10 +447,10 @@ public class TicketService implements TicketInterface {
                 .id(savedTicket.getId())
                 .ticket_category(savedTicket.getTicketCategory())
                 .ticket_number(savedTicket.getTicketNumber())
-                .category(switch (ticket.getTicketCategory()) {
+                .category(switch (savedTicket.getTicketCategory()) {
                     case Transfer -> "Gagal Transfer";
                     case TopUp -> "Gagal TopUp";
-                    case Payment -> "Gagal Payang";
+                    case Payment -> "Gagal Payment";
                     default -> null;
                 })
                 .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
@@ -455,13 +460,17 @@ public class TicketService implements TicketInterface {
                     case Selesai -> "Selesai";
                 })
                 .division_target(savedTicket.getDivisionTarget())
-                .rating(switch (savedTicket.getTicketFeedbacks() == null ? StarRating.Empat : savedTicket.getTicketFeedbacks().getStarRating()) {
+                .rating(switch (savedTicket.getTicketFeedback() == null ? StarRating.Empat : savedTicket.getTicketFeedback().getStar_rating()) {
                     case Satu -> 1;
                     case Dua -> 2;
                     case Tiga -> 3;
                     case Lima -> 5;
                     default -> 4;
                 })
+                .transaction(savedTicket.getTransaction())
+                .description("Complaint Form")
+                .reference_number(savedTicket.getReferenceNumber())
+                .report_date(savedTicket.getCreatedAt())
                 .created_at(savedTicket.getCreatedAt())
                 .updated_at(savedTicket.getCreatedAt())
                 .build();
@@ -473,18 +482,59 @@ public class TicketService implements TicketInterface {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Laporan " + ticket.getTicketStatus());
+        ticketHistory.setDescription("Laporan Dibukan");
         ticketHistory.setDate(new Date());
         ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
         ticketHistory.setCreatedAt(LocalDateTime.now());
         ticketHistory.setUpdatedAt(LocalDateTime.now());
 
         ticketHistoryRepository.save(ticketHistory);
+
+        TicketHistory ticketHistory2 = new TicketHistory();
+
+        ticketHistory2.setTicket(ticket);
+        ticketHistory2.setAdmin(admin);
+        ticketHistory2.setDescription("Laporan " + ticket.getTicketStatus());
+        ticketHistory2.setDate(new Date());
+        ticketHistory2.setLevel(2L); // Assuming level 1 for ticket creation
+        ticketHistory2.setCreatedAt(LocalDateTime.now());
+        ticketHistory2.setUpdatedAt(LocalDateTime.now());
+
+        ticketHistoryRepository.save(ticketHistory2);
     }
 
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
     }
 
+    @Override
+    public TicketFeedbackResponseDTO getTicketFeedback(Long ticket_id) {
+        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicketId(ticket_id)
+                .orElseGet(() -> {
+                    Tickets ticket = ticketsRepository.findById(ticket_id)
+                            .orElseThrow(() -> new RuntimeException("Ticket not found"));
+                    TicketFeedback newFeedback = new TicketFeedback();
+//                    newFeedback.setTicket(ticket);
+//                    newFeedback.setStar_rating(StarRating.Satu); // Default rating
+//                    newFeedback.setComment(""); // Default comment
+                    return ticketFeedbackRepository.save(newFeedback);
+                });
 
+        int rating = mapStarRatingToInt(ticketFeedback.getStar_rating());
+
+        return TicketFeedbackResponseDTO.builder()
+                .rating(rating)
+                .comment(ticketFeedback.getComment())
+                .build();
+    }
+
+    private int mapStarRatingToInt(StarRating starRating) {
+        return switch (starRating) {
+            case Satu -> 1;
+            case Dua -> 2;
+            case Tiga -> 3;
+            case Lima -> 5;
+            default -> 4;
+        };
+    }
 }

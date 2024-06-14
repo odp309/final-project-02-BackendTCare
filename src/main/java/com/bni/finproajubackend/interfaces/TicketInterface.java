@@ -2,6 +2,7 @@ package com.bni.finproajubackend.interfaces;
 
 import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.*;
+import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -39,4 +40,5 @@ public interface TicketInterface {
     );
     TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO);
     String getAdminFullName(@NotNull Admin admin);
+    TicketFeedbackResponseDTO getTicketFeedback(Long ticket_id);
 }

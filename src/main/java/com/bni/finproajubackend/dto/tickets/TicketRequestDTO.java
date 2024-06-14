@@ -14,6 +14,8 @@ public class TicketRequestDTO {
     private Long transactionId;
     private TicketCategories ticketCategory;
     private TicketStatus status;
-    private String description;
+    private String comment;
+    private boolean reopen_ticket;
+    private String reference_number;
 
 }
