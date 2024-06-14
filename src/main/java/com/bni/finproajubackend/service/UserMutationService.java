@@ -4,6 +4,7 @@ import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
 import com.bni.finproajubackend.dto.userAccount.UserMutationDTO;
 import com.bni.finproajubackend.interfaces.UserMutationInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.enumobject.TransactionType;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.nasabah.Account;
@@ -70,10 +71,11 @@ public class UserMutationService implements UserMutationInterface {
                                 return null;
                             })
                             .orElse("No Ticket");
+                    String TransactionDetail = transaction.getTransaction_type() + " " + transaction.getRecipient_account().getNasabah().getFirst_name();
 
                     return new TransactionDTO(
                             transaction.getId(),
-                            transaction.getDetail(),
+                            TransactionDetail,
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
@@ -134,9 +136,14 @@ public class UserMutationService implements UserMutationInterface {
                             })
                             .orElse("No Ticket");
 
+
+                    String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
+                            : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
+                            : transaction.getCategory() + " PLN Pascabayar";
+
                     return new TransactionDTO(
                             transaction.getId(),
-                            transaction.getDetail(),
+                            transactionDetail,
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
@@ -188,9 +195,15 @@ public class UserMutationService implements UserMutationInterface {
                             })
                             .orElse("No Ticket");
 
+                    String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
+                            : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
+                            : transaction.getCategory() + " PLN Pascabayar";
+
+                    String transactionDesc = transaction.getTransaction_type() == TransactionType.In ? "Transfer Masuk": transactionDetail;
+
                     return new TransactionDTO(
                             transaction.getId(),
-                            transaction.getDetail(),
+                            transactionDesc,
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
