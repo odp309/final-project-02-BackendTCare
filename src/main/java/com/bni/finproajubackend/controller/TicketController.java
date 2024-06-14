@@ -134,7 +134,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
-    @GetMapping("/admin/ticket-reports/{id}/feedback")
+    @GetMapping(value = "/admin/ticket-reports/{id}/feedback", produces = "application/json")
     public ResponseEntity<?> getTicketFeedback(@PathVariable("id") Long ticket_id) {
         try {
             TicketFeedbackResponseDTO result = ticketService.getTicketFeedback(ticket_id);
