@@ -1,7 +1,9 @@
 package com.bni.finproajubackend.model.user.admin;
 
+import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.Gender;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
+import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -28,6 +30,8 @@ public class Admin {
     @JoinColumn(name = "user_id", referencedColumnName = "id")
     @JsonIgnore
     private User user;
+    @Column
+    private DivisionTarget divisionTarget;
     @Column(unique = true)
     private String email;
     @Column(name = "phone_number", unique = true)
@@ -42,4 +46,6 @@ public class Admin {
     private String address;
     @OneToMany(mappedBy = "admin")
     private List<TicketHistory> ticketHistory;
+    @OneToMany(mappedBy = "admin")
+    private List<Tickets> tickets;
 }

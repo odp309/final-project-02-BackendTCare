@@ -39,4 +39,7 @@ public class Account {
     @OneToMany(mappedBy = "account")
     @JsonIgnore
     private List<Transaction> transaction;
+    @OneToMany(mappedBy = "recipient_account")
+    @JsonIgnore
+    private List<Transaction> in_transaction;
 }

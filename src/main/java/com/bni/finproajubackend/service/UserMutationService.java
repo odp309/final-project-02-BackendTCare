@@ -14,6 +14,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
@@ -83,7 +86,7 @@ public class UserMutationService implements UserMutationInterface {
     }
 
     @Override
-    public UserMutationDTO getUserListTransaction(Authentication authentication, String account_number) {
+    public UserMutationDTO getUserListTransaction(Authentication authentication, String account_number, LocalDate startDate, LocalDate endDate, TicketStatus ticketStatus) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username);
 
@@ -96,14 +99,32 @@ public class UserMutationService implements UserMutationInterface {
 
         List<Transaction> transactions = transactionRepository.findByAccount(account);
 
-        List<TransactionDTO> transactionDTOList = transactions.stream()
-                .filter(transaction -> transaction.getTransaction_type() == TransactionType.Out) // Filter hanya transaksi Out
+        List<Transaction> filteredTransactions = transactions;
+
+        // Jika startDate dan endDate tidak null, lakukan filter
+        if (startDate != null && endDate != null) {
+            LocalDateTime startDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+            filteredTransactions = transactions.stream()
+                    .filter(transaction -> !transaction.getCreatedAt().isBefore(startDateTime) && !transaction.getCreatedAt().isAfter(endDateTime))
+                    .collect(Collectors.toList());
+        }
+
+        if (ticketStatus != null){
+            filteredTransactions = filteredTransactions.stream()
+                    .filter(transaction -> transaction.getTickets() != null && transaction.getTickets().getTicketStatus() == ticketStatus)
+                    .collect(Collectors.toList());
+        }
+
+        List<TransactionDTO> transactionDTOList = filteredTransactions.stream()
+                .filter(transaction -> transaction.getTransaction_type() == TransactionType.Out)
+                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
                 .map(transaction -> {
-                    String transactionType = "Out"; // Di sini sudah pasti TransactionType adalah Out
+                    String transactionType = "Out";
                     String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
-                    // Ensure tickets is not null and handle its status
-                    String ticketStatus = Optional.ofNullable(transaction.getTickets())
+                    String ticketStatusStr = Optional.ofNullable(transaction.getTickets())
                             .map(ticket -> {
                                 TicketStatus status = ticket.getTicketStatus();
                                 if (status == TicketStatus.Selesai) return "Selesai";
@@ -119,16 +140,15 @@ public class UserMutationService implements UserMutationInterface {
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
-                            ticketStatus
+                            ticketStatusStr
                     );
                 })
                 .collect(Collectors.toList());
 
         return new UserMutationDTO(transactionDTOList);
     }
-
     @Override
-    public UserMutationDTO getUserTransactionsByAccountNo(Authentication authentication, String account_number) {
+    public UserMutationDTO getUserTransactionsByAccountNo(Authentication authentication, String account_number,LocalDate startDate, LocalDate endDate) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username);
 
@@ -140,8 +160,19 @@ public class UserMutationService implements UserMutationInterface {
         checkAccountOwnership(user, account);
 
         List<Transaction> transactions = transactionRepository.findByAccount(account);
+        List<Transaction> filteredTransactions = transactions;
 
-        List<TransactionDTO> transactionDTOList = transactions.stream()
+        if(startDate != null && endDate != null){
+            LocalDateTime starDateTime = startDate.atStartOfDay();
+            LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+
+            filteredTransactions = transactions.stream()
+                    .filter(transaction -> !transaction.getCreatedAt().isBefore(starDateTime) && !transaction.getCreatedAt().isAfter(endDateTime))
+                    .collect(Collectors.toList());
+        }
+
+        List<TransactionDTO> transactionDTOList = filteredTransactions.stream()
+                .sorted((t1, t2) -> t2.getCreatedAt().compareTo(t1.getCreatedAt()))
                 .map(transaction -> {
                     String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
                     String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
@@ -155,7 +186,7 @@ public class UserMutationService implements UserMutationInterface {
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
                                 return null;
                             })
-                            .orElse(null);
+                            .orElse("No Ticket");
 
                     return new TransactionDTO(
                             transaction.getId(),

@@ -3,6 +3,7 @@ package com.bni.finproajubackend.model.ticket;
 import com.bni.finproajubackend.model.enumobject.DivisionTarget;
 import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -36,6 +37,9 @@ public class Tickets {
     @Column(name = "ticket_status")
     @Enumerated(EnumType.ORDINAL)
     private TicketStatus ticketStatus;
+    @ManyToOne
+    @JoinColumn(name = "admin_id", referencedColumnName = "id")
+    private Admin admin;
     @Column(name = "divisi_target")
     private DivisionTarget divisionTarget;
     @Column(name = "ticket_description")

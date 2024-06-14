@@ -24,6 +24,9 @@ public class Transaction {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
+    @Column(unique = true)
+    private Long referenced_id;
+
     @ManyToOne
     @JoinColumn(name = "bank_id", referencedColumnName = "id")
     private Bank bank;
@@ -38,16 +41,25 @@ public class Transaction {
     @Column(name = "transaction_status")
     private String status;
 
-    @Column(name = "amount")
     private Long amount;
+
+    private Long total_amount;
 
     @Column(name = "transaction_type")
     @Enumerated(EnumType.STRING)
     private TransactionType transaction_type;
 
+    @ManyToOne
+    @JoinColumn(name = "recipient_bank_id", referencedColumnName = "id")
+    private Bank recipient_bank;
+
     @Column(name = "category") // Menambahkan properti untuk enum
     @Enumerated(EnumType.STRING) // Menyimpan nilai enum sebagai string dalam database
     private TransactionCategories category; // Properti yang menggunakan enum
+
+    @ManyToOne
+    @JoinColumn(name = "recipient_rekening_id", referencedColumnName = "id")
+    private Account recipient_account;
 
     @OneToOne(mappedBy = "transaction")
     @JsonIgnore
