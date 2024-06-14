@@ -2,7 +2,6 @@ package com.bni.finproajubackend.service;
 
 import ch.qos.logback.core.util.COWArrayList;
 import com.bni.finproajubackend.aspect.PermissionAspect;
-import com.bni.finproajubackend.dto.PaginationDTO;
 import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.enumobject.*;
@@ -12,15 +11,15 @@ import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.repository.*;
-import com.bni.finproajubackend.specification.TicketsSpecifications;
+import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
@@ -29,21 +28,17 @@ import com.bni.finproajubackend.repository.TicketsHistoryRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
-import jakarta.persistence.criteria.Predicate;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.data.jpa.domain.Specification;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.time.LocalDate;
-import java.util.stream.Collectors;
 
 @Service
 public class TicketService implements TicketInterface {
 
-    private static final Logger logger = LoggerFactory.getLogger(PermissionAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
+    private static final Marker TICKETS_MARKER = MarkerFactory.getMarker("TICKETS");
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -60,11 +55,13 @@ public class TicketService implements TicketInterface {
     @Autowired
     private EmailService emailService;
     @Autowired
+    private LoggerService loggerService;
+    @Autowired
     private TicketFeedbackRepository ticketFeedbackRepository;
     private COWArrayList<Object> optionalTicket;
 
     @Transactional
-    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) {
+    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
         Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
         TicketStatus oldStatus = ticket.getTicketStatus();
         if (oldStatus != TicketStatus.Selesai) {
@@ -139,7 +136,7 @@ public class TicketService implements TicketInterface {
                 .reporter_detail(
                         CustomerTicketDetailsReportDTO.ReporterDetail.builder()
                                 .nama(ticket.getTransaction().getAccount().getNasabah().getFirst_name())
-                                .account_number(ticket.getTransaction().getAccount().getAccount_number())
+                                .account_number(ticket.getTransaction().getAccount().getAccountNumber())
                                 .build()
                 )
                 .report_detail(
@@ -181,7 +178,7 @@ public class TicketService implements TicketInterface {
                 .reporter_detail(
                         TicketDetailsReportDTO.ReporterDetail.builder()
                                 .nama(ticket.getTransaction().getAccount().getNasabah().getFirst_name())
-                                .account_number(ticket.getTransaction().getAccount().getAccount_number())
+                                .account_number(ticket.getTransaction().getAccount().getAccountNumber())
                                 .address(ticket.getTransaction().getAccount().getNasabah().getAddress())
                                 .no_handphone(ticket.getTransaction().getAccount().getNasabah().getNoHP())
                                 .build()
@@ -214,31 +211,6 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public String createTicketNumber(Transaction transaction) {
-        String categoryCode = switch (transaction.getCategory()) {
-            case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
-            case TopUp -> "TU"; // ID kategori 2 untuk Gagal Top Up
-            case Payment -> "PY"; // ID kategori 3 untuk Gagal Pembayaran
-            default -> ""; // ID kategori tidak valid
-        };
-
-        LocalDateTime createdAt = transaction.getCreatedAt();
-        String year = String.valueOf(createdAt.getYear());
-        String month = String.format("%02d", createdAt.getMonthValue());
-        String day = String.format("%02d", createdAt.getDayOfMonth());
-
-        String transactionId = String.valueOf(transaction.getId());
-        String baseTicketNumber = categoryCode + year + month + day + transactionId;
-
-        if (baseTicketNumber.length() < 15) {
-            int zerosToAdd = 15 - baseTicketNumber.length();
-            transactionId = "0".repeat(zerosToAdd) + transactionId;
-        }
-
-        return categoryCode + year + month + day + transactionId;
-    }
-
-    @Override
     public List<TicketHistoryResponseDTO> getTicketHistory(long id) {
         List<TicketHistory> ticketHistoryList = ticketHistoryRepository.findAll();
         List<TicketHistoryResponseDTO> responseDTOList = new ArrayList<>();
@@ -256,182 +228,47 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public PaginationDTO<TicketsResponseDTO> getAllTickets(
-            String user,
-            @RequestParam(required = false) String category,
-            @RequestParam(required = false) Integer rating,
-            @RequestParam(required = false) String status,
-            @RequestParam(required = false) String start_date,
-            @RequestParam(required = false) String end_date,
-            @RequestParam(required = false) String ticket_number,
-            @RequestParam(required = false) String created_at,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int limit,
-            @RequestParam(required = false, defaultValue = "created_at") String sort_by,
-            @RequestParam(required = false, defaultValue = "asc") String order
-    ) {
-        // Convert sort_by to camel case field names
-        sort_by = switch (sort_by.toLowerCase()) {
-            case "ticket_number" -> "ticketNumber";
-            case "created_at" -> "createdAt";
-            case "status" -> "ticketStatus";
-            default -> sort_by;
+    public String createTicketNumber(Transaction transaction) {
+        String categoryCode = switch (transaction.getCategory()) {
+            case Transfer -> "TF";
+            case TopUp -> "TU";
+            case Payment -> "PY";
+            default -> "";
         };
 
-        // Determine sort direction
-        Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        LocalDateTime createdAt = transaction.getCreatedAt();
+        String year = String.valueOf(createdAt.getYear());
+        String month = String.format("%02d", createdAt.getMonthValue());
+        String day = String.format("%02d", createdAt.getDayOfMonth());
 
-        // Multi-sort configuration
-        List<Sort.Order> orders = new ArrayList<>();
-        orders.add(new Sort.Order(sortDirection, sort_by));
+        String transactionId = String.format("%010d", transaction.getId());
 
-        // Build pageable object for pagination
-        Pageable pageable = PageRequest.of(page, limit, Sort.by(orders));
-
-        // Define date formatter
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
-
-        // Convert start_date and end_date to LocalDateTime objects
-        LocalDateTime startDate;
-        LocalDateTime endDate;
-        if (start_date != null && end_date != null) {
-            startDate = LocalDateTime.parse(start_date + "T00:00:00", formatter);
-            endDate = LocalDateTime.parse(end_date + "T23:59:59", formatter);
-            if (endDate.isBefore(startDate)) {
-                throw new IllegalArgumentException("End date must be bigger than or equal to start date");
-            }
-        } else {
-            endDate = null;
-            startDate = null;
-        }
-
-        // Create Specification for filtering
-        Specification<Tickets> spec = (root, query, builder) -> {
-            List<Predicate> predicates = new ArrayList<>();
-
-            Optional.ofNullable(category).ifPresent(cat -> {
-                TicketCategories ticketCategoryEnum = switch (cat.toLowerCase()) {
-                    case "gagal transfer" -> TicketCategories.Transfer;
-                    case "gagal topup" -> TicketCategories.TopUp;
-                    case "gagal payment" -> TicketCategories.Payment;
-                    default -> null;
-                };
-                if (ticketCategoryEnum != null) {
-                    predicates.add(builder.equal(root.get("ticketCategory"), ticketCategoryEnum));
-                }
-            });
-
-            Optional.ofNullable(rating).ifPresent(r -> {
-                if (rating == 4) {
-                    // Jika rating null, cari rating null atau bernilai 4
-                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
-                    predicates.add(
-                            builder.or(
-                                    builder.isNull(feedbackJoin.get("starRating")),
-                                    builder.equal(feedbackJoin.get("starRating"), StarRating.Empat)
-                            )
-                    );
-                } else {
-                    // Jika rating tidak null, cari berdasarkan nilai rating tersebut
-                    Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
-                    predicates.add(builder.equal(feedbackJoin.get("starRating"), StarRating.fromValue(rating)));
-                }
-            });
-
-            Optional.ofNullable(status).ifPresent(st -> {
-                TicketStatus ticketStatusEnum = switch (st.toLowerCase()) {
-                    case "diajukan" -> TicketStatus.Diajukan;
-                    case "dalam proses" -> TicketStatus.DalamProses;
-                    case "selesai" -> TicketStatus.Selesai;
-                    default -> null;
-                };
-                predicates.add(builder.equal(root.get("ticketStatus"), ticketStatusEnum));
-            });
-
-            if (startDate != null && endDate != null) {
-                predicates.add(builder.between(root.get("createdAt"), startDate, endDate));
-            }
-
-            // Tambahkan kondisi untuk created_at
-            Optional.ofNullable(created_at).ifPresent(ca -> {
-                LocalDate date = LocalDate.parse(ca, DateTimeFormatter.ISO_LOCAL_DATE);
-                predicates.add(builder.equal(root.get("createdAt").as(LocalDate.class), date));
-            });
-
-            Optional.ofNullable(ticket_number).ifPresent(tn -> predicates.add(builder.equal(root.get("ticketNumber"), tn)));
-
-            return builder.and(predicates.toArray(new Predicate[0]));
-        };
-
-        // Gabungkan spec filtering dengan spec sorting
-        Specification<Tickets> combinedSpec = spec.and(TicketsSpecifications.orderByStatus());
-
-        // Perform query with Specification and pageable
-        Page<Tickets> ticketsPage = ticketsRepository.findAllWithCustomOrder(combinedSpec, pageable);
-
-        // Ensure non-empty results
-        if (ticketsPage.isEmpty()) {
-            // Fetch all tickets without pagination if the result is empty and there is no filter
-            List<Tickets> allTickets = ticketsRepository.findAll(spec, Sort.by(sortDirection, sort_by));
-            ticketsPage = new PageImpl<>(allTickets);
-        }
-
-        // Convert Page<Tickets> to List<TicketResponseDTO>
-        List<TicketsResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
-                .map(ticket -> TicketsResponseDTO.builder()
-                        .id(ticket.getId())
-                        .ticket_number(ticket.getTicketNumber())
-                        .ticket_category(ticket.getTicketCategory())
-                        .category(switch (ticket.getTicketCategory()) {
-                            case Transfer -> "Gagal Transfer";
-                            case TopUp -> "Gagal TopUp";
-                            case Payment -> "Gagal Payment";
-                            default -> null;
-                        })
-                        .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
-                        .status(switch (ticket.getTicketStatus()) {
-                            case Diajukan -> "Diajukan";
-                            case DalamProses -> "Dalam Proses";
-                            case Selesai -> "Selesai";
-                        })
-                        .division_target(ticket.getDivisionTarget())
-                        .rating(ticket.getTicketFeedback() == null ? 4 : ticket.getTicketFeedback().getStar_rating().getValue())
-                        .created_at(ticket.getCreatedAt())
-                        .updated_at(ticket.getUpdatedAt())
-                        .build())
-                .collect(Collectors.toList());
-
-        if (ticketsResponseDTOList.isEmpty()) return null;
-
-        // Return PaginationDTO
-        return PaginationDTO.<TicketsResponseDTO>builder()
-                .data(ticketsResponseDTOList)
-                .currentPage(ticketsPage.getNumber())
-                .currentItem(ticketsPage.getNumberOfElements())
-                .totalPage(ticketsPage.getTotalPages())
-                .totalItem(ticketsPage.getTotalElements())
-                .build();
+        return categoryCode + year + month + day + transactionId;
     }
 
     @Override
     public TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO) {
-        Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransactionId())
+        Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransaction_id())
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
 
-        TicketCategories categories = transaction.getCategory() == TransactionCategories.Payment ? TicketCategories.Payment
-                : transaction.getCategory() == TransactionCategories.TopUp ? TicketCategories.TopUp
-                : TicketCategories.Transfer;
+        TicketCategories category = switch (transaction.getCategory()) {
+            case Payment -> TicketCategories.Payment;
+            case TopUp -> TicketCategories.TopUp;
+            default -> TicketCategories.Transfer;
+        };
 
-        DivisionTarget divisiTarget = transaction.getCategory() == TransactionCategories.Payment ? DivisionTarget.DGO
-                : transaction.getCategory() == TransactionCategories.TopUp ? DivisionTarget.WPP
-                : DivisionTarget.CXC;
+        DivisionTarget divisionTarget = switch (transaction.getCategory()) {
+            case Payment -> DivisionTarget.DGO;
+            case TopUp -> DivisionTarget.WPP;
+            default -> DivisionTarget.CXC;
+        };
 
         Tickets ticket = Tickets.builder()
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
-                .ticketCategory(categories)
+                .ticketCategory(category)
                 .description("Complaint Ticket")
-                .divisionTarget(divisiTarget)
+                .divisionTarget(divisionTarget)
                 .ticketStatus(TicketStatus.Diajukan)
                 .referenceNumber(ticketRequestDTO.isReopen_ticket() ? ticketRequestDTO.getReference_number() : null)
                 .createdAt(LocalDateTime.now())
@@ -440,71 +277,59 @@ public class TicketService implements TicketInterface {
 
         Tickets savedTicket = ticketsRepository.save(ticket);
 
-        // Load ticket history
         createTicketHistory(savedTicket);
 
         return TicketResponseDTO.builder()
-                .id(savedTicket.getId())
-                .ticket_category(savedTicket.getTicketCategory())
-                .ticket_number(savedTicket.getTicketNumber())
-                .category(switch (savedTicket.getTicketCategory()) {
-                    case Transfer -> "Gagal Transfer";
-                    case TopUp -> "Gagal TopUp";
-                    case Payment -> "Gagal Payment";
-                    default -> null;
-                })
-                .time_response(savedTicket.getTicketResponseTime() == null ? 0 : savedTicket.getTicketResponseTime().getResponseTime())
-                .status(switch (savedTicket.getTicketStatus()) {
-                    case Diajukan -> "Diajukan";
-                    case DalamProses -> "Dalam Proses";
-                    case Selesai -> "Selesai";
-                })
-                .division_target(savedTicket.getDivisionTarget())
-                .rating(switch (savedTicket.getTicketFeedback() == null ? StarRating.Empat : savedTicket.getTicketFeedback().getStar_rating()) {
-                    case Satu -> 1;
-                    case Dua -> 2;
-                    case Tiga -> 3;
-                    case Lima -> 5;
-                    default -> 4;
-                })
-                .transaction(savedTicket.getTransaction())
-                .description("Complaint Form")
-                .reference_number(savedTicket.getReferenceNumber())
-                .report_date(savedTicket.getCreatedAt())
-                .created_at(savedTicket.getCreatedAt())
-                .updated_at(savedTicket.getCreatedAt())
+                .transaction_id(transaction.getId())
+                .account_number(transaction.getAccount().getAccountNumber())
+                .ticket_category(savedTicket.getTicketCategory().toString())
+                .reopen_ticket(savedTicket.getReferenceNumber() != null)
+                .reference_number(savedTicket.getReferenceNumber() != null ? savedTicket.getReferenceNumber() : null)
                 .build();
     }
 
     private void createTicketHistory(Tickets ticket) {
         Admin admin = adminRepository.findByUsername("admin12");
 
+        createSingleTicketHistory(ticket, admin, "Laporan Dibuka", 1L);
+        createSingleTicketHistory(ticket, admin, "Laporan " + ticket.getTicketStatus(), 2L);
+    }
+
+    private void createSingleTicketHistory(Tickets ticket, Admin admin, String description, Long level) {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
         ticketHistory.setDescription("Laporan Dibukan");
         ticketHistory.setDate(new Date());
-        ticketHistory.setLevel(1L); // Assuming level 1 for ticket creation
+        ticketHistory.setLevel(level);
         ticketHistory.setCreatedAt(LocalDateTime.now());
         ticketHistory.setUpdatedAt(LocalDateTime.now());
 
         ticketHistoryRepository.save(ticketHistory);
-
-        TicketHistory ticketHistory2 = new TicketHistory();
-
-        ticketHistory2.setTicket(ticket);
-        ticketHistory2.setAdmin(admin);
-        ticketHistory2.setDescription("Laporan " + ticket.getTicketStatus());
-        ticketHistory2.setDate(new Date());
-        ticketHistory2.setLevel(2L); // Assuming level 1 for ticket creation
-        ticketHistory2.setCreatedAt(LocalDateTime.now());
-        ticketHistory2.setUpdatedAt(LocalDateTime.now());
-
-        ticketHistoryRepository.save(ticketHistory2);
     }
 
     public String getAdminFullName(@NotNull Admin admin) {
         return admin.getFirstName() + " " + admin.getLastName();
+    }
+
+    @Override
+    public ComplaintResponseDTO getFormComplaint(long id) throws Exception {
+        logger.debug(TICKETS_MARKER, "IP {}, Form Complaint Requested", loggerService.getClientIp());
+        try {
+            Transaction transaction = transactionRepository.findById(id)
+                    .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
+            logger.info(TICKETS_MARKER, "IP {}, Transaction Detail acquired for Form Complaint", loggerService.getClientIp());
+            return ComplaintResponseDTO.builder()
+                    .transaction_id(transaction.getId())
+                    .account_number(transaction.getAccount().getAccountNumber())
+                    .ticket_category(transaction.getCategory().toString())
+                    .reopen_ticket(transaction.getTickets() != null)
+                    .reference_number(transaction.getTickets() != null ? transaction.getTickets().getTicketNumber() : null)
+                    .build();
+        } catch (Exception e) {
+            logger.error(TICKETS_MARKER, "IP {}, Error getting form complaint", loggerService.getClientIp(), e);
+            throw new Exception ("Error getting customer ticket details");
+        }
     }
 
     @Override

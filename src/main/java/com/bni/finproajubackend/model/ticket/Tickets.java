@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @AllArgsConstructor
-@NoArgsConstructor
+//@NoArgsConstructor
 @Getter
 @Setter
 @Builder
@@ -34,7 +34,7 @@ public class Tickets {
     @Enumerated(EnumType.STRING)
     private TicketCategories ticketCategory;
     @Column(name = "ticket_status")
-    @Enumerated(EnumType.STRING)
+    @Enumerated(EnumType.ORDINAL)
     private TicketStatus ticketStatus;
     @Column(name = "divisi_target")
     private DivisionTarget divisionTarget;
@@ -59,4 +59,19 @@ public class Tickets {
     private List<TicketHistory> ticketHistory;
     @OneToOne(mappedBy = "ticket")
     private TicketResponseTime ticketResponseTime;
+
+    public Tickets() {
+    }
+
+    // Getters and setters...
+
+    public void addTicketHistory(TicketHistory history) {
+        ticketHistory.add(history);
+        history.setTicket(this);
+    }
+
+    public void removeTicketHistory(TicketHistory history) {
+        ticketHistory.remove(history);
+        history.setTicket(null);
+    }
 }

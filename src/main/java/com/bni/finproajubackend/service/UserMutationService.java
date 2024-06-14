@@ -3,7 +3,6 @@ package com.bni.finproajubackend.service;
 import com.bni.finproajubackend.dto.userAccount.TransactionDTO;
 import com.bni.finproajubackend.dto.userAccount.UserMutationDTO;
 import com.bni.finproajubackend.interfaces.UserMutationInterface;
-//import com.bni.finproajubackend.model.user.Person;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.model.enumobject.TransactionType;
 import com.bni.finproajubackend.model.user.User;
@@ -17,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -29,6 +29,15 @@ public class UserMutationService implements UserMutationInterface {
     private NasabahRepository nasabahRepository;
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private TicketsRepository ticketsRepository;
+
+    private void checkAccountOwnership(User user, Account account) {
+        Nasabah nasabah = nasabahRepository.findByUser(user);
+        if (!account.getNasabah().equals(nasabah)) {
+            throw new RuntimeException("You're not the account owner");
+        }
+    }
 
     @Override
     public UserMutationDTO getUserMutations(Authentication authentication) {
@@ -39,34 +48,126 @@ public class UserMutationService implements UserMutationInterface {
             throw new RuntimeException("User not found");
         }
 
-
         Nasabah nasabah = nasabahRepository.findByUser(user);
-
         Account account = accountRepository.findByNasabah(nasabah);
 
         List<Transaction> transactions = transactionRepository.findByAccount(account);
         List<TransactionDTO> transactionDTOList = transactions.stream()
-                .map(this::convertToTransactionDTO)
+                .map(transaction -> {
+                    String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
+                    String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+                    // Ensure tickets is not null and handle its status
+                    String ticketStatus = Optional.ofNullable(transaction.getTickets())
+                            .map(ticket -> {
+                                TicketStatus status = ticket.getTicketStatus();
+                                if (status == TicketStatus.Selesai) return "Selesai";
+                                if (status == TicketStatus.DalamProses) return "Dalam Proses";
+                                if (status == TicketStatus.Diajukan) return "Diajukan";
+                                return null;
+                            })
+                            .orElse("No Ticket");
+
+                    return new TransactionDTO(
+                            transaction.getId(),
+                            transaction.getDetail(),
+                            transactionType,
+                            transaction.getAmount(),
+                            formattedDateTime,
+                            ticketStatus
+                    );
+                })
                 .collect(Collectors.toList());
 
-        return UserMutationDTO.builder()
-                .transaction_list(transactionDTOList)
-                .build();
+        return new UserMutationDTO(transactionDTOList);
     }
 
-    private TransactionDTO convertToTransactionDTO(Transaction transaction){
-        String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
-        String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        String ticketStatus = transaction.getTickets().getTicketStatus() == TicketStatus.Selesai ? "Selesai"
-                : transaction.getTickets().getTicketStatus() == TicketStatus.DalamProses ? "Dalam Proses"
-                : "Diajukan";
+    @Override
+    public UserMutationDTO getUserListTransaction(Authentication authentication, String account_number) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
 
-        TransactionDTO transactionDTO = new TransactionDTO();
-        transactionDTO.setId(transaction.getId());
-        transactionDTO.setTransaction_description(transaction.getDetail());
-        transactionDTO.setTransaction_type(transactionType);
-        transactionDTO.setDate(formattedDateTime);
-        transactionDTO.setTicket_status(ticketStatus);
-        return transactionDTO;
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        Account account = accountRepository.findByAccountNumber(account_number);
+        checkAccountOwnership(user, account);
+
+        List<Transaction> transactions = transactionRepository.findByAccount(account);
+
+        List<TransactionDTO> transactionDTOList = transactions.stream()
+                .filter(transaction -> transaction.getTransaction_type() == TransactionType.Out) // Filter hanya transaksi Out
+                .map(transaction -> {
+                    String transactionType = "Out"; // Di sini sudah pasti TransactionType adalah Out
+                    String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+                    // Ensure tickets is not null and handle its status
+                    String ticketStatus = Optional.ofNullable(transaction.getTickets())
+                            .map(ticket -> {
+                                TicketStatus status = ticket.getTicketStatus();
+                                if (status == TicketStatus.Selesai) return "Selesai";
+                                if (status == TicketStatus.DalamProses) return "Dalam Proses";
+                                if (status == TicketStatus.Diajukan) return "Diajukan";
+                                return null;
+                            })
+                            .orElse("No Ticket");
+
+                    return new TransactionDTO(
+                            transaction.getId(),
+                            transaction.getDetail(),
+                            transactionType,
+                            transaction.getAmount(),
+                            formattedDateTime,
+                            ticketStatus
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new UserMutationDTO(transactionDTOList);
+    }
+
+    @Override
+    public UserMutationDTO getUserTransactionsByAccountNo(Authentication authentication, String account_number) {
+        String username = authentication.getName();
+        User user = userRepository.findByUsername(username);
+
+        if (user == null) {
+            throw new RuntimeException("User not found");
+        }
+
+        Account account = accountRepository.findByAccountNumber(account_number);
+        checkAccountOwnership(user, account);
+
+        List<Transaction> transactions = transactionRepository.findByAccount(account);
+
+        List<TransactionDTO> transactionDTOList = transactions.stream()
+                .map(transaction -> {
+                    String transactionType = transaction.getTransaction_type() == TransactionType.In ? "In" : "Out";
+                    String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+
+                    // Ensure tickets is not null and handle its status
+                    String ticketStatus = Optional.ofNullable(transaction.getTickets())
+                            .map(ticket -> {
+                                TicketStatus status = ticket.getTicketStatus();
+                                if (status == TicketStatus.Selesai) return "Selesai";
+                                if (status == TicketStatus.DalamProses) return "Dalam Proses";
+                                if (status == TicketStatus.Diajukan) return "Diajukan";
+                                return null;
+                            })
+                            .orElse(null);
+
+                    return new TransactionDTO(
+                            transaction.getId(),
+                            transaction.getDetail(),
+                            transactionType,
+                            transaction.getAmount(),
+                            formattedDateTime,
+                            ticketStatus
+                    );
+                })
+                .collect(Collectors.toList());
+
+        return new UserMutationDTO(transactionDTOList);
     }
 }

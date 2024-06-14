@@ -6,10 +6,12 @@ import com.bni.finproajubackend.dto.tickets.*;
 import com.bni.finproajubackend.annotation.RequiresPermission;
 import com.bni.finproajubackend.dto.TicketStatusResponseDTO;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
+import com.bni.finproajubackend.interfaces.TicketReportsInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +19,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.webjars.NotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,6 +32,8 @@ public class TicketController {
 
     @Autowired
     private TicketInterface ticketService;
+    @Autowired
+    private TicketReportsInterface ticketReportsService;
     @Autowired
     private TemplateResInterface responseService;
     private Map<String, Object> errorDetails = new HashMap<>();
@@ -47,7 +52,8 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, err.getCause() == null ? "Something went wrong" : err.getMessage()));
         }
     }
-    @PostMapping(value = "/ticket/create", produces = "application/json")
+
+    @PostMapping(value = "/customer/transaction/complaint-form", produces = "application/json")
     public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
         try {
             TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
@@ -61,6 +67,7 @@ public class TicketController {
     @GetMapping("/{user}/ticket-reports")
     public ResponseEntity getAllTickets(
             @PathVariable String user,
+            @RequestParam(required = false) String account_number,
             @RequestParam(required = false) String category,
             @RequestParam(required = false) Integer rating,
             @RequestParam(required = false) String status,
@@ -68,17 +75,22 @@ public class TicketController {
             @RequestParam(required = false) String end_date,
             @RequestParam(required = false) String ticket_number,
             @RequestParam(required = false) String created_at,
+            @RequestParam(required = false) String division,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int limit,
             @RequestParam(required = false, defaultValue = "createdAt") String sort_by,
-            @RequestParam(required = false, defaultValue = "asc") String order
+            @RequestParam(required = false, defaultValue = "asc") String order,
+            Authentication authentication
     ) {
         try {
-            PaginationDTO<TicketsResponseDTO> result = ticketService.getAllTickets(user, category, rating, status, start_date, end_date, ticket_number, created_at, page, limit, sort_by, order);
+            PaginationDTO result = ticketReportsService.getAllTickets(user, account_number, category, rating, status, start_date, end_date, ticket_number, created_at, division, page, limit, sort_by, order, authentication);
             return ResponseEntity.ok(responseService.apiSuccessPagination(result, "Success get ticket details"));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(responseService.apiFailed(null, e.getMessage()));
+        } catch (IllegalAccessException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(responseService.apiUnauthorized(null, e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(responseService.apiFailed(null, e.getMessage()));
@@ -108,6 +120,18 @@ public class TicketController {
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+        }
+    }
+
+    @GetMapping(value = "/customer/transaction/{id}/complaint-form", produces = "application/json")
+    public ResponseEntity getFormComplaint(@PathVariable Long id) {
+        try {
+            ComplaintResponseDTO result = ticketService.getFormComplaint(id);
+            return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiNotFound(null, e.getCause() == null ? "Something went wrong" : e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         }
     }
     @GetMapping("/admin/ticket-reports/{id}/feedback")

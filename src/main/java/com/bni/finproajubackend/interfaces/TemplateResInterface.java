@@ -13,6 +13,8 @@ public interface TemplateResInterface {
 
     <T> TemplateReportResponseDTO<T> apiSuccessReport(ReportResponseDTO data, String message);
 
+    <T> TemplateResponseDTO<T> apiNotFound(T data, String message);
+
     <T> TemplateResponseDTO<T> apiFailed(T data, String message);
 
     <T> TemplateResponseDTO<T> apiBadRequest(T data, String message);
