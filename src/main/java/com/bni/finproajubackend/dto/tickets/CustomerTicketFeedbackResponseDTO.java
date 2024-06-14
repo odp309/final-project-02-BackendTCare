@@ -11,5 +11,4 @@ import lombok.Setter;
 @Builder
 public class CustomerTicketFeedbackResponseDTO {
     private Integer rating;
-    private String comment;
 }
