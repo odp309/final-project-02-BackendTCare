@@ -156,9 +156,7 @@ public class DataLoader {
                         }
                     }
                 }
-
             }
-
         }
     }
 
@@ -266,7 +264,7 @@ public class DataLoader {
 
     private void createTicketHistory(Tickets ticket, TransactionCategories category) {
         Admin admin = adminRepository.findByUsername("admin12");
-        String[] statuses = {"Laporan Diajukan", "Laporan Diajukan", "Laporan Dalam Proses", "Laporan Selesai Diproses", "Laporan Selesai Diproses"};
+        String[] statuses = {"transaksi dilakukan", "laporan diajukan", "laporan dalam proses", "laporan selesai diproses", "laporan diterima pelapor"};
 
         int counter = switch (ticket.getTicketStatus()) {
             case Diajukan -> 2;
