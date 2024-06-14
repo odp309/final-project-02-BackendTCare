@@ -1,9 +1,13 @@
 package com.bni.finproajubackend.model.ticket;
 
 import com.bni.finproajubackend.model.enumobject.StarRating;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.LastModifiedDate;
+
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -12,13 +16,23 @@ import lombok.Setter;
 public class TicketFeedback {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private Long id;
+    private long id;
     @OneToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
     private Tickets ticket;
     @Column(name = "star_rating")
-    private StarRating starRating;
+    private StarRating star_rating;
     @Column(name = "comment")
     private String comment;
 
+    @Column(name = "created_at", updatable = false)
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime createdAt;
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime updatedAt;
 }
+
+
+
