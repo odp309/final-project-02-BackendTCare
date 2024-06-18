@@ -28,6 +28,7 @@ public class TicketDetailsReportDTO {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime transaction_date;
 
+        private long transaction_number;
         private long amount;
         private String category;
         private String description;
