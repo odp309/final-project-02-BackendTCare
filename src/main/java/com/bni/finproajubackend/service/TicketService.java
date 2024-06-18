@@ -92,29 +92,40 @@ public class TicketService implements TicketInterface {
             ticketHistory.setTicket(ticket);
             ticketHistory.setAdmin(admin);
             //ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + nextStatus);
-            ticketHistory.setDescription(nextStatus == TicketStatus.DalamProses ? "Laporan dalam proses" :
-                    nextStatus == TicketStatus.Selesai ? "Laporan selesai diproses" : "");
+            ticketHistory.setDescription(nextStatus == TicketStatus.DalamProses ? "laporan dalam proses" :
+                    nextStatus == TicketStatus.Selesai ? "laporan selesai diproses" : "");
             ticketHistory.setDate(new Date());
             ticketHistory.setLevel(statusLevel);
             ticketHistory.setCreatedAt(LocalDateTime.now());
             ticketHistory.setUpdatedAt(LocalDateTime.now());
             ticketHistoryRepository.save(ticketHistory);
 
+            // Send email notification
+            emailService.sendNotification(ticket);
+
+            if(ticket.getTicketStatus() == TicketStatus.Selesai){
+                ticketHistory.setTicket(ticket);
+                ticketHistory.setAdmin(admin);
+                ticketHistory.setDescription("laporan diterima pelapor");
+                ticketHistory.setDate(new Date());
+                ticketHistory.setLevel(statusLevel + 1L);
+                ticketHistory.setCreatedAt(LocalDateTime.now());
+                ticketHistory.setUpdatedAt(LocalDateTime.now());
+                ticketHistoryRepository.save(ticketHistory);
+            }
+
             // Handle TicketResponseTime when status is Ditutup
             if (nextStatus == TicketStatus.Selesai) {
                 handleTicketResponseTime(ticket);
             }
-
-            // Send email notification
-            emailService.sendNotification(ticket);
         }
-
         return ticket;
     }
 
+
     private Long getStatusLevel(TicketStatus status) {
-        return status == TicketStatus.Diajukan ? 1L :
-                status == TicketStatus.DalamProses ? 2L : 3L;
+        return status == TicketStatus.Diajukan ? 2L :
+                status == TicketStatus.DalamProses ? 3L : 4L;
     }
 
     private void handleTicketResponseTime(Tickets ticket) {
@@ -192,6 +203,7 @@ public class TicketService implements TicketInterface {
                 )
                 .report_detail(
                         TicketDetailsReportDTO.ReportDetail.builder()
+                                .transaction_number(ticket.getTransaction().getId())
                                 .transaction_date(ticket.getTransaction().getCreatedAt())
                                 .amount(ticket.getTransaction().getAmount())
                                 .category(switch (ticket.getTicketCategory()) {
