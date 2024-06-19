@@ -31,5 +31,8 @@ public interface TicketInterface {
 
     TicketFeedbackResponseDTO getTicketFeedback(Long ticket_id);
 
-    CustomerTicketFeedbackResponseDTO getCustomerTicketFeedback(Long ticket_id);
+    CustomerTicketFeedbackResponseDTO getCustomerTicketFeedback(String ticket_number);
+
+    CreateFeedbackResponseDTO createFeedback(CreateFeedbackRequestDTO requestDTO);
+
 }
