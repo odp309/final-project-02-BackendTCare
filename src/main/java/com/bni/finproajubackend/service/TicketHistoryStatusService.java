@@ -125,7 +125,7 @@ public List<TrackTicketStatusResponseDTO> trackTicketStatus(Long id) {
 
         return ticketHistories.stream().map(ticketHistory -> {
             TrackTicketStatusResponseDTO response = new TrackTicketStatusResponseDTO();
-            response.setPic(ticketHistory.getAdmin().getFirstName() + " " + ticketHistory.getAdmin().getLastName());
+            response.setPic("BNI");
             String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(ticketHistory.getDate());
             response.setDate(formattedDate);
             response.setDescription(ticketHistory.getDescription());
