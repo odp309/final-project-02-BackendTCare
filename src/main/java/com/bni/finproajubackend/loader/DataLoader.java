@@ -175,15 +175,15 @@ public class DataLoader {
     }
 
     private Transaction loadTransaction(int size, Account account, Account recipientAccount, Bank bank, String detail, Long amount, String status, TransactionCategories category) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime createdAt = generateRandomDateTimeWithin30Days();
         boolean isOutgoing = new Random().nextBoolean();
 
-        Transaction transaction = createTransaction(account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, now);
+        Transaction transaction = createTransaction(account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, createdAt);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         if (size % 2 == 0) {
-            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, now);
+            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, createdAt);
             recipientTransaction.setReferenced_id(savedTransaction.getId());
 
             Transaction savedRecipientTransaction = transactionRepository.save(recipientTransaction);
@@ -212,7 +212,6 @@ public class DataLoader {
 
         return transaction;
     }
-
 
     private void loadTickets(Transaction transaction) {
         Admin admin = adminRepository.findByUsername("admin12");
@@ -325,6 +324,15 @@ public class DataLoader {
         ticketFeedbackRepository.save(feedback);
     }
 
+    private LocalDateTime generateRandomDateTimeWithin30Days() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = now.minusDays(30);
+        long minDay = start.toEpochSecond(ZoneOffset.UTC);
+        long maxDay = now.toEpochSecond(ZoneOffset.UTC);
+        long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
+        return LocalDateTime.ofEpochSecond(randomDay, 0, ZoneOffset.UTC);
+    }
+
     private LocalDateTime generateRandomDateTime(LocalDateTime minDate) {
         if (minDate == null) {
             minDate = LocalDateTime.of(2022, 1, 1, 0, 0); // Nilai default jika minDate null
@@ -335,5 +343,4 @@ public class DataLoader {
         long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
         return LocalDateTime.ofEpochSecond(randomDay, 0, ZoneOffset.UTC);
     }
-
 }
