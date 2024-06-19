@@ -419,13 +419,13 @@ public class TicketService implements TicketInterface {
             processTicket(transaction, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
         } else {
             processTicket(transaction, "IP {}, Transaction found, Closing Tickets by System");
-            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "Laporan Selesai", 4L);
-            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "Laporan Diterima Pelapora", 5L);
+            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "laporan selesai diproses", 4L);
+            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "laporan diterima pelapor", 5L);
         }
     }
 
     private void processTicket(Transaction transaction, String logMessage) {
-        createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "Laporan Diproses", 3L);
+        createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "laporan dalam proses", 3L);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
 
@@ -433,15 +433,15 @@ public class TicketService implements TicketInterface {
     private void createTicketHistory(Tickets ticket) {
         Admin admin = adminRepository.findByUsername("admin12");
 
-        createSingleTicketHistory(ticket, admin, "Laporan Dibuka", 1L);
-        createSingleTicketHistory(ticket, admin, "Laporan " + ticket.getTicketStatus(), 2L);
+        createSingleTicketHistory(ticket, admin, "transaksi dilakukan", 1L);
+        createSingleTicketHistory(ticket, admin, "laporan diajukan " + ticket.getTicketStatus(), 2L);
     }
 
     private void createSingleTicketHistory(Tickets ticket, Admin admin, String description, Long level) {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);
         ticketHistory.setAdmin(admin);
-        ticketHistory.setDescription("Laporan Dibukan");
+        ticketHistory.setDescription(description);
         ticketHistory.setDate(new Date());
         ticketHistory.setLevel(level);
         ticketHistory.setCreatedAt(LocalDateTime.now());
