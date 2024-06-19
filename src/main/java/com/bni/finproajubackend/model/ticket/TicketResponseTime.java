@@ -20,7 +20,7 @@ public class TicketResponseTime {
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
     private Tickets ticket;
     @Column(name = "response_time")
-    private Long responseTime;
+    private int responseTime;
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;

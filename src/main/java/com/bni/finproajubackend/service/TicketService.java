@@ -136,7 +136,7 @@ public class TicketService implements TicketInterface {
         LocalDate closedAt = LocalDate.now();
         long daysBetween = Duration.between(createdAt.atStartOfDay(), closedAt.atStartOfDay()).toDays();
 
-        responseTime.setResponseTime(daysBetween);
+        responseTime.setResponseTime((int) daysBetween);
         responseTime.setCreatedAt(LocalDateTime.now());
         responseTime.setUpdatedAt(LocalDateTime.now());
 
