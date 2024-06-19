@@ -3,8 +3,7 @@ package com.bni.finproajubackend.model.ticket;
 import com.bni.finproajubackend.model.enumobject.StarRating;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
@@ -12,6 +11,9 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "ticket_feedback")
 public class TicketFeedback {
     @Id
@@ -20,6 +22,7 @@ public class TicketFeedback {
     @OneToOne
     @JoinColumn(name = "ticket_id", referencedColumnName = "id")
     private Tickets ticket;
+    @Enumerated(value = EnumType.ORDINAL)
     @Column(name = "star_rating")
     private StarRating star_rating;
     @Column(name = "comment")
