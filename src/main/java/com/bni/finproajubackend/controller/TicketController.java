@@ -9,9 +9,9 @@ import com.bni.finproajubackend.interfaces.TemplateResInterface;
 import com.bni.finproajubackend.interfaces.TicketReportsInterface;
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
 import com.bni.finproajubackend.interfaces.TicketInterface;
-import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-import org.webjars.NotFoundException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -145,13 +144,24 @@ public class TicketController {
         }
     }
 
-    @GetMapping(value = "/customer/ticket-reports/{id}/feedback", produces = "application/json")
-    public ResponseEntity<?> getCustomerTicketFeedback(@PathVariable("id") Long ticket_id) {
+    @GetMapping(value = "/customer/ticket-reports/{ticket_number}/feedback", produces = "application/json")
+    public ResponseEntity<?> getCustomerTicketFeedback(@PathVariable("ticket_number") String ticket_number) {
         try {
-            CustomerTicketFeedbackResponseDTO result = ticketService.getCustomerTicketFeedback(ticket_id);
+            CustomerTicketFeedbackResponseDTO result = ticketService.getCustomerTicketFeedback(ticket_number);
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket feedback"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiFailed(null, e.getMessage()));
+        }
+    }
+
+    @PostMapping(value = "/customer/ticket-reports/create-feedback", produces = "application/json")
+    public ResponseEntity<TemplateResponseDTO<Object>> createFeedback(@Valid @RequestBody CreateFeedbackRequestDTO requestDTO) {
+        try {
+            CreateFeedbackResponseDTO responseDTO = ticketService.createFeedback(requestDTO);
+            return ResponseEntity.ok(responseService.apiSuccess(responseDTO, "Feedback Created Successfully"));
+        } catch (RuntimeException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(responseService.apiFailed(null, e.getMessage()));
         }
     }

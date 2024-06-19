@@ -12,8 +12,6 @@ import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.repository.*;
 import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.persistence.criteria.Join;
-import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
@@ -21,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.security.core.Authentication;
@@ -503,16 +500,19 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public CustomerTicketFeedbackResponseDTO getCustomerTicketFeedback(Long ticket_id) {
-        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicketId(ticket_id)
-                .orElseGet(() -> {
-                    Tickets ticket = ticketsRepository.findById(ticket_id)
-                            .orElseThrow(() -> new RuntimeException("Ticket not found"));
-                    TicketFeedback newFeedback = new TicketFeedback();
-                    newFeedback.setTicket(ticket);
-                    newFeedback.setStar_rating(StarRating.Empat);
-                    return ticketFeedbackRepository.save(newFeedback);
-                });
+    public CustomerTicketFeedbackResponseDTO getCustomerTicketFeedback(String ticket_number) {
+        Tickets ticket = ticketsRepository.findByTicketNumber(ticket_number);
+        if (ticket == null) {
+            throw new RuntimeException("Ticket not found");
+        }
+
+        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicket(ticket);
+        if (ticketFeedback == null) {
+            ticketFeedback = new TicketFeedback();
+            ticketFeedback.setTicket(ticket);
+            ticketFeedback.setStar_rating(StarRating.Empat);
+            ticketFeedback = ticketFeedbackRepository.save(ticketFeedback);
+        }
 
         int rating = switch (ticketFeedback.getStar_rating()) {
             case Satu -> 1;
@@ -525,5 +525,35 @@ public class TicketService implements TicketInterface {
         return CustomerTicketFeedbackResponseDTO.builder()
                 .rating(rating)
                 .build();
+    }
+
+    @Override
+    public CreateFeedbackResponseDTO createFeedback(CreateFeedbackRequestDTO requestDTO) {
+
+        Tickets ticket = ticketsRepository.findByTicketNumber(requestDTO.getTicket_number());
+        if (ticket == null) {
+            throw new RuntimeException("Ticket not found");
+        }
+
+        TicketFeedback feedback = new TicketFeedback();
+        feedback.setTicket(ticket);
+        feedback.setStar_rating(null); // Set default rating if null
+        feedback.setComment(requestDTO.getComment());
+        feedback.setCreatedAt(LocalDateTime.now());
+        feedback.setUpdatedAt(LocalDateTime.now());
+
+        ticketFeedbackRepository.save(feedback);
+
+        CreateFeedbackResponseDTO.FeedbackDetails feedbackDetails = new CreateFeedbackResponseDTO.FeedbackDetails();
+        feedbackDetails.setTicket_number(feedback.getTicket().getTicketNumber());
+        feedbackDetails.setRating(feedback.getStar_rating() != null? feedback.getStar_rating().getValue() : 0);
+        feedbackDetails.setComment(feedback.getComment());
+        feedbackDetails.setCreatedAt(feedback.getCreatedAt());
+        feedbackDetails.setUpdatedAt(feedback.getUpdatedAt());
+
+        CreateFeedbackResponseDTO responseDTO = new CreateFeedbackResponseDTO();
+        responseDTO.setResult(feedbackDetails);
+
+        return responseDTO;
     }
 }
