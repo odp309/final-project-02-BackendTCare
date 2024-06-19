@@ -64,7 +64,7 @@ public class UserMutationService implements UserMutationInterface {
                     // Ensure tickets is not null and handle its status
                     String ticketStatus = Optional.ofNullable(transaction.getTickets())
                             .map(ticket -> {
-                                TicketStatus status = ticket.getTicketStatus();
+                                TicketStatus status = ticket.get(0).getTicketStatus();
                                 if (status == TicketStatus.Selesai) return "Selesai";
                                 if (status == TicketStatus.DalamProses) return "Dalam Proses";
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
@@ -115,7 +115,7 @@ public class UserMutationService implements UserMutationInterface {
 
         if (ticketStatus != null){
             filteredTransactions = filteredTransactions.stream()
-                    .filter(transaction -> transaction.getTickets() != null && transaction.getTickets().getTicketStatus() == ticketStatus)
+                    .filter(transaction -> transaction.getTickets() != null && transaction.getTickets().get(0).getTicketStatus() == ticketStatus)
                     .collect(Collectors.toList());
         }
 
@@ -128,7 +128,7 @@ public class UserMutationService implements UserMutationInterface {
 
                     String ticketStatusStr = Optional.ofNullable(transaction.getTickets())
                             .map(ticket -> {
-                                TicketStatus status = ticket.getTicketStatus();
+                                TicketStatus status = ticket.get(0).getTicketStatus();
                                 if (status == TicketStatus.Selesai) return "Selesai";
                                 if (status == TicketStatus.DalamProses) return "Dalam Proses";
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
@@ -187,7 +187,7 @@ public class UserMutationService implements UserMutationInterface {
                     // Ensure tickets is not null and handle its status
                     String ticketStatus = Optional.ofNullable(transaction.getTickets())
                             .map(ticket -> {
-                                TicketStatus status = ticket.getTicketStatus();
+                                TicketStatus status = ticket.get(0).getTicketStatus();
                                 if (status == TicketStatus.Selesai) return "Selesai";
                                 if (status == TicketStatus.DalamProses) return "Dalam Proses";
                                 if (status == TicketStatus.Diajukan) return "Diajukan";

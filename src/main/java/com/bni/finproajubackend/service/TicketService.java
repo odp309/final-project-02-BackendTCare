@@ -420,13 +420,13 @@ public class TicketService implements TicketInterface {
             processTicket(transaction, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
         } else {
             processTicket(transaction, "IP {}, Transaction found, Closing Tickets by System");
-            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "laporan selesai diproses", 4L);
-            createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "laporan diterima pelapor", 5L);
+            createSingleTicketHistory(transaction.getTickets().get(0), adminRepository.findByUsername("system"), "laporan selesai diproses", 4L);
+            createSingleTicketHistory(transaction.getTickets().get(0), adminRepository.findByUsername("system"), "laporan diterima pelapor", 5L);
         }
     }
 
     private void processTicket(Transaction transaction, String logMessage) {
-        createSingleTicketHistory(transaction.getTickets(), adminRepository.findByUsername("system"), "laporan dalam proses", 3L);
+        createSingleTicketHistory(transaction.getTickets().get(0), adminRepository.findByUsername("system"), "laporan dalam proses", 3L);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
 
@@ -467,7 +467,7 @@ public class TicketService implements TicketInterface {
                     .account_number(transaction.getAccount().getAccountNumber())
                     .ticket_category(transaction.getCategory().toString())
                     .reopen_ticket(transaction.getTickets() != null)
-                    .reference_number(transaction.getTickets() != null ? transaction.getTickets().getTicketNumber() : null)
+                    .reference_number(transaction.getTickets() != null ? transaction.getTickets().get(0).getTicketNumber() : null)
                     .build();
         } catch (Exception e) {
             logger.error(TICKETS_MARKER, "IP {}, Error getting form complaint", loggerService.getClientIp(), e);
