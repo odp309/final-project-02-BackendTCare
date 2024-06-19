@@ -71,13 +71,16 @@ public class TicketReportsService implements TicketReportsInterface {
             @RequestParam(required = false, defaultValue = "asc") String order,
             Authentication authentication
     ) throws IllegalAccessException {
-        switch (user.toLowerCase()) {
-            case "admin":
-                return adminTicketReports(category, rating, status, start_date, end_date, ticket_number, created_at, division, page, limit, sort_by, order, authentication);
-            case "customer":
-                return nasabahTicketReports(account_number, status, sort_by, order, authentication);
-            default:
-                throw new IllegalArgumentException("Path is not valid");
+        try {
+            return switch (user.toLowerCase()) {
+                case "admin" ->
+                        adminTicketReports(category, rating, status, start_date, end_date, ticket_number, created_at, division, page, limit, sort_by, order, authentication);
+                case "customer" -> nasabahTicketReports(account_number, status, sort_by, order, authentication);
+                default -> throw new IllegalArgumentException("Path is not valid");
+            };
+        } catch (Exception e) {
+            logger.error(e.getMessage());
+            throw new RuntimeException("Failed getting data");
         }
     }
 
@@ -91,7 +94,8 @@ public class TicketReportsService implements TicketReportsInterface {
         if (account_number == null) throw new IllegalArgumentException("Account number cannot be empty");
         Account account = accountRepository.findByAccountNumber(account_number);
         if (account == null) throw new NotFoundException("Account not found");
-        if (!account.getNasabah().getUser().getUsername().equals(authentication.getName())) throw new IllegalAccessException("User is not the owner");
+        if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
+            throw new IllegalAccessException("User is not the owner");
 
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
         List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
@@ -104,7 +108,7 @@ public class TicketReportsService implements TicketReportsInterface {
         List<TicketsNasabahResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketsNasabahResponseDTO.builder()
                         .id(ticket.getId())
-                        .transaction_id(ticket.getTransaction() != null ? ticket.getTransaction().getId() : (ticketsRepository.findByReferenceNumber(ticket.getReferenceNumber()).getTransaction().getId()))
+                        .transaction_id(ticket.getTransaction().getId())
                         .ticket_number(ticket.getTicketNumber())
                         .transaction_type(ticket.getTransaction().getTransaction_type().toString())
                         .ticket_date(ticket.getCreatedAt().toString())
@@ -170,7 +174,7 @@ public class TicketReportsService implements TicketReportsInterface {
         List<TicketsResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketsResponseDTO.builder()
                         .id(ticket.getId())
-                        .transaction_id(ticket.getTransaction() != null ? ticket.getTransaction().getId() : (ticketsRepository.findByReferenceNumber(ticket.getReferenceNumber()).getTransaction().getId()))
+                        .transaction_id(ticket.getTransaction().getId())
                         .ticket_number(ticket.getTicketNumber())
                         .ticket_category(ticket.getTicketCategory())
                         .category(switch (ticket.getTicketCategory()) {

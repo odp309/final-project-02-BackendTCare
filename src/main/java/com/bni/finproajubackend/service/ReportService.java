@@ -72,18 +72,18 @@ public class ReportService implements ReportInterface {
                 predicates.add(builder.equal(root.get("ticketStatus"), ticketStatusEnum));
             }
 
-            if ("rating".equals(path) && queryParams.get("name") != null) {
+            if ("rating".equals(path) && queryParams.get("rate") != null) {
                 logger.info("Rating Triggered");
-                Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
+                Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedback", JoinType.LEFT);
                 if ("4".equals(queryParams.get("rate"))) {
                     predicates.add(
                             builder.or(
-                                    builder.isNull(feedbackJoin.get("starRating")),
-                                    builder.equal(feedbackJoin.get("starRating"), StarRating.Empat)
+                                    builder.isNull(feedbackJoin.get("star_rating")),
+                                    builder.equal(feedbackJoin.get("star_rating"), StarRating.Empat)
                             )
                     );
                 } else {
-                    predicates.add(builder.equal(feedbackJoin.get("starRating"), StarRating.fromValue(Integer.parseInt(queryParams.get("rate")))));
+                    predicates.add(builder.equal(feedbackJoin.get("star_rating"), StarRating.fromValue(Integer.parseInt(queryParams.get("rate")))));
                 }
             }
 

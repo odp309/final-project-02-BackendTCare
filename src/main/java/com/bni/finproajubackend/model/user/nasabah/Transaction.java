@@ -13,6 +13,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -61,9 +62,10 @@ public class Transaction {
     @JoinColumn(name = "recipient_rekening_id", referencedColumnName = "id")
     private Account recipient_account;
 
-    @OneToOne(mappedBy = "transaction")
+    @OneToMany(mappedBy = "transaction")
+    @OrderBy("createdAt DESC")
     @JsonIgnore
-    private Tickets tickets;
+    private List<Tickets> tickets;
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
