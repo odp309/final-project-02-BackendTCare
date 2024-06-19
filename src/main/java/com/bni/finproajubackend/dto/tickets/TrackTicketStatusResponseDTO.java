@@ -9,5 +9,6 @@ import java.util.Date;
 public class TrackTicketStatusResponseDTO {
     private String pic;
     private String date;
+    private String category;
     private String description;
 }

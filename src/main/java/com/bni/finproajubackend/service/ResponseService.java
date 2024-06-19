@@ -44,34 +44,22 @@ public class ResponseService implements TemplateResInterface {
 
     @Override
     public <T> TemplateReportResponseDTO<T> apiSuccessReport(ReportResponseDTO data, String message) {
-        Map<String, Long> reportDetails = getStringLongMap(data);
 
         TemplateReportResponseDTO<T> templateReportResponseDTO = new TemplateReportResponseDTO<>();
         templateReportResponseDTO.setMessage(message);
         templateReportResponseDTO.setStatusCode(HttpStatus.OK);
-        templateReportResponseDTO.setResult((T) reportDetails);
+        templateReportResponseDTO.setResult((T) data.getResult());
         templateReportResponseDTO.setTotal(data.getTotal());
-        templateReportResponseDTO.setTotal_all_year(data.getTotalAllReports());
-        templateReportResponseDTO.setYear(data.getYear());
+        templateReportResponseDTO.setTotal_all_year(data.getTotal_reports());
+        templateReportResponseDTO.setYear(Long.parseLong(data.getYear()));
 
         return templateReportResponseDTO;
     }
 
     private @NotNull Map<String, Long> getStringLongMap(ReportResponseDTO data) {
         Map<String, Long> reportDetails = new HashMap<>();
-        reportDetails.put("january", data.getJanuary());
-        reportDetails.put("february", data.getFebruary());
-        reportDetails.put("march", data.getMarch());
-        reportDetails.put("april", data.getApril());
-        reportDetails.put("may", data.getMay());
-        reportDetails.put("june", data.getJune());
-        reportDetails.put("july", data.getJuly());
-        reportDetails.put("august", data.getAugust());
-        reportDetails.put("september", data.getSeptember());
-        reportDetails.put("october", data.getOctober());
-        reportDetails.put("november", data.getNovember());
-        reportDetails.put("december", data.getDecember());
-        return reportDetails;
+
+        return null;
     }
 
     @Override

@@ -4,6 +4,7 @@ import com.bni.finproajubackend.model.bank.Bank;
 import com.bni.finproajubackend.model.enumobject.*;
 import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.TicketHistory;
+import com.bni.finproajubackend.model.ticket.TicketResponseTime;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.User;
 import com.bni.finproajubackend.model.user.admin.Admin;
@@ -42,8 +43,10 @@ public class DataLoader {
     private final TicketsHistoryRepository ticketHistoryRepository;
     private final TicketFeedbackRepository ticketFeedbackRepository;
     private static final Logger logger = LoggerFactory.getLogger(DataLoader.class);
+    private final TicketResponseTimeRepository ticketResponseTimeRepository;
 
-    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, BankRepository bankRepository, TicketsRepository ticketsRepository, TicketsHistoryRepository ticketHistoryRepository, TicketFeedbackRepository ticketFeedbackRepository) {
+    public DataLoader(UserRepository userRepository, AdminRepository adminRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, NasabahRepository nasabahRepository, AccountRepository accountRepository, TransactionRepository transactionRepository, BankRepository bankRepository, TicketsRepository ticketsRepository, TicketsHistoryRepository ticketHistoryRepository, TicketFeedbackRepository ticketFeedbackRepository,
+                      TicketResponseTimeRepository ticketResponseTimeRepository) {
         this.userRepository = userRepository;
         this.adminRepository = adminRepository;
         this.roleRepository = roleRepository;
@@ -55,6 +58,7 @@ public class DataLoader {
         this.ticketsRepository = ticketsRepository;
         this.ticketHistoryRepository = ticketHistoryRepository;
         this.ticketFeedbackRepository = ticketFeedbackRepository;
+        this.ticketResponseTimeRepository = ticketResponseTimeRepository;
     }
 
     @Bean
@@ -145,7 +149,7 @@ public class DataLoader {
 
                 // Membuat dan menyimpan transaksi untuk setiap akun
                 Bank bank = loadBank();
-                int size = 50;
+                int size = 1000;
                 for (int k = 1; k <= size; k++) {
                     Nasabah recipient = nasabahRepository.findByUsername("dimas27");
                     if (recipient != null) {
@@ -156,9 +160,7 @@ public class DataLoader {
                         }
                     }
                 }
-
             }
-
         }
     }
 
@@ -177,15 +179,15 @@ public class DataLoader {
     }
 
     private Transaction loadTransaction(int size, Account account, Account recipientAccount, Bank bank, String detail, Long amount, String status, TransactionCategories category) {
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime createdAt = generateRandomDateTimeWithin30Days();
         boolean isOutgoing = new Random().nextBoolean();
 
-        Transaction transaction = createTransaction(account, bank, detail, amount, account.getBalance() - amount, status, category, recipientAccount, isOutgoing, now);
+        Transaction transaction = createTransaction(account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, createdAt);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         if (size % 2 == 0) {
-            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, recipientAccount.getBalance() + amount, status, category, account, !isOutgoing, now);
+            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, createdAt);
             recipientTransaction.setReferenced_id(savedTransaction.getId());
 
             Transaction savedRecipientTransaction = transactionRepository.save(recipientTransaction);
@@ -215,8 +217,8 @@ public class DataLoader {
         return transaction;
     }
 
-
     private void loadTickets(Transaction transaction) {
+        Admin admin = adminRepository.findByUsername("admin12");
         if (transaction.getTransaction_type() == TransactionType.Out) {
             // Mengatur kategori tiket berdasarkan kategori transaksi
             TicketCategories categories = switch (transaction.getCategory()) {
@@ -242,11 +244,13 @@ public class DataLoader {
 
             // Membuat objek tiket baru
             Tickets ticket = Tickets.builder()
-                    .ticketNumber(createTicketNumber(transaction))
+                    .ticketNumber(createTicketNumber(transaction, null))
                     .transaction(transaction)
                     .ticketCategory(categories)
                     .ticketStatus(ticketStatus)
+                    .admin(admin)
                     .divisionTarget(divisionTarget)
+                    .admin(adminRepository.findByUsername("admin12"))
                     .description("Ticket for " + transaction.getDetail())
                     .createdAt(generateRandomDateTime(null))
                     .updatedAt(generateRandomDateTime(null))
@@ -255,7 +259,9 @@ public class DataLoader {
 
             // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
             if (ticketStatus == TicketStatus.Selesai) {
+                addTicketResponeTime(ticket);
                 addTicketFeedback(ticket);
+                addTicketReopened(ticket);
             }
 
             // Load ticket history
@@ -264,9 +270,36 @@ public class DataLoader {
 
     }
 
+    private void addTicketResponeTime(Tickets ticket) {
+        TicketResponseTime ticketResponseTime = new TicketResponseTime();
+        ticketResponseTime.setTicket(ticket);
+        ticketResponseTime.setResponseTime(ticket.getTicketCategory().toString().equals("Transfer") ? 0 : (int) (Math.random() * 10));
+        ticketResponseTime.setCreatedAt(LocalDateTime.now());
+        ticketResponseTime.setUpdatedAt(LocalDateTime.now());
+        ticketResponseTimeRepository.save(ticketResponseTime);
+    }
+
+    private void addTicketReopened(Tickets ticket) {
+        Tickets reOpenedTicket = Tickets.builder()
+                .ticketNumber(createTicketNumber(ticket.getTransaction(), ticket))
+                .ticketCategory(ticket.getTicketCategory())
+                .ticketStatus(TicketStatus.Diajukan)
+                .divisionTarget(ticket.getDivisionTarget())
+                .admin(adminRepository.findByUsername("admin12"))
+                .referenceNumber(ticket.getTicketNumber())
+                .description("Ticket for " + ticket.getTransaction().getDetail())
+                .createdAt(generateRandomDateTime(ticket.getUpdatedAt()))
+                .updatedAt(generateRandomDateTime(ticket.getUpdatedAt()))
+                .build();
+        ticketsRepository.save(reOpenedTicket);
+
+        // Load ticket history
+        createTicketHistory(reOpenedTicket, ticket.getTransaction().getCategory());
+    }
+
     private void createTicketHistory(Tickets ticket, TransactionCategories category) {
         Admin admin = adminRepository.findByUsername("admin12");
-        String[] statuses = {"Laporan Diajukan", "Laporan Diajukan", "Laporan Dalam Proses", "Laporan Selesai Diproses", "Laporan Selesai Diproses"};
+        String[] statuses = {"transaksi dilakukan", "laporan diajukan", "laporan dalam proses", "laporan selesai diproses", "laporan diterima pelapor"};
 
         int counter = switch (ticket.getTicketStatus()) {
             case Diajukan -> 2;
@@ -289,7 +322,7 @@ public class DataLoader {
 
     }
 
-    public String createTicketNumber(Transaction transaction) {
+    public String createTicketNumber(Transaction transaction, Tickets tickets) {
         String categoryCode = switch (transaction.getCategory()) {
             case Transfer -> "TF"; // ID kategori 1 untuk Gagal Transfer
             case TopUp -> "TU"; // ID kategori 2 untuk Gagal Top Up
@@ -298,11 +331,16 @@ public class DataLoader {
         };
 
         LocalDateTime createdAt = transaction.getCreatedAt();
+        if (tickets != null) {
+            createdAt = LocalDateTime.of(tickets.getCreatedAt().getYear(), tickets.getCreatedAt().getMonthValue(), tickets.getCreatedAt().getDayOfMonth(), 0, 0);;
+        }
         String year = String.valueOf(createdAt.getYear()); // Mengambil dua digit terakhir dari tahun
         String month = String.format("%02d", createdAt.getMonthValue());
         String day = String.format("%02d", createdAt.getDayOfMonth());
 
         String transactionId = String.valueOf(transaction.getId());
+        if(tickets != null)
+            transactionId = transactionId + "0";
         String baseTicketNumber = categoryCode + year + month + day + transactionId;
 
         if (baseTicketNumber.length() < 15) {
@@ -325,9 +363,18 @@ public class DataLoader {
         ticketFeedbackRepository.save(feedback);
     }
 
+    private LocalDateTime generateRandomDateTimeWithin30Days() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime start = now.minusDays(30);
+        long minDay = start.toEpochSecond(ZoneOffset.UTC);
+        long maxDay = now.toEpochSecond(ZoneOffset.UTC);
+        long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
+        return LocalDateTime.ofEpochSecond(randomDay, 0, ZoneOffset.UTC);
+    }
+
     private LocalDateTime generateRandomDateTime(LocalDateTime minDate) {
         if (minDate == null) {
-            minDate = LocalDateTime.of(2022, 1, 1, 0, 0); // Nilai default jika minDate null
+            minDate = LocalDateTime.of(2024, 1, 1, 0, 0); // Nilai default jika minDate null
         }
         LocalDateTime end = LocalDateTime.now();
         long minDay = minDate.toEpochSecond(ZoneOffset.UTC);
@@ -335,5 +382,4 @@ public class DataLoader {
         long randomDay = ThreadLocalRandom.current().nextLong(minDay, maxDay);
         return LocalDateTime.ofEpochSecond(randomDay, 0, ZoneOffset.UTC);
     }
-
 }
