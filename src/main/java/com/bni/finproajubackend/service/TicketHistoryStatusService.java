@@ -83,8 +83,8 @@ public List<TrackTicketStatusResponseDTO> trackTicketStatus(Long id) {
             trackTicketStatusDTO.setDescription(relevantHistory.getDescription());
         } else {
             // Jika tidak ada history yang cocok, set nilai default
-            trackTicketStatusDTO.setPic("null");
-            trackTicketStatusDTO.setDate("null");
+            trackTicketStatusDTO.setPic(null);
+            trackTicketStatusDTO.setDate(null);
             trackTicketStatusDTO.setCategory(category);
             trackTicketStatusDTO.setDescription(level);
         }
