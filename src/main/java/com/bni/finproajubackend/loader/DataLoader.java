@@ -282,6 +282,7 @@ public class DataLoader {
     private void addTicketReopened(Tickets ticket) {
         Tickets reOpenedTicket = Tickets.builder()
                 .ticketNumber(createTicketNumber(ticket.getTransaction(), ticket))
+                .transaction(ticket.getTransaction())
                 .ticketCategory(ticket.getTicketCategory())
                 .ticketStatus(TicketStatus.Diajukan)
                 .divisionTarget(ticket.getDivisionTarget())

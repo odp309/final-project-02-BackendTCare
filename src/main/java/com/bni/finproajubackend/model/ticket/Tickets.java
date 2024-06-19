@@ -28,7 +28,7 @@ public class Tickets {
     private Long id;
     @Column(unique = true)
     private String ticketNumber;
-    @OneToOne
+    @ManyToOne
     @JoinColumn(name = "transaction_id", referencedColumnName = "id")
     private Transaction transaction;
     @Column(name = "ticket_category")
