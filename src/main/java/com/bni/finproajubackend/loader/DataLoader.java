@@ -215,6 +215,7 @@ public class DataLoader {
 
 
     private void loadTickets(Transaction transaction) {
+        Admin admin = adminRepository.findByUsername("admin12");
         if (transaction.getTransaction_type() == TransactionType.Out) {
             // Mengatur kategori tiket berdasarkan kategori transaksi
             TicketCategories categories = switch (transaction.getCategory()) {
@@ -244,6 +245,7 @@ public class DataLoader {
                     .transaction(transaction)
                     .ticketCategory(categories)
                     .ticketStatus(ticketStatus)
+                    .admin(admin)
                     .divisionTarget(divisionTarget)
                     .description("Ticket for " + transaction.getDetail())
                     .createdAt(generateRandomDateTime(null))
