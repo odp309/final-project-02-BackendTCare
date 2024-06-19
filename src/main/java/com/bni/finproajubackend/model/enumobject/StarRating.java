@@ -12,6 +12,10 @@ public enum StarRating {
         this.value = value;
     }
 
+    public int getValue() {
+        return value;
+    }
+
     public static StarRating fromValue(int value) {
         for (StarRating rating : values()) {
             if (rating.value == value) {

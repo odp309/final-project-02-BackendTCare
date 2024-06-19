@@ -8,10 +8,6 @@ import lombok.*;
 public class TicketFeedbackDTO {
     private ResultDTO result;
 
-    public TicketFeedback getTicketFeedback() {
-        return getTicketFeedback();
-    }
-
     @Getter
     @Setter
     public static class ResultDTO {
