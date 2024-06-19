@@ -285,6 +285,7 @@ public class TicketService implements TicketInterface {
                 )
                 .report_detail(
                         TicketDetailsReportDTO.ReportDetail.builder()
+                                .transaction_number(ticket.getTransaction().getId())
                                 .transaction_date(ticket.getTransaction().getCreatedAt())
                                 .amount(ticket.getTransaction().getAmount())
                                 .category(switch (ticket.getTicketCategory()) {
