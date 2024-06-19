@@ -371,6 +371,7 @@ public class TicketService implements TicketInterface {
                 .description("Complaint Ticket")
                 .divisionTarget(divisionTarget)
                 .ticketStatus(TicketStatus.Diajukan)
+                .admin(adminRepository.findByUsername("admin12"))
                 .referenceNumber(ticketRequestDTO.isReopen_ticket() ? ticketRequestDTO.getReference_number() : null)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
