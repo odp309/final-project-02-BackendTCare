@@ -20,6 +20,7 @@ public interface TicketsRepository extends JpaRepository<Tickets, Long>, JpaSpec
     Optional<Tickets> findById(Long id);
 
     Tickets findByTicketNumber(String ticketNumber);
+    Tickets findByReferenceNumber(String ticketNumber);
 
     @Query("SELECT t FROM Tickets t ORDER BY " +
             "CASE t.ticketStatus " +

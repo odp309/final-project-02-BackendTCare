@@ -378,7 +378,7 @@ public class TicketService implements TicketInterface {
                 .build();
 
         Tickets savedTicket = ticketsRepository.save(ticket);
-
+        logger.info("Saved ticket: {}", savedTicket);
         createTicketHistory(savedTicket);
 
         checkProblem(transaction);
@@ -433,9 +433,9 @@ public class TicketService implements TicketInterface {
 
     private void createTicketHistory(Tickets ticket) {
         Admin admin = adminRepository.findByUsername("admin12");
-
+        logger.info("admin : {}", admin);
         createSingleTicketHistory(ticket, admin, "transaksi dilakukan", 1L);
-        createSingleTicketHistory(ticket, admin, "laporan diajukan " + ticket.getTicketStatus(), 2L);
+        createSingleTicketHistory(ticket, admin, "laporan diajukan", 2L);
     }
 
     private void createSingleTicketHistory(Tickets ticket, Admin admin, String description, Long level) {

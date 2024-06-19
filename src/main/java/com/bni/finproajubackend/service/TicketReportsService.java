@@ -104,7 +104,7 @@ public class TicketReportsService implements TicketReportsInterface {
         List<TicketsNasabahResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketsNasabahResponseDTO.builder()
                         .id(ticket.getId())
-                        .transaction_id(ticket.getTransaction().getId())
+                        .transaction_id(ticket.getTransaction() != null ? ticket.getTransaction().getId() : (ticketsRepository.findByReferenceNumber(ticket.getReferenceNumber()).getTransaction().getId()))
                         .ticket_number(ticket.getTicketNumber())
                         .transaction_type(ticket.getTransaction().getTransaction_type().toString())
                         .ticket_date(ticket.getCreatedAt().toString())
@@ -170,8 +170,7 @@ public class TicketReportsService implements TicketReportsInterface {
         List<TicketsResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
                 .map(ticket -> TicketsResponseDTO.builder()
                         .id(ticket.getId())
-                        .transaction_id(ticket.getTransaction().getId())
-                        .ticket_number(ticket.getTicketNumber())
+                        .transaction_id(ticket.getTransaction() != null ? ticket.getTransaction().getId() : (ticketsRepository.findByReferenceNumber(ticket.getReferenceNumber()).getTransaction().getId()))
                         .ticket_number(ticket.getTicketNumber())
                         .ticket_category(ticket.getTicketCategory())
                         .category(switch (ticket.getTicketCategory()) {
