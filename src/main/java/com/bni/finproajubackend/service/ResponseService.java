@@ -44,17 +44,16 @@ public class ResponseService implements TemplateResInterface {
 
     @Override
     public <T> TemplateReportResponseDTO<T> apiSuccessReport(ReportResponseDTO data, String message) {
-        Map<String, Long> reportDetails = getStringLongMap(data);
 
-//        TemplateReportResponseDTO<T> templateReportResponseDTO = new TemplateReportResponseDTO<>();
-//        templateReportResponseDTO.setMessage(message);
-//        templateReportResponseDTO.setStatusCode(HttpStatus.OK);
-//        templateReportResponseDTO.setResult((T) reportDetails);
-//        templateReportResponseDTO.setTotal(data.getTotal());
-//        templateReportResponseDTO.setTotal_all_year(data.getTotalAllReports());
-//        templateReportResponseDTO.setYear(data.getYear());
+        TemplateReportResponseDTO<T> templateReportResponseDTO = new TemplateReportResponseDTO<>();
+        templateReportResponseDTO.setMessage(message);
+        templateReportResponseDTO.setStatusCode(HttpStatus.OK);
+        templateReportResponseDTO.setResult((T) data.getResult());
+        templateReportResponseDTO.setTotal(data.getTotal());
+        templateReportResponseDTO.setTotal_all_year(data.getTotal_reports());
+        templateReportResponseDTO.setYear(Long.parseLong(data.getYear()));
 
-        return null;
+        return templateReportResponseDTO;
     }
 
     private @NotNull Map<String, Long> getStringLongMap(ReportResponseDTO data) {

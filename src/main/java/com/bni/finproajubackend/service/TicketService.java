@@ -67,9 +67,83 @@ public class TicketService implements TicketInterface {
     @Autowired
     private AccountRepository accountRepository;
 
+//    @Transactional
+//    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
+//        Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
+//        TicketStatus oldStatus = ticket.getTicketStatus();
+//        if (oldStatus != TicketStatus.Selesai) {
+//            TicketStatus nextStatus = oldStatus == TicketStatus.Diajukan ? TicketStatus.DalamProses
+//                    : TicketStatus.Selesai;
+//
+//            ticket.setTicketStatus(nextStatus);
+//            ticketsRepository.save(ticket);
+//
+//            // Get admin details from authentication
+//            String username = authentication.getName();
+//            Admin admin = adminRepository.findByUsername(username);
+//
+//            if (admin == null)
+//                throw new RuntimeException("User not found");
+//
+//            Long statusLevel = getStatusLevel(ticket.getTicketStatus());
+//
+//            // Create a new ticket history entry
+//            TicketHistory ticketHistory = new TicketHistory();
+//            ticketHistory.setTicket(ticket);
+//            ticketHistory.setAdmin(admin);
+//            ticketHistory.setDescription(nextStatus == TicketStatus.DalamProses ? "laporan dalam proses" :
+//                    nextStatus == TicketStatus.Selesai ? "laporan selesai diproses" : "");
+//            ticketHistory.setDate(new Date());
+//            ticketHistory.setLevel(statusLevel);
+//            ticketHistory.setCreatedAt(LocalDateTime.now());
+//            ticketHistory.setUpdatedAt(LocalDateTime.now());
+//            ticketHistoryRepository.save(ticketHistory);
+//
+//            // Send email notification
+//            emailService.sendNotification(ticket);
+//
+//            if(nextStatus == TicketStatus.DalamProses){
+//                ticketHistory.setTicket(ticket);
+//                ticketHistory.setAdmin(admin);
+//                ticketHistory.setDescription("laporan dalam proses");
+//                ticketHistory.setDate(new Date());
+//                ticketHistory.setLevel(statusLevel);
+//                ticketHistory.setCreatedAt(LocalDateTime.now());
+//                ticketHistory.setUpdatedAt(LocalDateTime.now());
+//                ticketHistoryRepository.save(ticketHistory);
+//            }
+//
+//            if(nextStatus == TicketStatus.Selesai){
+//                ticketHistory.setTicket(ticket);
+//                ticketHistory.setAdmin(admin);
+//                ticketHistory.setDescription("laporan selesai diproses");
+//                ticketHistory.setDate(new Date());
+//                ticketHistory.setLevel(statusLevel);
+//                ticketHistory.setCreatedAt(LocalDateTime.now());
+//                ticketHistory.setUpdatedAt(LocalDateTime.now());
+//                ticketHistoryRepository.save(ticketHistory);
+//
+//                ticketHistory.setTicket(ticket);
+//                ticketHistory.setAdmin(admin);
+//                ticketHistory.setDescription("laporan diterima pelapor");
+//                ticketHistory.setDate(new Date());
+//                ticketHistory.setLevel(statusLevel);
+//                ticketHistory.setCreatedAt(LocalDateTime.now());
+//                ticketHistory.setUpdatedAt(LocalDateTime.now());
+//                ticketHistoryRepository.save(ticketHistory);
+//            }
+//
+//            // Handle TicketResponseTime when status is Ditutup
+//            if (nextStatus == TicketStatus.Selesai) {
+//                handleTicketResponseTime(ticket);
+//            }
+//        }
+//        return ticket;
+//    }
     @Transactional
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
-        Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
+        Tickets ticket = ticketsRepository.findById(ticketId)
+                .orElseThrow(() -> new RuntimeException("Ticket not found"));
         TicketStatus oldStatus = ticket.getTicketStatus();
         if (oldStatus != TicketStatus.Selesai) {
             TicketStatus nextStatus = oldStatus == TicketStatus.Diajukan ? TicketStatus.DalamProses
@@ -85,34 +159,13 @@ public class TicketService implements TicketInterface {
             if (admin == null)
                 throw new RuntimeException("User not found");
 
-            Long statusLevel = getStatusLevel(ticket.getTicketStatus());
+            Long statusLevel = getStatusLevel(nextStatus);
 
             // Create a new ticket history entry
-            TicketHistory ticketHistory = new TicketHistory();
-            ticketHistory.setTicket(ticket);
-            ticketHistory.setAdmin(admin);
-            //ticketHistory.setDescription("Ticket status updated from " + oldStatus + " to " + nextStatus);
-            ticketHistory.setDescription(nextStatus == TicketStatus.DalamProses ? "laporan dalam proses" :
-                    nextStatus == TicketStatus.Selesai ? "laporan selesai diproses" : "");
-            ticketHistory.setDate(new Date());
-            ticketHistory.setLevel(statusLevel);
-            ticketHistory.setCreatedAt(LocalDateTime.now());
-            ticketHistory.setUpdatedAt(LocalDateTime.now());
-            ticketHistoryRepository.save(ticketHistory);
+            saveTicketHistory(ticket, admin, nextStatus, statusLevel);
 
             // Send email notification
             emailService.sendNotification(ticket);
-
-            if(ticket.getTicketStatus() == TicketStatus.Selesai){
-                ticketHistory.setTicket(ticket);
-                ticketHistory.setAdmin(admin);
-                ticketHistory.setDescription("laporan diterima pelapor");
-                ticketHistory.setDate(new Date());
-                ticketHistory.setLevel(statusLevel + 1L);
-                ticketHistory.setCreatedAt(LocalDateTime.now());
-                ticketHistory.setUpdatedAt(LocalDateTime.now());
-                ticketHistoryRepository.save(ticketHistory);
-            }
 
             // Handle TicketResponseTime when status is Ditutup
             if (nextStatus == TicketStatus.Selesai) {
@@ -122,10 +175,39 @@ public class TicketService implements TicketInterface {
         return ticket;
     }
 
+    private void saveTicketHistory(Tickets ticket, Admin admin, TicketStatus status, Long statusLevel) {
+        String description = status == TicketStatus.DalamProses ? "laporan dalam proses" :
+                status == TicketStatus.Selesai ? "laporan selesai diproses" : "";
+
+        TicketHistory ticketHistory = new TicketHistory();
+        ticketHistory.setTicket(ticket);
+        ticketHistory.setAdmin(admin);
+        ticketHistory.setDescription(description);
+        ticketHistory.setDate(new Date());
+        ticketHistory.setLevel(statusLevel);
+        ticketHistory.setCreatedAt(LocalDateTime.now());
+        ticketHistory.setUpdatedAt(LocalDateTime.now());
+        ticketHistoryRepository.save(ticketHistory);
+
+        if (status == TicketStatus.Selesai) {
+            TicketHistory additionalHistory = new TicketHistory();
+            additionalHistory.setTicket(ticket);
+            additionalHistory.setAdmin(admin);
+            additionalHistory.setDescription("laporan diterima pelapor");
+            additionalHistory.setDate(new Date());
+            additionalHistory.setLevel(statusLevel + 1L);
+            additionalHistory.setCreatedAt(LocalDateTime.now());
+            additionalHistory.setUpdatedAt(LocalDateTime.now());
+            ticketHistoryRepository.save(additionalHistory);
+        }
+    }
+
 
     private Long getStatusLevel(TicketStatus status) {
         return status == TicketStatus.Diajukan ? 2L :
-                status == TicketStatus.DalamProses ? 3L : 4L;
+                status == TicketStatus.DalamProses ? 3L :
+                    status == TicketStatus.Selesai ? 4L :
+                        5L;
     }
 
     private void handleTicketResponseTime(Tickets ticket) {
@@ -136,7 +218,7 @@ public class TicketService implements TicketInterface {
         LocalDate closedAt = LocalDate.now();
         long daysBetween = Duration.between(createdAt.atStartOfDay(), closedAt.atStartOfDay()).toDays();
 
-        responseTime.setResponseTime(daysBetween);
+        responseTime.setResponseTime((int) daysBetween);
         responseTime.setCreatedAt(LocalDateTime.now());
         responseTime.setUpdatedAt(LocalDateTime.now());
 
