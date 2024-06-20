@@ -15,6 +15,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -285,9 +286,16 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public TicketResponseDTO createNewTicket(TicketRequestDTO ticketRequestDTO) {
+    public TicketResponseDTO createNewTicket(Long id, TicketRequestDTO ticketRequestDTO) throws BadRequestException {
         Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransaction_id())
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
+
+        Tickets latestTickets = new Tickets();
+        if (!transaction.getTickets().isEmpty())
+            latestTickets = transaction.getTickets().get(0);
+
+        if(latestTickets.getTicketStatus() == TicketStatus.Selesai)
+            throw new BadRequestException("Request is not valid");
 
         TicketCategories category = switch (transaction.getCategory()) {
             case Payment -> TicketCategories.Payment;
@@ -305,11 +313,11 @@ public class TicketService implements TicketInterface {
                 .ticketNumber(createTicketNumber(transaction))
                 .transaction(transaction)
                 .ticketCategory(category)
-                .description("Complaint Ticket")
+                .description(ticketRequestDTO.getComment())
                 .divisionTarget(divisionTarget)
                 .ticketStatus(TicketStatus.Diajukan)
                 .admin(adminRepository.findByUsername("admin12"))
-                .referenceNumber(ticketRequestDTO.isReopen_ticket() ? ticketRequestDTO.getReference_number() : null)
+                .referenceNumber(latestTickets != null ? latestTickets.getTicketNumber() : null)
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -367,7 +375,7 @@ public class TicketService implements TicketInterface {
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
 
-
+    @Async
     private void createTicketHistory(Tickets ticket) {
         Admin admin = adminRepository.findByUsername("admin12");
         logger.info("admin : {}", admin);

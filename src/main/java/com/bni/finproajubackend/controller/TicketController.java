@@ -12,6 +12,7 @@ import com.bni.finproajubackend.interfaces.TicketInterface;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
+import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +53,14 @@ public class TicketController {
         }
     }
 
-    @PostMapping(value = "/customer/transaction/complaint-form", produces = "application/json")
-    public ResponseEntity createNewTicket(@RequestBody TicketRequestDTO ticketRequestDTO) {
+    @PostMapping(value = "/customer/transaction/{id}/complaint-form", produces = "application/json")
+    public ResponseEntity createNewTicket(@PathVariable Long id, @RequestBody TicketRequestDTO ticketRequestDTO) {
         try {
-            TicketResponseDTO result = ticketService.createNewTicket(ticketRequestDTO);
+            TicketResponseDTO result = ticketService.createNewTicket(id, ticketRequestDTO);
             return ResponseEntity.ok(responseService.apiSuccess(result, "Ticket Created"));
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body(responseService.apiBadRequest(null, e.getCause() == null ? "Ticket request is not valid, please check ticket detail" : e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Ticket Failed Created" : e.getMessage()));
@@ -102,9 +106,12 @@ public class TicketController {
             TicketDetailsReportDTO result = ticketService.getTicketDetails(ticket_number);
             if (result == null) return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
-        } catch (Exception e) {
+        } catch (EntityNotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+                    .body(responseService.apiNotFound(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(responseService.apiFailed(null, e.getCause() == null ? "Something went wrong" : e.getMessage()));
         }
     }
 
@@ -132,6 +139,7 @@ public class TicketController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseService.apiFailed(null, e.getCause() == null ? "Something went wrong" : e.getMessage()));
         }
     }
+
     @GetMapping(value = "/admin/ticket-reports/{id}/feedback", produces = "application/json")
     public ResponseEntity<?> getTicketFeedback(@PathVariable("id") Long ticket_id) {
         try {
