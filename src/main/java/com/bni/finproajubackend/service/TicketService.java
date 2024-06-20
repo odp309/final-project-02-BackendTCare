@@ -287,15 +287,15 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public TicketResponseDTO createNewTicket(Long id, TicketRequestDTO ticketRequestDTO) throws BadRequestException {
-        Transaction transaction = transactionRepository.findById(ticketRequestDTO.getTransaction_id())
+    public TicketResponseDTO createNewTicket(Long id, TicketRequestDTO ticketRequestDTO) throws Exception {
+        Transaction transaction = transactionRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
 
         Tickets latestTickets = new Tickets();
         if (!transaction.getTickets().isEmpty())
             latestTickets = transaction.getTickets().get(0);
 
-        if(latestTickets.getTicketStatus() == TicketStatus.Selesai)
+        if (latestTickets.getTicketStatus() == TicketStatus.Selesai)
             throw new BadRequestException("Request is not valid");
 
         TicketCategories category = switch (transaction.getCategory()) {
@@ -324,10 +324,10 @@ public class TicketService implements TicketInterface {
                 .build();
 
         Tickets savedTicket = ticketsRepository.save(ticket);
-        logger.info("Saved ticket: {}", savedTicket);
+        logger.info("Saved ticket: {}", savedTicket.getTicketNumber());
         createTicketHistory(savedTicket);
 
-        checkProblem(transaction);
+        checkProblem(transaction, savedTicket);
 
         return TicketResponseDTO.builder()
                 .transaction_id(transaction.getId())
@@ -339,51 +339,58 @@ public class TicketService implements TicketInterface {
     }
 
     @Async
-    private void checkProblem(Transaction transaction) {
-        Transaction transactionSender = transaction;
-        Account accountRecipient = transaction.getRecipient_account();
+    private void checkProblem(Transaction transaction, Tickets tickets) throws Exception {
+        try {
+            Account accountRecipient = transaction.getRecipient_account();
 
-        Specification<Transaction> spec = (root, query, builder) -> {
-            List<Predicate> predicates = new ArrayList<>();
+            Specification<Transaction> spec = (root, query, builder) -> {
+                List<Predicate> predicates = new ArrayList<>();
 
-            Optional.ofNullable(transactionSender.getId()).ifPresent(id ->
-                    predicates.add(builder.equal(root.get("referenced_id"), id))
-            );
+                Optional.ofNullable(transaction.getId()).ifPresent(id ->
+                        predicates.add(builder.equal(root.get("referenced_id"), id))
+                );
 
-            Optional.of(transactionSender.getTransaction_type() != TransactionType.In ? TransactionType.Out : TransactionType.In).ifPresent(type ->
-                    predicates.add(builder.equal(root.get("transaction_type"), type))
-            );
+                Optional.of(transaction.getTransaction_type() == TransactionType.In ? TransactionType.Out : TransactionType.In).ifPresent(type ->
+                        predicates.add(builder.equal(root.get("transaction_type"), type))
+                );
 
-            return builder.and(predicates.toArray(new Predicate[0]));
-        };
+                return builder.and(predicates.toArray(new Predicate[0]));
+            };
 
-        List<Transaction> transactionRecipient = transactionRepository.findAll(spec);
-        int recipientSize = transactionRecipient.size();
+            List<Transaction> transactionRecipient = transactionRepository.findAll(spec);
+            int recipientSize = transactionRecipient.size();
 
-        if (recipientSize == 0) {
-            processTicket(transaction, "IP {}, Transaction not found, Continuing ticket to division");
-        } else if (recipientSize > 1) {
-            processTicket(transaction, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
-        } else {
-            processTicket(transaction, "IP {}, Transaction found, Closing Tickets by System");
-            createSingleTicketHistory(transaction.getTickets().get(0), adminRepository.findByUsername("system"), "laporan selesai diproses", 4L);
-            createSingleTicketHistory(transaction.getTickets().get(0), adminRepository.findByUsername("system"), "laporan diterima pelapor", 5L);
+            if (recipientSize == 0) {
+                processTicket(tickets, "IP {}, Transaction not found, Continuing ticket to division");
+            } else if (recipientSize == 1) {
+                processTicket(tickets, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
+            } else {
+                processTicket(tickets, "IP {}, Transaction found, Closing Tickets by System");
+                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan selesai diproses", 4L);
+                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan diterima pelapor", 5L);
+            }
+
+        } catch (Exception e) {
+            logger.warn("Failed to check problem in Transaction: {}", e.getMessage());
+            throw new Exception("Failed to check problem, but ticket created");
         }
     }
 
-    private void processTicket(Transaction transaction, String logMessage) {
-        createSingleTicketHistory(transaction.getTickets().get(0), adminRepository.findByUsername("system"), "laporan dalam proses", 3L);
+    @Async
+    private void processTicket(Tickets tickets, String logMessage) {
+        createSingleTicketHistory(tickets, adminRepository.findByUsername("system"), "laporan dalam proses", 3L);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
 
     @Async
     private void createTicketHistory(Tickets ticket) {
         Admin admin = adminRepository.findByUsername("admin12");
-        logger.info("admin : {}", admin);
+        logger.info("admin : {} {}", admin.getFirstName(), admin.getLastName());
         createSingleTicketHistory(ticket, admin, "transaksi dilakukan", 1L);
         createSingleTicketHistory(ticket, admin, "laporan diajukan", 2L);
     }
 
+    @Async
     private void createSingleTicketHistory(Tickets ticket, Admin admin, String description, Long level) {
         TicketHistory ticketHistory = new TicketHistory();
         ticketHistory.setTicket(ticket);

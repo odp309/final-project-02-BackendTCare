@@ -61,6 +61,9 @@ public class TicketController {
         } catch (BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(responseService.apiBadRequest(null, e.getCause() == null ? "Ticket request is not valid, please check ticket detail" : e.getMessage()));
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(responseService.apiNotFound(null, e.getCause() == null ? "Transaction not found" : e.getMessage()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(responseService.apiFailed(null, e.getCause() == null ? "Ticket Failed Created" : e.getMessage()));
