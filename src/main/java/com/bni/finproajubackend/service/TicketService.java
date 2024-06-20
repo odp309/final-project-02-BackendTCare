@@ -77,6 +77,7 @@ public class TicketService implements TicketInterface {
                     : TicketStatus.Selesai;
 
             ticket.setTicketStatus(nextStatus);
+            ticket.setUpdatedAt(LocalDateTime.now());
             ticketsRepository.save(ticket);
 
             if(nextStatus == TicketStatus.Selesai){
