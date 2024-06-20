@@ -14,6 +14,7 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -29,6 +30,8 @@ import com.bni.finproajubackend.repository.TicketsHistoryRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -535,9 +538,14 @@ public class TicketService implements TicketInterface {
     }
 
     @Override
-    public CreateFeedbackResponseDTO createFeedback(CreateFeedbackRequestDTO requestDTO) {
+    public CreateFeedbackResponseDTO createFeedback(
+            CreateFeedbackRequestDTO requestDTO,
+            String ticket_number,
+            Authentication authentication) {
 
-        Tickets ticket = ticketsRepository.findByTicketNumber(requestDTO.getTicket_number());
+        String actualTicketNumber = ticket_number != null ? ticket_number : requestDTO.getTicket_number();
+
+        Tickets ticket = ticketsRepository.findByTicketNumber(actualTicketNumber);
         if (ticket == null) {
             throw new RuntimeException("Ticket not found");
         }
@@ -557,8 +565,8 @@ public class TicketService implements TicketInterface {
         ticketFeedbackRepository.save(feedback);
 
         CreateFeedbackResponseDTO.FeedbackDetails feedbackDetails = new CreateFeedbackResponseDTO.FeedbackDetails();
-        feedbackDetails.setTicket_number(requestDTO.getTicket_number());
-        feedbackDetails.setRating(feedback.getStar_rating() != null ? feedback.getStar_rating().getValue() : 0);
+        feedbackDetails.setTicket_number(actualTicketNumber);
+        feedbackDetails.setRating(feedback.getStar_rating() != null? feedback.getStar_rating().getValue() : 0);
         feedbackDetails.setComment(feedback.getComment());
         feedbackDetails.setCreatedAt(feedback.getCreatedAt());
         feedbackDetails.setUpdatedAt(feedback.getUpdatedAt());
