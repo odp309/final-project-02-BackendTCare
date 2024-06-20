@@ -46,6 +46,7 @@ public class Tickets {
     private String description;
     @Column(name = "reference_number")
     private String referenceNumber;
+    private Boolean isClosed;
     @CreatedDate
     @Column(name = "created_at", updatable = false)
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
