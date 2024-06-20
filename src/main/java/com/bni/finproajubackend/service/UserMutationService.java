@@ -63,19 +63,20 @@ public class UserMutationService implements UserMutationInterface {
 
                     // Ensure tickets is not null and handle its status
                     String ticketStatus = Optional.ofNullable(transaction.getTickets())
-                            .map(ticket -> {
-                                TicketStatus status = ticket.get(0).getTicketStatus();
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                TicketStatus status = tickets.get(0).getTicketStatus();
                                 if (status == TicketStatus.Selesai) return "Selesai";
                                 if (status == TicketStatus.DalamProses) return "Dalam Proses";
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
                                 return null;
                             })
                             .orElse("No Ticket");
-                    String TransactionDetail = transaction.getTransaction_type() + " " + transaction.getRecipient_account().getNasabah().getFirst_name();
+                    String transactionDetail = transaction.getTransaction_type() + " " + transaction.getRecipient_account().getNasabah().getFirst_name();
 
                     return new TransactionDTO(
                             transaction.getId(),
-                            TransactionDetail,
+                            transactionDetail,
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
@@ -113,9 +114,9 @@ public class UserMutationService implements UserMutationInterface {
                     .collect(Collectors.toList());
         }
 
-        if (ticketStatus != null){
+        if (ticketStatus != null) {
             filteredTransactions = filteredTransactions.stream()
-                    .filter(transaction -> transaction.getTickets() != null && transaction.getTickets().get(0).getTicketStatus() == ticketStatus)
+                    .filter(transaction -> transaction.getTickets() != null && !transaction.getTickets().isEmpty() && transaction.getTickets().get(0).getTicketStatus() == ticketStatus)
                     .collect(Collectors.toList());
         }
 
@@ -127,15 +128,15 @@ public class UserMutationService implements UserMutationInterface {
                     String formattedDateTime = transaction.getCreatedAt().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
 
                     String ticketStatusStr = Optional.ofNullable(transaction.getTickets())
-                            .map(ticket -> {
-                                TicketStatus status = ticket.get(0).getTicketStatus();
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                TicketStatus status = tickets.get(0).getTicketStatus();
                                 if (status == TicketStatus.Selesai) return "Selesai";
                                 if (status == TicketStatus.DalamProses) return "Dalam Proses";
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
                                 return null;
                             })
                             .orElse("No Ticket");
-
 
                     String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
@@ -154,8 +155,9 @@ public class UserMutationService implements UserMutationInterface {
 
         return new UserMutationDTO(transactionDTOList);
     }
+
     @Override
-    public UserMutationDTO getUserTransactionsByAccountNo(Authentication authentication, String account_number,LocalDate startDate, LocalDate endDate) {
+    public UserMutationDTO getUserTransactionsByAccountNo(Authentication authentication, String account_number, LocalDate startDate, LocalDate endDate) {
         String username = authentication.getName();
         User user = userRepository.findByUsername(username);
 
@@ -169,12 +171,12 @@ public class UserMutationService implements UserMutationInterface {
         List<Transaction> transactions = transactionRepository.findByAccount(account);
         List<Transaction> filteredTransactions = transactions;
 
-        if(startDate != null && endDate != null){
-            LocalDateTime starDateTime = startDate.atStartOfDay();
+        if (startDate != null && endDate != null) {
+            LocalDateTime startDateTime = startDate.atStartOfDay();
             LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
 
             filteredTransactions = transactions.stream()
-                    .filter(transaction -> !transaction.getCreatedAt().isBefore(starDateTime) && !transaction.getCreatedAt().isAfter(endDateTime))
+                    .filter(transaction -> !transaction.getCreatedAt().isBefore(startDateTime) && !transaction.getCreatedAt().isAfter(endDateTime))
                     .collect(Collectors.toList());
         }
 
@@ -186,8 +188,9 @@ public class UserMutationService implements UserMutationInterface {
 
                     // Ensure tickets is not null and handle its status
                     String ticketStatus = Optional.ofNullable(transaction.getTickets())
-                            .map(ticket -> {
-                                TicketStatus status = ticket.get(0).getTicketStatus();
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                TicketStatus status = tickets.get(0).getTicketStatus();
                                 if (status == TicketStatus.Selesai) return "Selesai";
                                 if (status == TicketStatus.DalamProses) return "Dalam Proses";
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
@@ -199,11 +202,9 @@ public class UserMutationService implements UserMutationInterface {
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
                             : transaction.getCategory() + " PLN Pascabayar";
 
-                    String transactionDesc = transaction.getTransaction_type() == TransactionType.In ? "Transfer Masuk": transactionDetail;
-
                     return new TransactionDTO(
                             transaction.getId(),
-                            transactionDesc,
+                            transactionDetail,
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,

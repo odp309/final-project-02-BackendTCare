@@ -535,9 +535,14 @@ public class TicketService implements TicketInterface {
             throw new RuntimeException("Ticket not found");
         }
 
+        TicketFeedback existingFeedback = ticketFeedbackRepository.findByTicket(ticket);
+        if (existingFeedback != null) {
+            throw new RuntimeException("Feedback for this ticket already exists");
+        }
+
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicket(ticket);
-        feedback.setStar_rating(null); // Set default rating if null
+        feedback.setStar_rating(requestDTO.getRating() != 0 ? StarRating.fromValue(requestDTO.getRating()) : null); // Set default rating if null
         feedback.setComment(requestDTO.getComment());
         feedback.setCreatedAt(LocalDateTime.now());
         feedback.setUpdatedAt(LocalDateTime.now());
@@ -545,14 +550,13 @@ public class TicketService implements TicketInterface {
         ticketFeedbackRepository.save(feedback);
 
         CreateFeedbackResponseDTO.FeedbackDetails feedbackDetails = new CreateFeedbackResponseDTO.FeedbackDetails();
-        feedbackDetails.setTicket_number(feedback.getTicket().getTicketNumber());
+        feedbackDetails.setTicket_number(requestDTO.getTicket_number());
         feedbackDetails.setRating(feedback.getStar_rating() != null? feedback.getStar_rating().getValue() : 0);
         feedbackDetails.setComment(feedback.getComment());
         feedbackDetails.setCreatedAt(feedback.getCreatedAt());
         feedbackDetails.setUpdatedAt(feedback.getUpdatedAt());
 
-        CreateFeedbackResponseDTO responseDTO = new CreateFeedbackResponseDTO();
-        responseDTO.setResult(feedbackDetails);
+        CreateFeedbackResponseDTO responseDTO = new CreateFeedbackResponseDTO(feedbackDetails);
 
         return responseDTO;
     }

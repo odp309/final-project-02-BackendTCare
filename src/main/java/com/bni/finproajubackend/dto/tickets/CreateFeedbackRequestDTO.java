@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 @Data
 @Builder
 public class CreateFeedbackRequestDTO {
-
     private Long id;
     @NotBlank(message = "Ticket number is mandatory")
     private String ticket_number;
@@ -24,7 +23,6 @@ public class CreateFeedbackRequestDTO {
     private String comment;
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime created_at;
-    @LastModifiedDate
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updated_at;
 }
