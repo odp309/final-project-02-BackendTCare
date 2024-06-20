@@ -522,13 +522,14 @@ public class TicketService implements TicketInterface {
             throw new RuntimeException("Ticket not found");
         }
 
-        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicket(ticket);
-        if (ticketFeedback == null) {
-            ticketFeedback = new TicketFeedback();
-            ticketFeedback.setTicket(ticket);
-            ticketFeedback.setStar_rating(StarRating.Empat);
-            ticketFeedback = ticketFeedbackRepository.save(ticketFeedback);
-        }
+        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicket(ticket).orElseGet(() -> {
+            TicketFeedback tFeed = new TicketFeedback();
+            tFeed.setTicket(ticket);
+            tFeed.setCreatedAt(LocalDateTime.now());
+            tFeed.setUpdatedAt(LocalDateTime.now());
+            tFeed.setStar_rating(StarRating.Empat);
+            return ticketFeedbackRepository.save(tFeed);
+        });
 
         int rating = switch (ticketFeedback.getStar_rating()) {
             case Satu -> 1;
@@ -556,10 +557,8 @@ public class TicketService implements TicketInterface {
             throw new RuntimeException("Ticket not found");
         }
 
-        TicketFeedback existingFeedback = ticketFeedbackRepository.findByTicket(ticket);
-        if (existingFeedback != null) {
-            throw new RuntimeException("Feedback for this ticket already exists");
-        }
+        TicketFeedback existingFeedback = ticketFeedbackRepository.findByTicket(ticket)
+                .orElseThrow(() -> new RuntimeException("Feedback for this ticket already exists"));
 
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicket(ticket);
@@ -572,7 +571,7 @@ public class TicketService implements TicketInterface {
 
         CreateFeedbackResponseDTO.FeedbackDetails feedbackDetails = new CreateFeedbackResponseDTO.FeedbackDetails();
         feedbackDetails.setTicket_number(actualTicketNumber);
-        feedbackDetails.setRating(feedback.getStar_rating() != null? feedback.getStar_rating().getValue() : 0);
+        feedbackDetails.setRating(feedback.getStar_rating() != null ? feedback.getStar_rating().getValue() : 0);
         feedbackDetails.setComment(feedback.getComment());
         feedbackDetails.setCreatedAt(feedback.getCreatedAt());
         feedbackDetails.setUpdatedAt(feedback.getUpdatedAt());
