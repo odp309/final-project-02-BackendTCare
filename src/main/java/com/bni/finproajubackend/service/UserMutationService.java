@@ -80,7 +80,8 @@ public class UserMutationService implements UserMutationInterface {
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
-                            ticketStatus
+                            ticketStatus,
+                            transaction.getTickets().get(0).getTicketNumber()
                     );
                 })
                 .collect(Collectors.toList());
@@ -138,6 +139,16 @@ public class UserMutationService implements UserMutationInterface {
                             })
                             .orElse(null);
 
+                    String ticketNumber = Optional.ofNullable(transaction.getTickets())
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                String number = tickets.get(0).getTicketNumber();
+                                if (!tickets.get(0).getTicketNumber().isEmpty()) return tickets.get(0).getTicketNumber();
+                                return null;
+                            })
+                            .orElse(null);
+
+
                     String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
                             : transaction.getCategory() + " PLN Pascabayar";
@@ -148,7 +159,8 @@ public class UserMutationService implements UserMutationInterface {
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
-                            ticketStatusStr
+                            ticketStatusStr,
+                            ticketNumber
                     );
                 })
                 .collect(Collectors.toList());
@@ -198,6 +210,15 @@ public class UserMutationService implements UserMutationInterface {
                             })
                             .orElse(null);
 
+                    String ticketNumber = Optional.ofNullable(transaction.getTickets())
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                String number = tickets.get(0).getTicketNumber();
+                                if (!tickets.get(0).getTicketNumber().isEmpty()) return tickets.get(0).getTicketNumber();
+                                return null;
+                            })
+                            .orElse(null);
+
                     String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
                             : transaction.getCategory() + " PLN Pascabayar";
@@ -208,7 +229,8 @@ public class UserMutationService implements UserMutationInterface {
                             transactionType,
                             transaction.getAmount(),
                             formattedDateTime,
-                            ticketStatus
+                            ticketStatus,
+                            ticketNumber
                     );
                 })
                 .collect(Collectors.toList());
