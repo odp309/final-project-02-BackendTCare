@@ -520,17 +520,24 @@ public class TicketService implements TicketInterface {
         if (ticketFeedback == null) {
             ticketFeedback = new TicketFeedback();
             ticketFeedback.setTicket(ticket);
-            ticketFeedback.setStar_rating(StarRating.Empat);
+            ticketFeedback.setStar_rating(StarRating.fromValue(0));
             ticketFeedback = ticketFeedbackRepository.save(ticketFeedback);
         }
 
-        int rating = switch (ticketFeedback.getStar_rating()) {
-            case Satu -> 1;
-            case Dua -> 2;
-            case Tiga -> 3;
-            case Lima -> 5;
-            default -> 4;
-        };
+        StarRating starRating = ticketFeedback.getStar_rating();
+        int rating;
+        if (starRating == null) {
+            rating = 0;  // Default to 0 if starRating is null
+        } else {
+            rating = switch (starRating) {
+                case Satu -> 1;
+                case Dua -> 2;
+                case Tiga -> 3;
+                case Empat -> 4;
+                case Lima -> 5;
+                default -> 0;
+            };
+        }
 
         return CustomerTicketFeedbackResponseDTO.builder()
                 .rating(rating)
