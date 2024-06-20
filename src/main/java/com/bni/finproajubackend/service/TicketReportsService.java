@@ -98,6 +98,7 @@ public class TicketReportsService implements TicketReportsInterface {
             if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
                 throw new IllegalAccessException("User is not the owner");
 
+            sort_by = convertSortBy(sort_by);
             Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
             List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
 
