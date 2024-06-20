@@ -67,79 +67,6 @@ public class TicketService implements TicketInterface {
     @Autowired
     private AccountRepository accountRepository;
 
-    //    @Transactional
-//    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
-//        Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
-//        TicketStatus oldStatus = ticket.getTicketStatus();
-//        if (oldStatus != TicketStatus.Selesai) {
-//            TicketStatus nextStatus = oldStatus == TicketStatus.Diajukan ? TicketStatus.DalamProses
-//                    : TicketStatus.Selesai;
-//
-//            ticket.setTicketStatus(nextStatus);
-//            ticketsRepository.save(ticket);
-//
-//            // Get admin details from authentication
-//            String username = authentication.getName();
-//            Admin admin = adminRepository.findByUsername(username);
-//
-//            if (admin == null)
-//                throw new RuntimeException("User not found");
-//
-//            Long statusLevel = getStatusLevel(ticket.getTicketStatus());
-//
-//            // Create a new ticket history entry
-//            TicketHistory ticketHistory = new TicketHistory();
-//            ticketHistory.setTicket(ticket);
-//            ticketHistory.setAdmin(admin);
-//            ticketHistory.setDescription(nextStatus == TicketStatus.DalamProses ? "laporan dalam proses" :
-//                    nextStatus == TicketStatus.Selesai ? "laporan selesai diproses" : "");
-//            ticketHistory.setDate(new Date());
-//            ticketHistory.setLevel(statusLevel);
-//            ticketHistory.setCreatedAt(LocalDateTime.now());
-//            ticketHistory.setUpdatedAt(LocalDateTime.now());
-//            ticketHistoryRepository.save(ticketHistory);
-//
-//            // Send email notification
-//            emailService.sendNotification(ticket);
-//
-//            if(nextStatus == TicketStatus.DalamProses){
-//                ticketHistory.setTicket(ticket);
-//                ticketHistory.setAdmin(admin);
-//                ticketHistory.setDescription("laporan dalam proses");
-//                ticketHistory.setDate(new Date());
-//                ticketHistory.setLevel(statusLevel);
-//                ticketHistory.setCreatedAt(LocalDateTime.now());
-//                ticketHistory.setUpdatedAt(LocalDateTime.now());
-//                ticketHistoryRepository.save(ticketHistory);
-//            }
-//
-//            if(nextStatus == TicketStatus.Selesai){
-//                ticketHistory.setTicket(ticket);
-//                ticketHistory.setAdmin(admin);
-//                ticketHistory.setDescription("laporan selesai diproses");
-//                ticketHistory.setDate(new Date());
-//                ticketHistory.setLevel(statusLevel);
-//                ticketHistory.setCreatedAt(LocalDateTime.now());
-//                ticketHistory.setUpdatedAt(LocalDateTime.now());
-//                ticketHistoryRepository.save(ticketHistory);
-//
-//                ticketHistory.setTicket(ticket);
-//                ticketHistory.setAdmin(admin);
-//                ticketHistory.setDescription("laporan diterima pelapor");
-//                ticketHistory.setDate(new Date());
-//                ticketHistory.setLevel(statusLevel);
-//                ticketHistory.setCreatedAt(LocalDateTime.now());
-//                ticketHistory.setUpdatedAt(LocalDateTime.now());
-//                ticketHistoryRepository.save(ticketHistory);
-//            }
-//
-//            // Handle TicketResponseTime when status is Ditutup
-//            if (nextStatus == TicketStatus.Selesai) {
-//                handleTicketResponseTime(ticket);
-//            }
-//        }
-//        return ticket;
-//    }
     @Transactional
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
         Tickets ticket = ticketsRepository.findById(ticketId)
@@ -151,6 +78,10 @@ public class TicketService implements TicketInterface {
 
             ticket.setTicketStatus(nextStatus);
             ticketsRepository.save(ticket);
+
+            if(nextStatus == TicketStatus.Selesai){
+                ticket.setIsClosed(true);
+            }
 
             // Get admin details from authentication
             String username = authentication.getName();
