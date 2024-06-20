@@ -27,7 +27,7 @@ public interface TicketInterface {
 
     List<TicketHistoryResponseDTO> getTicketHistory(long id);
 
-    TicketResponseDTO createNewTicket(Long id, TicketRequestDTO ticketRequestDTO) throws BadRequestException;
+    TicketResponseDTO createNewTicket(Long id, TicketRequestDTO ticketRequestDTO) throws Exception;
 
     String getAdminFullName(@NotNull Admin admin);
 
