@@ -128,9 +128,9 @@ public class TicketController {
             ComplaintResponseDTO result = ticketService.getFormComplaint(id);
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
         } catch (EntityNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiNotFound(null, e.getCause() == null ? "Something went wrong" : e.getMessage()));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiNotFound(null, e.getCause() == null ? "Not Found" : e.getMessage()));
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(responseService.apiFailed(null, e.getCause() == null ? "Not Found" : e.getMessage()));
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(responseService.apiFailed(null, e.getCause() == null ? "Something went wrong" : e.getMessage()));
         }
     }
     @GetMapping(value = "/admin/ticket-reports/{id}/feedback", produces = "application/json")

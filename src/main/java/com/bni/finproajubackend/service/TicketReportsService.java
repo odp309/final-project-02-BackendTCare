@@ -90,50 +90,62 @@ public class TicketReportsService implements TicketReportsInterface {
             String sort_by,
             String order,
             Authentication authentication
-    ) throws IllegalAccessException {
-        if (account_number == null) throw new IllegalArgumentException("Account number cannot be empty");
-        Account account = accountRepository.findByAccountNumber(account_number);
-        if (account == null) throw new NotFoundException("Account not found");
-        if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
-            throw new IllegalAccessException("User is not the owner");
+    ) throws Exception {
+        try {
+            if (account_number == null) throw new IllegalArgumentException("Account number cannot be empty");
+            Account account = accountRepository.findByAccountNumber(account_number);
+            if (account == null) throw new NotFoundException("Account not found");
+            if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
+                throw new IllegalAccessException("User is not the owner");
 
-        Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
+            Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
 
-        Specification<Tickets> spec = getSpec(account_number, null, null, status, null, null, null, null, null);
+            Specification<Tickets> spec = getSpec(account_number, null, null, status, null, null, null, null, null);
 
-        Pageable pageable = PageRequest.of(0, ticketsRepository.findAll().size(), Sort.by(orders));
-        Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
+            Pageable pageable = PageRequest.of(0, ticketsRepository.findAll().size(), Sort.by(orders));
+            Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
 
-        List<TicketsNasabahResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
-                .map(ticket -> TicketsNasabahResponseDTO.builder()
-                        .id(ticket.getId())
-                        .transaction_id(ticket.getTransaction().getId())
-                        .ticket_number(ticket.getTicketNumber())
-                        .transaction_type(ticket.getTransaction().getTransaction_type().toString())
-                        .ticket_date(ticket.getCreatedAt().toString())
-                        .amount(ticket.getTransaction().getAmount())
-                        .ticket_description(ticket.getDescription())
-                        .ticket_status(ticket.getTicketStatus().toString())
-                        .build())
-                .collect(Collectors.toList());
+            List<TicketsNasabahResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
+                    .map(ticket -> TicketsNasabahResponseDTO.builder()
+                            .id(ticket.getId())
+                            .transaction_id(ticket.getTransaction().getId())
+                            .ticket_number(ticket.getTicketNumber())
+                            .transaction_type(ticket.getTransaction().getTransaction_type().toString())
+                            .ticket_date(ticket.getCreatedAt().toString())
+                            .amount(ticket.getTransaction().getAmount())
+                            .rating(ticket.getTicketFeedback() == null ? 0 : switch (ticket.getTicketFeedback().getStar_rating()){
+                                case Satu -> 1;
+                                case Dua -> 2;
+                                case Tiga -> 3;
+                                case Empat -> 4;
+                                case Lima -> 5;
+                            })
+                            .ticket_description(ticket.getDescription())
+                            .ticket_status(ticket.getTicketStatus().toString())
+                            .build())
+                    .collect(Collectors.toList());
 
-        if (ticketsResponseDTOList.isEmpty()) return null;
+            if (ticketsResponseDTOList.isEmpty()) return null;
 
-        ListTicketNasabahResponseDTO listTicketNasabahResponseDTO = ListTicketNasabahResponseDTO.builder()
-                .account_number(account_number)
-                .list_tickets(ticketsResponseDTOList)
-                .build();
+            ListTicketNasabahResponseDTO listTicketNasabahResponseDTO = ListTicketNasabahResponseDTO.builder()
+                    .account_number(account_number)
+                    .list_tickets(ticketsResponseDTOList)
+                    .build();
 
-        logger.info(TICKET_MARKER, "IP {}, List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
+            logger.info(TICKET_MARKER, "IP {}, List Ticket for Nasabah {}", loggerService.getClientIp(), authentication.getName());
 
-        return PaginationDTO.builder()
-                .data(listTicketNasabahResponseDTO)
-                .currentPage(ticketsPage.getNumber())
-                .currentItem(ticketsPage.getNumberOfElements())
-                .totalPage(ticketsPage.getTotalPages())
-                .totalItem(ticketsPage.getTotalElements())
-                .build();
+            return PaginationDTO.builder()
+                    .data(listTicketNasabahResponseDTO)
+                    .currentPage(ticketsPage.getNumber())
+                    .currentItem(ticketsPage.getNumberOfElements())
+                    .totalPage(ticketsPage.getTotalPages())
+                    .totalItem(ticketsPage.getTotalElements())
+                    .build();
+        } catch (Exception e) {
+            logger.error(TICKET_MARKER, e.getMessage());
+            throw new Exception("Failed getting data");
+        }
     }
 
     private PaginationDTO adminTicketReports(
@@ -150,63 +162,69 @@ public class TicketReportsService implements TicketReportsInterface {
             String sort_by,
             String order,
             Authentication authentication
-    ) throws IllegalAccessException {
-        Admin admin = userRepository.findByUsername(authentication.getName()).getAdmin();
-        if (admin == null || !admin.getRole().getRoleName().equals("admin"))
-            throw new IllegalAccessException("Not Admin");
+    ) throws Exception {
+        try {
+            Admin admin = userRepository.findByUsername(authentication.getName()).getAdmin();
+            if (admin == null || !admin.getRole().getRoleName().equals("admin"))
+                throw new IllegalAccessException("Not Admin");
 
-        sort_by = convertSortBy(sort_by);
-        Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
-        List<Sort.Order> orders = new ArrayList<>();
-        orders.add(new Sort.Order(Sort.Direction.ASC, "ticketStatus"));
-        orders.add(new Sort.Order(sortDirection, sort_by));
-        Pageable pageable = PageRequest.of(page, limit, Sort.by(orders));
+            sort_by = convertSortBy(sort_by);
+            Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+            List<Sort.Order> orders = new ArrayList<>();
+            orders.add(new Sort.Order(Sort.Direction.ASC, "ticketStatus"));
+            orders.add(new Sort.Order(sortDirection, sort_by));
+            Pageable pageable = PageRequest.of(page, limit, Sort.by(orders));
 
-        Specification<Tickets> spec = getSpec(null, category, rating, status, start_date, end_date, ticket_number, created_at, division);
+            Specification<Tickets> spec = getSpec(null, category, rating, status, start_date, end_date, ticket_number, created_at, division);
 
-        Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
+            Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
 
-        if (ticketsPage.isEmpty()) {
-            List<Tickets> allTickets = ticketsRepository.findAll(spec, Sort.by(sortDirection, sort_by));
-            ticketsPage = new PageImpl<>(allTickets);
+            if (ticketsPage.isEmpty()) {
+                List<Tickets> allTickets = ticketsRepository.findAll(spec, Sort.by(sortDirection, sort_by));
+                ticketsPage = new PageImpl<>(allTickets);
+            }
+
+            List<TicketsResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
+                    .map(ticket -> TicketsResponseDTO.builder()
+                            .id(ticket.getId())
+                            .transaction_id(ticket.getTransaction().getId())
+                            .ticket_number(ticket.getTicketNumber())
+                            .ticket_category(ticket.getTicketCategory())
+                            .category(switch (ticket.getTicketCategory()) {
+                                case Transfer -> "Gagal Transfer";
+                                case TopUp -> "Gagal TopUp";
+                                case Payment -> "Gagal Payment";
+                                default -> null;
+                            })
+                            .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
+                            .status(switch (ticket.getTicketStatus()) {
+                                case Diajukan -> "Diajukan";
+                                case DalamProses -> "Dalam Proses";
+                                case Selesai -> "Selesai";
+                            })
+                            .division_target(ticket.getDivisionTarget())
+                            .rating(ticket.getTicketFeedback() == null ? 4 : ticket.getTicketFeedback().getStar_rating().getValue())
+                            .created_at(ticket.getCreatedAt())
+                            .updated_at(ticket.getUpdatedAt())
+                            .build())
+                    .collect(Collectors.toList());
+
+            if (ticketsResponseDTOList.isEmpty()) return null;
+
+            logger.info(TICKET_MARKER, "IP {}, Ticket Response List", loggerService.getClientIp());
+
+            return PaginationDTO.builder()
+                    .data(ticketsResponseDTOList)
+                    .currentPage(ticketsPage.getNumber())
+                    .currentItem(ticketsPage.getNumberOfElements())
+                    .totalPage(ticketsPage.getTotalPages())
+                    .totalItem(ticketsPage.getTotalElements())
+                    .build();
+
+        } catch (Exception e) {
+            logger.error(TICKET_MARKER, e.getMessage());
+            throw new Exception("Failed getting data");
         }
-
-        List<TicketsResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
-                .map(ticket -> TicketsResponseDTO.builder()
-                        .id(ticket.getId())
-                        .transaction_id(ticket.getTransaction().getId())
-                        .ticket_number(ticket.getTicketNumber())
-                        .ticket_category(ticket.getTicketCategory())
-                        .category(switch (ticket.getTicketCategory()) {
-                            case Transfer -> "Gagal Transfer";
-                            case TopUp -> "Gagal TopUp";
-                            case Payment -> "Gagal Payment";
-                            default -> null;
-                        })
-                        .time_response(ticket.getTicketResponseTime() == null ? 0 : ticket.getTicketResponseTime().getResponseTime())
-                        .status(switch (ticket.getTicketStatus()) {
-                            case Diajukan -> "Diajukan";
-                            case DalamProses -> "Dalam Proses";
-                            case Selesai -> "Selesai";
-                        })
-                        .division_target(ticket.getDivisionTarget())
-                        .rating(ticket.getTicketFeedback() == null ? 4 : ticket.getTicketFeedback().getStar_rating().getValue())
-                        .created_at(ticket.getCreatedAt())
-                        .updated_at(ticket.getUpdatedAt())
-                        .build())
-                .collect(Collectors.toList());
-
-        if (ticketsResponseDTOList.isEmpty()) return null;
-
-        logger.info(TICKET_MARKER, "IP {}, Ticket Response List", loggerService.getClientIp());
-
-        return PaginationDTO.builder()
-                .data(ticketsResponseDTOList)
-                .currentPage(ticketsPage.getNumber())
-                .currentItem(ticketsPage.getNumberOfElements())
-                .totalPage(ticketsPage.getTotalPages())
-                .totalItem(ticketsPage.getTotalElements())
-                .build();
     }
 
     private String convertSortBy(String sort_by) {

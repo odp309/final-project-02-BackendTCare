@@ -11,6 +11,7 @@ public class TicketsNasabahResponseDTO {
     private String ticket_number;
     private String transaction_type;
     private String ticket_date;
+    private int rating;
     private String ticket_description;
     private long amount;
     private String ticket_status;

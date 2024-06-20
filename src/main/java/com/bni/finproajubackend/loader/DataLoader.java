@@ -149,7 +149,7 @@ public class DataLoader {
 
                 // Membuat dan menyimpan transaksi untuk setiap akun
                 Bank bank = loadBank();
-                int size = 1000;
+                int size = 10;
                 for (int k = 1; k <= size; k++) {
                     Nasabah recipient = nasabahRepository.findByUsername("dimas27");
                     if (recipient != null) {
