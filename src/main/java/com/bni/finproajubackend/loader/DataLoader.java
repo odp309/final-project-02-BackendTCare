@@ -157,7 +157,7 @@ public class DataLoader {
                         Account recipient_account = accountRepository.findByNasabah(recipient);
                         Transaction transaction = loadTransaction(k, account, recipient_account, bank, "Transaction " + k, 500000L + k, "Berhasil", TransactionCategories.values()[k % TransactionCategories.values().length]);
                         if (k % 2 == 0) {
-                            loadTickets(transaction, k);
+                            loadTickets(transaction, k+1);
                         }
                     }
                 }
@@ -261,7 +261,7 @@ public class DataLoader {
             // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
             if (ticketStatus == TicketStatus.Selesai) {
                 addTicketResponeTime(ticket);
-                if (size / 2 > 2) addTicketFeedback(ticket, true);
+                if (size % 3 == 0) addTicketFeedback(ticket, true);
                 else addTicketFeedback(ticket, false);
                 addTicketReopened(ticket);
             }

@@ -231,6 +231,7 @@ public class TicketService implements TicketInterface {
         if (ticket == null) {
             throw new EntityNotFoundException("Ticket not found");
         }
+        Tickets ticket_reference = ticketsRepository.findByReferenceNumber(ticket.getTicketNumber());
 
         return CustomerTicketDetailsReportDTO.builder()
                 .reporter_detail(
@@ -262,6 +263,8 @@ public class TicketService implements TicketInterface {
                                     case Selesai -> "Selesai";
                                 })
                                 .reference_num(ticket.getReferenceNumber())
+                                .isReopened(ticket_reference != null)
+                                .next_reference_num(ticket_reference != null ? ticket_reference.getTicketNumber() : null)
                                 .build()
                 )
                 .build();
@@ -273,6 +276,7 @@ public class TicketService implements TicketInterface {
         if (ticket == null) {
             throw new EntityNotFoundException("Ticket not found");
         }
+        Tickets ticket_reference = ticketsRepository.findByReferenceNumber(ticket.getTicketNumber());
 
         return TicketDetailsReportDTO.builder()
                 .reporter_detail(
@@ -306,6 +310,8 @@ public class TicketService implements TicketInterface {
                                     case DalamProses -> "Dalam Proses";
                                     case Selesai -> "Selesai";
                                 })
+                                .isReopened(ticket_reference != null)
+                                .next_reference_num(ticket_reference != null ? ticket_reference.getTicketNumber() : null)
                                 .build()
                 )
                 .build();

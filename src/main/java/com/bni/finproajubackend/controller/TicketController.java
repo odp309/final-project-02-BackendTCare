@@ -100,8 +100,7 @@ public class TicketController {
     public ResponseEntity getTicketDetails(@PathVariable String ticket_number) {
         try {
             TicketDetailsReportDTO result = ticketService.getTicketDetails(ticket_number);
-            if (result == null)
-                return ResponseEntity.notFound().build();
+            if (result == null) return ResponseEntity.notFound().build();
             return ResponseEntity.ok(responseService.apiSuccess(result, "Success get ticket details"));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
