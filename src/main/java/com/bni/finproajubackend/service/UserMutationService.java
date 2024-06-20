@@ -71,7 +71,7 @@ public class UserMutationService implements UserMutationInterface {
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
                                 return null;
                             })
-                            .orElse("No Ticket");
+                            .orElse(null);
                     String transactionDetail = transaction.getTransaction_type() + " " + transaction.getRecipient_account().getNasabah().getFirst_name();
 
                     return new TransactionDTO(
@@ -136,7 +136,7 @@ public class UserMutationService implements UserMutationInterface {
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
                                 return null;
                             })
-                            .orElse("No Ticket");
+                            .orElse(null);
 
                     String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
@@ -196,7 +196,7 @@ public class UserMutationService implements UserMutationInterface {
                                 if (status == TicketStatus.Diajukan) return "Diajukan";
                                 return null;
                             })
-                            .orElse("No Ticket");
+                            .orElse(null);
 
                     String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
