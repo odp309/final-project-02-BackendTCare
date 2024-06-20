@@ -465,36 +465,17 @@ public class TicketService implements TicketInterface {
     @Override
     public CustomerTicketFeedbackResponseDTO getCustomerTicketFeedback(String ticket_number) {
         Tickets ticket = ticketsRepository.findByTicketNumber(ticket_number);
-        if (ticket == null) {
-            throw new RuntimeException("Ticket not found");
-        }
-
-        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicket(ticket).orElseGet(() -> {
-            TicketFeedback tFeed = new TicketFeedback();
-            tFeed.setTicket(ticket);
-            tFeed.setCreatedAt(LocalDateTime.now());
-            tFeed.setUpdatedAt(LocalDateTime.now());
-            tFeed.setStar_rating(StarRating.Empat);
-            return ticketFeedbackRepository.save(tFeed);
-        });
-
-        StarRating starRating = ticketFeedback.getStar_rating();
-        int rating;
-        if (starRating == null) {
-            rating = 0;  // Default to 0 if starRating is null
-        } else {
-            rating = switch (starRating) {
-                case Satu -> 1;
-                case Dua -> 2;
-                case Tiga -> 3;
-                case Empat -> 4;
-                case Lima -> 5;
-                default -> 0;
-            };
-        }
+        if (ticket == null) throw new RuntimeException("Ticket not found");
 
         return CustomerTicketFeedbackResponseDTO.builder()
-                .rating(rating)
+                .rating((ticket.getTicketFeedback() == null) ? 0 : (ticket.getTicketFeedback().getStar_rating() == null ? 0 :
+                        switch (ticket.getTicketFeedback().getStar_rating()) {
+                            case Satu -> 1;
+                            case Dua -> 2;
+                            case Tiga -> 3;
+                            case Empat -> 4;
+                            case Lima -> 5;
+                        }))
                 .build();
     }
 
