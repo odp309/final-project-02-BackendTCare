@@ -464,8 +464,14 @@ public class TicketService implements TicketInterface {
                     .account_number(transaction.getAccount().getAccountNumber())
                     .ticket_category(transaction.getCategory().toString())
                     .reopen_ticket(transaction.getTickets() != null)
-                    .reference_number(transaction.getTickets() != null ? transaction.getTickets().get(0).getTicketNumber() : null)
+                    .reference_number(transaction.getTickets().isEmpty() ? null : transaction.getTickets().get(0).getTicketNumber())
                     .build();
+        } catch (IndexOutOfBoundsException e){
+            logger.error(TICKETS_MARKER, "IP {}, List Out of Bounds", loggerService.getClientIp(), e);
+            throw new Exception("List Tickets not found");
+        } catch (EntityNotFoundException e){
+            logger.error(TICKETS_MARKER, "IP {}, Transaction Not Found", loggerService.getClientIp(), e);
+            throw new Exception("Transaction Not Found");
         } catch (Exception e) {
             logger.error(TICKETS_MARKER, "IP {}, Error getting form complaint", loggerService.getClientIp(), e);
             throw new Exception("Error getting customer ticket details");
