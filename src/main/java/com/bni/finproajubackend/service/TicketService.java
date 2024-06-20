@@ -231,6 +231,7 @@ public class TicketService implements TicketInterface {
         if (ticket == null) {
             throw new EntityNotFoundException("Ticket not found");
         }
+        Tickets ticket_reference = ticketsRepository.findByReferenceNumber(ticket.getTicketNumber());
 
         return CustomerTicketDetailsReportDTO.builder()
                 .reporter_detail(
@@ -262,6 +263,8 @@ public class TicketService implements TicketInterface {
                                     case Selesai -> "Selesai";
                                 })
                                 .reference_num(ticket.getReferenceNumber())
+                                .isReopened(ticket_reference != null)
+                                .next_reference_num(ticket_reference != null ? ticket_reference.getTicketNumber() : null)
                                 .build()
                 )
                 .build();
@@ -273,6 +276,7 @@ public class TicketService implements TicketInterface {
         if (ticket == null) {
             throw new EntityNotFoundException("Ticket not found");
         }
+        Tickets ticket_reference = ticketsRepository.findByReferenceNumber(ticket.getTicketNumber());
 
         return TicketDetailsReportDTO.builder()
                 .reporter_detail(
@@ -306,6 +310,8 @@ public class TicketService implements TicketInterface {
                                     case DalamProses -> "Dalam Proses";
                                     case Selesai -> "Selesai";
                                 })
+                                .isReopened(ticket_reference != null)
+                                .next_reference_num(ticket_reference != null ? ticket_reference.getTicketNumber() : null)
                                 .build()
                 )
                 .build();
@@ -516,21 +522,29 @@ public class TicketService implements TicketInterface {
             throw new RuntimeException("Ticket not found");
         }
 
-        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicket(ticket);
-        if (ticketFeedback == null) {
-            ticketFeedback = new TicketFeedback();
-            ticketFeedback.setTicket(ticket);
-            ticketFeedback.setStar_rating(StarRating.Empat);
-            ticketFeedback = ticketFeedbackRepository.save(ticketFeedback);
-        }
+        TicketFeedback ticketFeedback = ticketFeedbackRepository.findByTicket(ticket).orElseGet(() -> {
+            TicketFeedback tFeed = new TicketFeedback();
+            tFeed.setTicket(ticket);
+            tFeed.setCreatedAt(LocalDateTime.now());
+            tFeed.setUpdatedAt(LocalDateTime.now());
+            tFeed.setStar_rating(StarRating.Empat);
+            return ticketFeedbackRepository.save(tFeed);
+        });
 
-        int rating = switch (ticketFeedback.getStar_rating()) {
-            case Satu -> 1;
-            case Dua -> 2;
-            case Tiga -> 3;
-            case Lima -> 5;
-            default -> 4;
-        };
+        StarRating starRating = ticketFeedback.getStar_rating();
+        int rating;
+        if (starRating == null) {
+            rating = 0;  // Default to 0 if starRating is null
+        } else {
+            rating = switch (starRating) {
+                case Satu -> 1;
+                case Dua -> 2;
+                case Tiga -> 3;
+                case Empat -> 4;
+                case Lima -> 5;
+                default -> 0;
+            };
+        }
 
         return CustomerTicketFeedbackResponseDTO.builder()
                 .rating(rating)
@@ -550,10 +564,8 @@ public class TicketService implements TicketInterface {
             throw new RuntimeException("Ticket not found");
         }
 
-        TicketFeedback existingFeedback = ticketFeedbackRepository.findByTicket(ticket);
-        if (existingFeedback != null) {
-            throw new RuntimeException("Feedback for this ticket already exists");
-        }
+        TicketFeedback existingFeedback = ticketFeedbackRepository.findByTicket(ticket)
+                .orElseThrow(() -> new RuntimeException("Feedback for this ticket already exists"));
 
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicket(ticket);
@@ -566,7 +578,7 @@ public class TicketService implements TicketInterface {
 
         CreateFeedbackResponseDTO.FeedbackDetails feedbackDetails = new CreateFeedbackResponseDTO.FeedbackDetails();
         feedbackDetails.setTicket_number(actualTicketNumber);
-        feedbackDetails.setRating(feedback.getStar_rating() != null? feedback.getStar_rating().getValue() : 0);
+        feedbackDetails.setRating(feedback.getStar_rating() != null ? feedback.getStar_rating().getValue() : 0);
         feedbackDetails.setComment(feedback.getComment());
         feedbackDetails.setCreatedAt(feedback.getCreatedAt());
         feedbackDetails.setUpdatedAt(feedback.getUpdatedAt());
