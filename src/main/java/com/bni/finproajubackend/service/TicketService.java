@@ -79,7 +79,7 @@ public class TicketService implements TicketInterface {
             ticket.setTicketStatus(nextStatus);
             ticketsRepository.save(ticket);
 
-            if(nextStatus == TicketStatus.Selesai){
+            if (nextStatus == TicketStatus.Selesai) {
                 ticket.setIsClosed(true);
             }
 
@@ -496,26 +496,40 @@ public class TicketService implements TicketInterface {
         }
 
         TicketFeedback existingFeedback = ticketFeedbackRepository.findByTicket(ticket)
-                .orElseThrow(() -> new RuntimeException("Feedback for this ticket already exists"));
+                .orElseGet(() -> {
+                    TicketFeedback feedback = new TicketFeedback();
+                    feedback.setTicket(ticket);
+                    feedback.setStar_rating(requestDTO.getRating() != 0 ? StarRating.fromValue(requestDTO.getRating()) : null); // Set default rating if null
+                    feedback.setComment(requestDTO.getComment());
+                    feedback.setCreatedAt(LocalDateTime.now());
+                    feedback.setUpdatedAt(LocalDateTime.now());
+                    ticketFeedbackRepository.save(feedback);
+                    return feedback;
+                });
 
-        TicketFeedback feedback = new TicketFeedback();
-        feedback.setTicket(ticket);
-        feedback.setStar_rating(requestDTO.getRating() != 0 ? StarRating.fromValue(requestDTO.getRating()) : null); // Set default rating if null
-        feedback.setComment(requestDTO.getComment());
-        feedback.setCreatedAt(LocalDateTime.now());
-        feedback.setUpdatedAt(LocalDateTime.now());
+        existingFeedback.setStar_rating(switch (requestDTO.getRating()) {
+            case 1 -> StarRating.Satu;
+            case 2 -> StarRating.Dua;
+            case 3 -> StarRating.Tiga;
+            case 4 -> StarRating.Empat;
+            case 5 -> StarRating.Lima;
+            default -> null;
+        });
+        existingFeedback.setComment(requestDTO.getComment());
+        existingFeedback.setCreatedAt(LocalDateTime.now());
+        existingFeedback.setUpdatedAt(LocalDateTime.now());
 
-        ticketFeedbackRepository.save(feedback);
+        ticketFeedbackRepository.save(existingFeedback);
 
-        CreateFeedbackResponseDTO.FeedbackDetails feedbackDetails = new CreateFeedbackResponseDTO.FeedbackDetails();
-        feedbackDetails.setTicket_number(actualTicketNumber);
-        feedbackDetails.setRating(feedback.getStar_rating() != null ? feedback.getStar_rating().getValue() : 0);
-        feedbackDetails.setComment(feedback.getComment());
-        feedbackDetails.setCreatedAt(feedback.getCreatedAt());
-        feedbackDetails.setUpdatedAt(feedback.getUpdatedAt());
+        CreateFeedbackResponseDTO.FeedbackDetails result = new CreateFeedbackResponseDTO.FeedbackDetails();
+        result.setRating(existingFeedback.getStar_rating().getValue());
+        result.setComment(existingFeedback.getComment());
+        result.setTicket_number(existingFeedback.getTicket().getTicketNumber());
+        result.setCreatedAt(existingFeedback.getCreatedAt());
+        result.setUpdatedAt(existingFeedback.getUpdatedAt());
 
-        CreateFeedbackResponseDTO responseDTO = new CreateFeedbackResponseDTO(feedbackDetails);
-
-        return responseDTO;
+        return CreateFeedbackResponseDTO.builder()
+                .result(result)
+                .build();
     }
 }
