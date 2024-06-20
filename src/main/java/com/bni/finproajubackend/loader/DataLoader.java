@@ -13,6 +13,7 @@ import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.bni.finproajubackend.repository.*;
+import org.hibernate.sql.ast.tree.expression.Star;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -149,14 +150,14 @@ public class DataLoader {
 
                 // Membuat dan menyimpan transaksi untuk setiap akun
                 Bank bank = loadBank();
-                int size = 10;
+                int size = 100;
                 for (int k = 1; k <= size; k++) {
                     Nasabah recipient = nasabahRepository.findByUsername("dimas27");
                     if (recipient != null) {
                         Account recipient_account = accountRepository.findByNasabah(recipient);
                         Transaction transaction = loadTransaction(k, account, recipient_account, bank, "Transaction " + k, 500000L + k, "Berhasil", TransactionCategories.values()[k % TransactionCategories.values().length]);
                         if (k % 2 == 0) {
-                            loadTickets(transaction);
+                            loadTickets(transaction, k);
                         }
                     }
                 }
@@ -217,7 +218,7 @@ public class DataLoader {
         return transaction;
     }
 
-    private void loadTickets(Transaction transaction) {
+    private void loadTickets(Transaction transaction, int size) {
         Admin admin = adminRepository.findByUsername("admin12");
         if (transaction.getTransaction_type() == TransactionType.Out) {
             // Mengatur kategori tiket berdasarkan kategori transaksi
@@ -260,7 +261,8 @@ public class DataLoader {
             // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
             if (ticketStatus == TicketStatus.Selesai) {
                 addTicketResponeTime(ticket);
-                addTicketFeedback(ticket);
+                if (size / 2 > 2) addTicketFeedback(ticket, true);
+                else addTicketFeedback(ticket, false);
                 addTicketReopened(ticket);
             }
 
@@ -333,14 +335,15 @@ public class DataLoader {
 
         LocalDateTime createdAt = transaction.getCreatedAt();
         if (tickets != null) {
-            createdAt = LocalDateTime.of(tickets.getCreatedAt().getYear(), tickets.getCreatedAt().getMonthValue(), tickets.getCreatedAt().getDayOfMonth(), 0, 0);;
+            createdAt = LocalDateTime.of(tickets.getCreatedAt().getYear(), tickets.getCreatedAt().getMonthValue(), tickets.getCreatedAt().getDayOfMonth(), 0, 0);
+            ;
         }
         String year = String.valueOf(createdAt.getYear()); // Mengambil dua digit terakhir dari tahun
         String month = String.format("%02d", createdAt.getMonthValue());
         String day = String.format("%02d", createdAt.getDayOfMonth());
 
         String transactionId = String.valueOf(transaction.getId());
-        if(tickets != null)
+        if (tickets != null)
             transactionId = transactionId + "0";
         String baseTicketNumber = categoryCode + year + month + day + transactionId;
 
@@ -352,12 +355,13 @@ public class DataLoader {
         return categoryCode + year + month + day + transactionId;
     }
 
-    private void addTicketFeedback(Tickets ticket) {
+    private void addTicketFeedback(Tickets ticket, boolean isTicketFeedback) {
         // Membuat objek masukan tiket secara acak
         StarRating starRating = StarRating.values()[new Random().nextInt(StarRating.values().length)];
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicket(ticket);
-        feedback.setStar_rating(starRating);
+        if (isTicketFeedback) feedback.setStar_rating(null);
+        else feedback.setStar_rating(starRating);
         feedback.setComment("Terima kasih atas pelayanan yang baik.");
 
         // Menyimpan masukan tiket

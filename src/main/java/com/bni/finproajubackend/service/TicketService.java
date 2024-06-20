@@ -64,7 +64,7 @@ public class TicketService implements TicketInterface {
     @Autowired
     private AccountRepository accountRepository;
 
-//    @Transactional
+    //    @Transactional
 //    public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
 //        Tickets ticket = ticketsRepository.findById(ticketId).orElseThrow(() -> new RuntimeException("Ticket not found"));
 //        TicketStatus oldStatus = ticket.getTicketStatus();
@@ -203,8 +203,8 @@ public class TicketService implements TicketInterface {
     private Long getStatusLevel(TicketStatus status) {
         return status == TicketStatus.Diajukan ? 2L :
                 status == TicketStatus.DalamProses ? 3L :
-                    status == TicketStatus.Selesai ? 4L :
-                        5L;
+                        status == TicketStatus.Selesai ? 4L :
+                                5L;
     }
 
     private void handleTicketResponseTime(Tickets ticket) {
@@ -466,10 +466,10 @@ public class TicketService implements TicketInterface {
                     .reopen_ticket(transaction.getTickets() != null)
                     .reference_number(transaction.getTickets().isEmpty() ? null : transaction.getTickets().get(0).getTicketNumber())
                     .build();
-        } catch (IndexOutOfBoundsException e){
+        } catch (IndexOutOfBoundsException e) {
             logger.error(TICKETS_MARKER, "IP {}, List Out of Bounds", loggerService.getClientIp(), e);
             throw new Exception("List Tickets not found");
-        } catch (EntityNotFoundException e){
+        } catch (EntityNotFoundException e) {
             logger.error(TICKETS_MARKER, "IP {}, Transaction Not Found", loggerService.getClientIp(), e);
             throw new Exception("Transaction Not Found");
         } catch (Exception e) {
@@ -486,7 +486,7 @@ public class TicketService implements TicketInterface {
                             .orElseThrow(() -> new RuntimeException("Ticket not found"));
                     TicketFeedback newFeedback = new TicketFeedback();
                     newFeedback.setTicket(ticket);
-                    newFeedback.setStar_rating(StarRating.Empat);
+                    newFeedback.setStar_rating(null);
                     newFeedback.setComment("");
                     return ticketFeedbackRepository.save(newFeedback);
                 });
@@ -495,12 +495,13 @@ public class TicketService implements TicketInterface {
             case Satu -> 1;
             case Dua -> 2;
             case Tiga -> 3;
+            case Empat -> 4;
             case Lima -> 5;
-            default -> 4;
+            default -> 0;
         };
 
         return TicketFeedbackResponseDTO.builder()
-                .rating(rating)
+                .rating(rating == 0 ? null : rating)
                 .comment(ticketFeedback.getComment())
                 .build();
     }
@@ -557,7 +558,7 @@ public class TicketService implements TicketInterface {
 
         CreateFeedbackResponseDTO.FeedbackDetails feedbackDetails = new CreateFeedbackResponseDTO.FeedbackDetails();
         feedbackDetails.setTicket_number(requestDTO.getTicket_number());
-        feedbackDetails.setRating(feedback.getStar_rating() != null? feedback.getStar_rating().getValue() : 0);
+        feedbackDetails.setRating(feedback.getStar_rating() != null ? feedback.getStar_rating().getValue() : 0);
         feedbackDetails.setComment(feedback.getComment());
         feedbackDetails.setCreatedAt(feedback.getCreatedAt());
         feedbackDetails.setUpdatedAt(feedback.getUpdatedAt());
