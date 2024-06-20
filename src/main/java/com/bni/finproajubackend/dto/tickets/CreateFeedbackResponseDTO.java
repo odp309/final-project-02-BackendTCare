@@ -30,6 +30,7 @@ public class CreateFeedbackResponseDTO {
     // Inner class for feedback details
     @Setter
     @Getter
+    @Builder
     public static class FeedbackDetails {
         // Getters and Setters
         private String ticket_number;

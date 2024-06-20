@@ -516,20 +516,18 @@ public class TicketService implements TicketInterface {
             default -> null;
         });
         existingFeedback.setComment(requestDTO.getComment());
-        existingFeedback.setCreatedAt(LocalDateTime.now());
         existingFeedback.setUpdatedAt(LocalDateTime.now());
 
         ticketFeedbackRepository.save(existingFeedback);
 
-        CreateFeedbackResponseDTO.FeedbackDetails result = new CreateFeedbackResponseDTO.FeedbackDetails();
-        result.setRating(existingFeedback.getStar_rating().getValue());
-        result.setComment(existingFeedback.getComment());
-        result.setTicket_number(existingFeedback.getTicket().getTicketNumber());
-        result.setCreatedAt(existingFeedback.getCreatedAt());
-        result.setUpdatedAt(existingFeedback.getUpdatedAt());
-
         return CreateFeedbackResponseDTO.builder()
-                .result(result)
+                .result(CreateFeedbackResponseDTO.FeedbackDetails.builder()
+                        .rating(existingFeedback.getStar_rating().getValue())
+                        .comment(existingFeedback.getComment())
+                        .ticket_number(existingFeedback.getTicket().getTicketNumber())
+                        .createdAt(existingFeedback.getCreatedAt())
+                        .updatedAt(existingFeedback.getUpdatedAt())
+                        .build())
                 .build();
     }
 }
