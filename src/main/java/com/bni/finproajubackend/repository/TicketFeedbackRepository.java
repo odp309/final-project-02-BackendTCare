@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @Repository
 public interface TicketFeedbackRepository extends JpaRepository<TicketFeedback, Long> {
-    TicketFeedback findByTicket (Tickets tickets);
+    Optional<TicketFeedback> findByTicket (Tickets tickets);
 
     Optional<TicketFeedback> findByTicketId(Long ticketId);
 }

@@ -157,7 +157,7 @@ public class DataLoader {
                         Account recipient_account = accountRepository.findByNasabah(recipient);
                         Transaction transaction = loadTransaction(k, account, recipient_account, bank, "Transaction " + k, 500000L + k, "Berhasil", TransactionCategories.values()[k % TransactionCategories.values().length]);
                         if (k % 2 == 0) {
-                            loadTickets(transaction, k);
+                            loadTickets(transaction, k + 1);
                         }
                     }
                 }
@@ -261,7 +261,7 @@ public class DataLoader {
             // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
             if (ticketStatus == TicketStatus.Selesai) {
                 addTicketResponeTime(ticket);
-                if (size / 2 > 2) addTicketFeedback(ticket, true);
+                if (size % 3 == 0) addTicketFeedback(ticket, true);
                 else addTicketFeedback(ticket, false);
                 addTicketReopened(ticket);
             }
@@ -360,9 +360,15 @@ public class DataLoader {
         StarRating starRating = StarRating.values()[new Random().nextInt(StarRating.values().length)];
         TicketFeedback feedback = new TicketFeedback();
         feedback.setTicket(ticket);
-        if (isTicketFeedback) feedback.setStar_rating(null);
-        else feedback.setStar_rating(starRating);
-        feedback.setComment("Terima kasih atas pelayanan yang baik.");
+        if (isTicketFeedback) {
+            feedback.setStar_rating(null);
+            feedback.setComment("");
+        } else {
+            feedback.setComment("Terima kasih atas pelayanan yang baik.");
+            feedback.setStar_rating(starRating);
+        }
+        feedback.setCreatedAt(LocalDateTime.now());
+        feedback.setUpdatedAt(LocalDateTime.now());
 
         // Menyimpan masukan tiket
         ticketFeedbackRepository.save(feedback);

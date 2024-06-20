@@ -114,7 +114,7 @@ public class TicketReportsService implements TicketReportsInterface {
                             .transaction_type(ticket.getTransaction().getTransaction_type().toString())
                             .ticket_date(ticket.getCreatedAt().toString())
                             .amount(ticket.getTransaction().getAmount())
-                            .rating(ticket.getTicketFeedback() == null ? 0 : (ticket.getTicketFeedback().getStar_rating() == null ? 0 :
+                            .rating((ticket.getTicketFeedback() == null) ? 0 : (ticket.getTicketFeedback().getStar_rating() == null ? 0 :
                                     switch (ticket.getTicketFeedback().getStar_rating()) {
                                         case Satu -> 1;
                                         case Dua -> 2;

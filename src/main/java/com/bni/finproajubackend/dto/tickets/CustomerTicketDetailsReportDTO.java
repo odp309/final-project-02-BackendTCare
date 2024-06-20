@@ -25,7 +25,6 @@ public class CustomerTicketDetailsReportDTO {
     public static class ReportDetail {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime transaction_date;
-
         private String transaction_number;
         private long amount;
         private String category;
@@ -37,9 +36,10 @@ public class CustomerTicketDetailsReportDTO {
     public static class ReportStatusDetail {
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
         private LocalDateTime report_date;
-
         private String ticket_number;
         private String status;
         private String reference_num;
+        private boolean isReopened;
+        private String next_reference_num;
     }
 }
