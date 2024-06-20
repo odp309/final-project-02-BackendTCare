@@ -155,10 +155,13 @@ public class TicketController {
         }
     }
 
-    @PostMapping(value = "/customer/ticket-reports/create-feedback", produces = "application/json")
-    public ResponseEntity<TemplateResponseDTO<Object>> createFeedback(@Valid @RequestBody CreateFeedbackRequestDTO requestDTO) {
+    @PutMapping(value = "/customer/ticket-reports/create-feedback", produces = "application/json")
+    public ResponseEntity<TemplateResponseDTO<Object>> createFeedback(
+            @Valid @RequestBody CreateFeedbackRequestDTO requestDTO,
+            @RequestParam(required = false) String ticket_number,
+            Authentication authentication) {
         try {
-            CreateFeedbackResponseDTO responseDTO = ticketService.createFeedback(requestDTO);
+            CreateFeedbackResponseDTO responseDTO = ticketService.createFeedback(requestDTO, ticket_number, authentication);
             return ResponseEntity.ok(responseService.apiSuccess(responseDTO, "Feedback Created Successfully"));
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -6,8 +6,11 @@ import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import jakarta.mail.MessagingException;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -33,6 +36,8 @@ public interface TicketInterface {
 
     CustomerTicketFeedbackResponseDTO getCustomerTicketFeedback(String ticket_number);
 
-    CreateFeedbackResponseDTO createFeedback(CreateFeedbackRequestDTO requestDTO);
+    CreateFeedbackResponseDTO createFeedback(CreateFeedbackRequestDTO requestDTO,
+                                             String ticket_number,
+                                             Authentication authentication);
 
 }
