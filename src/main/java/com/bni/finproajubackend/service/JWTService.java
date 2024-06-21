@@ -41,7 +41,7 @@ public class JWTService implements JWTInterface {
                 .claim("firstName", user.getAdmin() == null ? user.getNasabah().getFirst_name() : user.getAdmin().getFirstName() )
                 .claim("lastName", user.getAdmin() == null ? user.getNasabah().getLast_name() : user.getAdmin().getLastName() )
                 .claim("role", user.getAdmin() == null ? "nasabah" : user.getAdmin().getRole().getRoleName())
-                .claim("division", user.getAdmin() == null ? null : user.getAdmin().getDivisionTarget().name())
+                .claim("division", user.getAdmin() == null ? "Customer" : user.getAdmin().getDivisionTarget().name())
                 .expiration(Date.from(expirationTime))
                 .signWith(getJWTKey())
                 .compact();
