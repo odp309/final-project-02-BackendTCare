@@ -38,7 +38,6 @@ public class JWTService implements JWTInterface {
         return Jwts
                 .builder()
                 .subject(user.getUsername())
-                .claim("id", user.getId())
                 .claim("firstName", user.getAdmin() == null ? user.getNasabah().getFirst_name() : user.getAdmin().getFirstName() )
                 .claim("lastName", user.getAdmin() == null ? user.getNasabah().getLast_name() : user.getAdmin().getLastName() )
                 .claim("role", user.getAdmin() == null ? "nasabah" : user.getAdmin().getRole().getRoleName())
