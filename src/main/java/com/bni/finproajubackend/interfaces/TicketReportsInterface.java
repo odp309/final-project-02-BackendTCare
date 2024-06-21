@@ -21,5 +21,5 @@ public interface TicketReportsInterface {
             @RequestParam(required = false, defaultValue = "created_at") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order,
             Authentication authentication
-    ) throws IllegalAccessException;
+    ) throws Exception;
 }
