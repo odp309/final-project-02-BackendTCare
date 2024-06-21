@@ -73,13 +73,17 @@ public class DataLoader {
             return;
         }
 
-        Role role = new Role();
-        role.setRoleName("admin");
-        role.setDivisionName("System");
-        role.setRoleDescription("Role untuk admin");
-        roleRepository.save(role);
+        String[] roles = {"system", "wpp", "dgo", "cxc"};
+        for (String name : roles) {
+            Role role = new Role();
+            role.setRoleName("admin_"+name);
+            role.setDivisionName(name);
+            role.setRoleDescription("Role untuk "+name);
+            roleRepository.save(role);
+        }
 
         String[] usernames = {"admin", "wpp1", "wpp2", "wpp3", "dgo1", "dgo2", "dgo3", "cxc1", "cxc2", "cxc3"};
+        String[] rolesforadmin = {"system", "wpp", "wpp", "wpp", "dgo", "dgo", "dgo", "cxc", "cxc", "cxc"};
         String[] addresses = {"Balige", "Pontianak", "Bumi Serpong Damai", "Pandeglang", "Surabaya", "Cirebon", "Medan", "Lamongan", "Lampung", "Bandung"};
         String[] emails = {"daji18201@gmail.com", "alvin.alamien@gmail.com", "iqbal010698@gmail.com", "ratuannisag@gmail.com", "anandariskiwp@gmail.com", "himawanhidan@gmail.com", "fredrick.theodorus@gmail.com", "alfanmarzaqi@gmail.com", "fajru234@gmail.com", "milyandaaa@gmail.com"};
         String[] firstNames = {"Dimas", "Alvin", "Iqbal", "Ratu", "Kiki", "Himawan", "Fredrick", "Alfan", "Fajru", "Milyanda"};
@@ -102,7 +106,7 @@ public class DataLoader {
             admin.setAddress(addresses[i]);
             admin.setNoHP(noHPs[i]);
             admin.setAge(20);
-            admin.setRole(role);
+            admin.setRole(roleRepository.findByDivisionName(rolesforadmin[i]).getRole());
             admin.setUser(user);
             adminRepository.save(admin);
 
@@ -261,7 +265,7 @@ public class DataLoader {
                     .ticketStatus(ticketStatus)
                     .admin(admin)
                     .divisionTarget(divisionTarget)
-                    .admin(adminRepository.findByDivisionName())
+                    .admin(roleRepository.findByDivisionName(categories.name()))
                     .description("Ticket for " + transaction.getDetail())
                     .createdAt(generateRandomDateTime(null))
                     .updatedAt(generateRandomDateTime(null))
