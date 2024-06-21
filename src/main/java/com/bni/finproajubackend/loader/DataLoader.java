@@ -23,10 +23,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Random;
+import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Component
@@ -78,27 +75,40 @@ public class DataLoader {
 
         Role role = new Role();
         role.setRoleName("admin");
+        role.setDivisionName("System");
         role.setRoleDescription("Role untuk admin");
         roleRepository.save(role);
 
-        User user = new User("admin12", passwordEncoder.encode("12345678"));
-        userRepository.save(user);
+        String[] usernames = {"admin", "wpp1", "wpp2", "wpp3", "dgo1", "dgo2", "dgo3", "cxc1", "cxc2", "cxc3"};
+        String[] addresses = {"Balige", "Pontianak", "Bumi Serpong Damai", "Pandeglang", "Surabaya", "Cirebon", "Medan", "Lamongan", "Lampung", "Bandung"};
+        String[] emails = {"daji18201@gmail.com", "alvin.alamien@gmail.com", "iqbal010698@gmail.com", "ratuannisag@gmail.com", "anandariskiwp@gmail.com", "himawanhidan@gmail.com", "fredrick.theodorus@gmail.com", "alfanmarzaqi@gmail.com", "fajru234@gmail.com", "milyandaaa@gmail.com"};
+        String[] firstNames = {"Dimas", "Alvin", "Iqbal", "Ratu", "Kiki", "Himawan", "Fredrick", "Alfan", "Fajru", "Milyanda"};
+        String[] lastNames = {"Pangestu", "Dwi", "Naufal", "Gandasari", "Widya", "Yoga", "Pardosi", "Arzaqi", "Ramadhan", "Vania"};
+        String[] npp = {"T094459", "T094457", "T094455", "T094451", "T094450", "T094424", "T092574", "T095935", "T094421", "T094423"};
+        String[] noHPs = {"082265746357", "082256783458", "082256783478", "082256781478", "081256781478", "081356781478", "083356781478", "082356781478", "082356781448", "082356781848"};
+        Gender[] genders = {Gender.Male, Gender.Male, Gender.Male, Gender.Female, Gender.Female, Gender.Male, Gender.Male, Gender.Male, Gender.Male, Gender.Female};
 
-        Admin admin = new Admin();
-        admin.setNpp("T094459");
-        admin.setFirstName("aju");
-        admin.setLastName("agoy");
-        admin.setEmail("aju@gmail.com");
-        admin.setGender(Gender.Male);
-        admin.setAddress("Jakarta");
-        admin.setNoHP("082526365969");
-        admin.setAge(20);
-        admin.setRole(role);
-        admin.setUser(user);
-        adminRepository.save(admin);
 
-        user.setAdmin(admin);
-        userRepository.save(user);
+        for (int i = 0; i < Arrays.stream(usernames).count(); i++) {
+            User user = new User(usernames[i], passwordEncoder.encode("12345678"));
+            userRepository.save(user);
+
+            Admin admin = new Admin();
+            admin.setNpp(npp[i]);
+            admin.setFirstName(firstNames[i]);
+            admin.setLastName(lastNames[i]);
+            admin.setEmail(emails[i]);
+            admin.setGender(genders[i]);
+            admin.setAddress(addresses[i]);
+            admin.setNoHP(noHPs[i]);
+            admin.setAge(20);
+            admin.setRole(role);
+            admin.setUser(user);
+            adminRepository.save(admin);
+
+            user.setAdmin(admin);
+            userRepository.save(user);
+        }
     }
 
     private void loadNasabah() {
@@ -251,7 +261,7 @@ public class DataLoader {
                     .ticketStatus(ticketStatus)
                     .admin(admin)
                     .divisionTarget(divisionTarget)
-                    .admin(adminRepository.findByUsername("admin12"))
+                    .admin(adminRepository.findByDivisionName())
                     .description("Ticket for " + transaction.getDetail())
                     .createdAt(generateRandomDateTime(null))
                     .updatedAt(generateRandomDateTime(null))

@@ -277,13 +277,15 @@ public class TicketService implements TicketInterface {
         };
 
         LocalDateTime createdAt = transaction.getCreatedAt();
-        String year = String.valueOf(createdAt.getYear());
+        String year = String.format("%02d", createdAt.getYear());
         String month = String.format("%02d", createdAt.getMonthValue());
         String day = String.format("%02d", createdAt.getDayOfMonth());
-
+        String hour = String.format("%02d", createdAt.getHour());
+        String minute = String.format("%02d", createdAt.getMinute());
+        String second = String.format("%02d", createdAt.getSecond());
         String transactionId = String.format("%010d", transaction.getId());
 
-        return categoryCode + year + month + day + transactionId;
+        return categoryCode + year + month + day + hour + minute + second + transactionId;
     }
 
     @Override
@@ -362,8 +364,10 @@ public class TicketService implements TicketInterface {
 
             if (recipientSize == 0) {
                 processTicket(tickets, "IP {}, Transaction not found, Continuing ticket to division");
+                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan diproses", 3L);
             } else if (recipientSize == 1) {
                 processTicket(tickets, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
+                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan diproses", 3L);
             } else {
                 processTicket(tickets, "IP {}, Transaction found, Closing Tickets by System");
                 createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan selesai diproses", 4L);
