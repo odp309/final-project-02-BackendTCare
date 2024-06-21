@@ -73,17 +73,13 @@ public class DataLoader {
             return;
         }
 
-        String[] roles = {"system", "wpp", "dgo", "cxc"};
-        for (String name : roles) {
-            Role role = new Role();
-            role.setRoleName("admin_"+name);
-            role.setDivisionName(name);
-            role.setRoleDescription("Role untuk "+name);
-            roleRepository.save(role);
-        }
+        Role role = new Role();
+        role.setRoleName("admin");
+        role.setRoleDescription("Role untuk admin");
+        roleRepository.save(role);
 
-        String[] usernames = {"admin", "wpp1", "wpp2", "wpp3", "dgo1", "dgo2", "dgo3", "cxc1", "cxc2", "cxc3"};
-        String[] rolesforadmin = {"system", "wpp", "wpp", "wpp", "dgo", "dgo", "dgo", "cxc", "cxc", "cxc"};
+        String[] usernames = {"admin12", "wpp1Admin", "wpp2Admin", "wpp3Admin", "dgo1Admin", "dgo2Admin", "dgo3Admin", "cxc1Admin", "cxc2Admin", "cxc3Admin"};
+        DivisionTarget[] rolesforadmin = {null, DivisionTarget.WPP, DivisionTarget.WPP, DivisionTarget.WPP, DivisionTarget.DGO, DivisionTarget.DGO, DivisionTarget.DGO, DivisionTarget.CXC, DivisionTarget.CXC, DivisionTarget.CXC};
         String[] addresses = {"Balige", "Pontianak", "Bumi Serpong Damai", "Pandeglang", "Surabaya", "Cirebon", "Medan", "Lamongan", "Lampung", "Bandung"};
         String[] emails = {"daji18201@gmail.com", "alvin.alamien@gmail.com", "iqbal010698@gmail.com", "ratuannisag@gmail.com", "anandariskiwp@gmail.com", "himawanhidan@gmail.com", "fredrick.theodorus@gmail.com", "alfanmarzaqi@gmail.com", "fajru234@gmail.com", "milyandaaa@gmail.com"};
         String[] firstNames = {"Dimas", "Alvin", "Iqbal", "Ratu", "Kiki", "Himawan", "Fredrick", "Alfan", "Fajru", "Milyanda"};
@@ -100,13 +96,14 @@ public class DataLoader {
             Admin admin = new Admin();
             admin.setNpp(npp[i]);
             admin.setFirstName(firstNames[i]);
+            admin.setDivisionTarget(rolesforadmin[i]);
             admin.setLastName(lastNames[i]);
             admin.setEmail(emails[i]);
             admin.setGender(genders[i]);
             admin.setAddress(addresses[i]);
             admin.setNoHP(noHPs[i]);
             admin.setAge(20);
-            admin.setRole(roleRepository.findByDivisionName(rolesforadmin[i]).getRole());
+            admin.setRole(role);
             admin.setUser(user);
             adminRepository.save(admin);
 
@@ -257,6 +254,8 @@ public class DataLoader {
                 default -> TicketStatus.Diajukan; // Nilai default jika terjadi kesalahan
             };
 
+            Admin admins = adminRepository.findByUsername(divisionTarget.name().toLowerCase() + "1Admin");
+
             // Membuat objek tiket baru
             Tickets ticket = Tickets.builder()
                     .ticketNumber(createTicketNumber(transaction, null))
@@ -265,7 +264,7 @@ public class DataLoader {
                     .ticketStatus(ticketStatus)
                     .admin(admin)
                     .divisionTarget(divisionTarget)
-                    .admin(roleRepository.findByDivisionName(categories.name()))
+                    .admin(admins)
                     .description("Ticket for " + transaction.getDetail())
                     .createdAt(generateRandomDateTime(null))
                     .updatedAt(generateRandomDateTime(null))

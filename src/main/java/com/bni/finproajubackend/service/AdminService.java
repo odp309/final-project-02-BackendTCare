@@ -39,6 +39,7 @@ public class AdminService implements AdminInterface {
 
         return AdminResponseDTO.builder()
                 .id(user.getId())
+                .division(user.getAdmin().getDivisionTarget().name())
                 .email(user.getAdmin().getEmail())
                 .noHP(user.getAdmin().getNoHP())
                 .firstName(user.getAdmin().getFirstName())

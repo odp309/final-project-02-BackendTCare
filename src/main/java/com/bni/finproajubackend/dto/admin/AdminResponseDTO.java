@@ -17,5 +17,6 @@ public class AdminResponseDTO {
     private int age;
     private String address;
     private String npp;
+    private String division;
     private Role role;
 }
