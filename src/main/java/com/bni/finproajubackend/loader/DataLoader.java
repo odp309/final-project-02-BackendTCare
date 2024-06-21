@@ -261,9 +261,12 @@ public class DataLoader {
             // Jika status tiket adalah "Selesai", tambahkan masukan untuk tiket
             if (ticketStatus == TicketStatus.Selesai) {
                 addTicketResponeTime(ticket);
-                if (size % 3 == 0) addTicketFeedback(ticket, true);
-                else addTicketFeedback(ticket, false);
-                addTicketReopened(ticket);
+                if (size % 3 == 0) {
+                    addTicketFeedback(ticket, true);
+                    addTicketReopened(ticket);
+                } else {
+                    addTicketFeedback(ticket, false);
+                }
             }
 
             // Load ticket history

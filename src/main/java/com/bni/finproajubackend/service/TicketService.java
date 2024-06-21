@@ -295,7 +295,7 @@ public class TicketService implements TicketInterface {
         if (!transaction.getTickets().isEmpty())
             latestTickets = transaction.getTickets().get(0);
 
-        if (latestTickets.getTicketStatus() == TicketStatus.Selesai)
+        if (latestTickets.getTicketStatus() != TicketStatus.Selesai && latestTickets.getTicketStatus() != null)
             throw new BadRequestException("Request is not valid");
 
         TicketCategories category = switch (transaction.getCategory()) {
