@@ -1,6 +1,7 @@
 package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.model.enumobject.TicketStatus;
+import com.bni.finproajubackend.model.enumobject.TransactionCategories;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -88,7 +89,9 @@ public class EmailService {
             LocalDateTime transactionDate = ticket.getTransaction().getCreatedAt();
             Long amount = ticket.getTransaction().getAmount();
             TicketStatus resolutionStatus = ticket.getTicketStatus();
-            String description = ticket.getDescription();
+            String description = ticket.getTransaction().getCategory() == TransactionCategories.Transfer ? ticket.getTransaction().getCategory() + " ke " + ticket.getTransaction().getRecipient_account()
+                    : ticket.getTransaction().getCategory() == TransactionCategories.TopUp ? ticket.getTransaction().getCategory() + " OVO"
+                    : ticket.getTransaction().getCategory() + " PLN Pascabayar";
             String division = "PT Bank Negara Indonesia (Persero) Tbk.";
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy HH:mm:ss", new Locale("id", "ID"));
@@ -127,7 +130,9 @@ public class EmailService {
             String ticketId = ticket.getTicketNumber();
             LocalDateTime transactionDate = ticket.getTransaction().getCreatedAt();
             Long amount = ticket.getTransaction().getAmount();
-            String description = ticket.getDescription();
+            String description = ticket.getTransaction().getCategory() == TransactionCategories.Transfer ? ticket.getTransaction().getCategory() + " ke " + ticket.getTransaction().getRecipient_account()
+                    : ticket.getTransaction().getCategory() == TransactionCategories.TopUp ? ticket.getTransaction().getCategory() + " OVO"
+                    : ticket.getTransaction().getCategory() + " PLN Pascabayar";
             TicketStatus resolutionStatus = ticket.getTicketStatus();
             String division = "PT Bank Negara Indonesia (Persero) Tbk.";
 
