@@ -166,6 +166,11 @@ public class TicketService implements TicketInterface {
         }
         Tickets ticket_reference = ticketsRepository.findByReferenceNumber(ticket.getTicketNumber());
 
+        TicketHistory latestHistory = ticketHistoryRepository
+                .findFirstByTicketOrderByCreatedAtDesc(ticket);
+
+        LocalDateTime reportDate = latestHistory != null ? latestHistory.getCreatedAt() : ticket.getCreatedAt();
+
         return CustomerTicketDetailsReportDTO.builder()
                 .reporter_detail(
                         CustomerTicketDetailsReportDTO.ReporterDetail.builder()
@@ -188,7 +193,7 @@ public class TicketService implements TicketInterface {
                 )
                 .report_status_detail(
                         CustomerTicketDetailsReportDTO.ReportStatusDetail.builder()
-                                .report_date(ticket.getCreatedAt())
+                                .report_date(reportDate)
                                 .ticket_number(ticket.getTicketNumber())
                                 .status(switch (ticket.getTicketStatus()) {
                                     case Diajukan -> "Diajukan";
@@ -277,7 +282,7 @@ public class TicketService implements TicketInterface {
         };
 
         LocalDateTime createdAt = transaction.getCreatedAt();
-        if(transaction.getTickets().size() == 0) {
+        if (transaction.getTickets().size() == 0) {
             createdAt = LocalDateTime.now();
         }
 
@@ -473,7 +478,7 @@ public class TicketService implements TicketInterface {
                             case Empat -> 4;
                             case Lima -> 5;
                         }))
-                .comment(ticket.getTicketFeedback().getComment())
+                .comment(ticket.getTicketFeedback() == null ? null : (ticket.getTicketFeedback().getComment()))
                 .build();
     }
 
@@ -527,7 +532,7 @@ public class TicketService implements TicketInterface {
             case 5 -> StarRating.Lima;
             default -> null;
         });
-        existingFeedback.setComment(requestDTO.getComment());
+        existingFeedback.setComment(requestDTO.getComment() != null ? requestDTO.getComment() : (existingFeedback.getComment() == null ? null : existingFeedback.getComment()));
         existingFeedback.setUpdatedAt(LocalDateTime.now());
 
         ticketFeedbackRepository.save(existingFeedback);
