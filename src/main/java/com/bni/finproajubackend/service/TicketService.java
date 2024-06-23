@@ -277,7 +277,7 @@ public class TicketService implements TicketInterface {
         };
 
         LocalDateTime createdAt = transaction.getCreatedAt();
-        if(transaction.getTickets().size() == 0) {
+        if (transaction.getTickets().size() == 0) {
             createdAt = LocalDateTime.now();
         }
 
@@ -473,7 +473,7 @@ public class TicketService implements TicketInterface {
                             case Empat -> 4;
                             case Lima -> 5;
                         }))
-                .comment(ticket.getTicketFeedback().getComment())
+                .comment(ticket.getTicketFeedback() == null ? null : (ticket.getTicketFeedback().getComment()))
                 .build();
     }
 
@@ -527,7 +527,7 @@ public class TicketService implements TicketInterface {
             case 5 -> StarRating.Lima;
             default -> null;
         });
-        existingFeedback.setComment(requestDTO.getComment());
+        existingFeedback.setComment(requestDTO.getComment() != null ? requestDTO.getComment() : (existingFeedback.getComment() == null ? null : existingFeedback.getComment()));
         existingFeedback.setUpdatedAt(LocalDateTime.now());
 
         ticketFeedbackRepository.save(existingFeedback);
