@@ -244,6 +244,7 @@ public class ReportService implements ReportInterface {
 
     private ReportResponseDTO getSlaPerformanceReport(List<Tickets> tickets) {
         double percentage = (double) tickets.size() / ticketsRepository.count() * 100;
+        if(Double.isNaN(percentage)) percentage = 0;
         String formattedPercentage = String.format("%.2f", percentage);
         Map<String, Object> result = Map.of("percentage_sla_performance", Double.parseDouble(formattedPercentage));
         return buildReportResponseDTO(tickets, result);
@@ -251,6 +252,7 @@ public class ReportService implements ReportInterface {
 
     private ReportResponseDTO getPercentageReport(List<Tickets> tickets) {
         double percentage = (double) tickets.size() / ticketsRepository.count() * 100;
+        if(Double.isNaN(percentage)) percentage = 0;
         String formattedPercentage = String.format("%.2f", percentage);
         Map<String, Object> result = Map.of("percentage", Double.parseDouble(formattedPercentage));
         return buildReportResponseDTO(tickets, result);

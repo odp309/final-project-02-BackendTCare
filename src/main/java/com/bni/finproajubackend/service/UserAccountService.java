@@ -78,7 +78,8 @@ public class UserAccountService implements UserAccountInterface {
 
     private AccountNumberDTO convertToAccountNumberDTO(Account account){
         AccountNumberDTO accountNumberDTO = new AccountNumberDTO();
-        accountNumberDTO.setAccount_number(account.getAccountNumber());
+        accountNumberDTO.setLabel(account.getAccountNumber() + " - " +account.getType());
+        accountNumberDTO.setValue(account.getAccountNumber());
         return accountNumberDTO;
     }
 
