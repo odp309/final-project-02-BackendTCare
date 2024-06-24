@@ -18,5 +18,6 @@ public class TransactionDTO {
     private String date;
     private String ticket_status;
     private String ticket_number;
+    private Long ticket_id;
 
 }

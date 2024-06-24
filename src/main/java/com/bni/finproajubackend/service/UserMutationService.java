@@ -72,6 +72,14 @@ public class UserMutationService implements UserMutationInterface {
                                 return null;
                             })
                             .orElse(null);
+                    String ticketNumber = Optional.ofNullable(transaction.getTickets())
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                String number = tickets.get(0).getTicketNumber();
+                                if (!tickets.get(0).getTicketNumber().isEmpty()) return tickets.get(0).getTicketNumber();
+                                return null;
+                            })
+                            .orElse(null);
                     String transactionDetail = transaction.getTransaction_type() + " " + transaction.getRecipient_account().getNasabah().getFirst_name();
 
                     return new TransactionDTO(
@@ -81,7 +89,8 @@ public class UserMutationService implements UserMutationInterface {
                             transaction.getAmount(),
                             formattedDateTime,
                             ticketStatus,
-                            transaction.getTickets().get(0).getTicketNumber()
+                            ticketNumber,
+                            transaction.getTickets().get(0).getId()
                     );
                 })
                 .collect(Collectors.toList());
@@ -148,6 +157,15 @@ public class UserMutationService implements UserMutationInterface {
                             })
                             .orElse(null);
 
+                    Long ticketId = Optional.ofNullable(transaction.getTickets())
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                Long tickId = tickets.get(0).getId();
+                                if (tickId != null) return tickId;
+                                return null;
+                            })
+                            .orElse(null);
+
 
                     String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
@@ -160,7 +178,8 @@ public class UserMutationService implements UserMutationInterface {
                             transaction.getAmount(),
                             formattedDateTime,
                             ticketStatusStr,
-                            ticketNumber
+                            ticketNumber,
+                            ticketId
                     );
                 })
                 .collect(Collectors.toList());
@@ -219,6 +238,15 @@ public class UserMutationService implements UserMutationInterface {
                             })
                             .orElse(null);
 
+                    Long ticketId = Optional.ofNullable(transaction.getTickets())
+                            .filter(tickets -> !tickets.isEmpty())
+                            .map(tickets -> {
+                                Long tickId = tickets.get(0).getId();
+                                if (tickId != null) return tickId;
+                                return null;
+                            })
+                            .orElse(null);
+
                     String transactionDetail = transaction.getCategory() == TransactionCategories.Transfer ? transaction.getCategory() + " ke " + transaction.getRecipient_account().getNasabah().getFirst_name()
                             : transaction.getCategory() == TransactionCategories.TopUp ? transaction.getCategory() + " OVO"
                             : transaction.getCategory() + " PLN Pascabayar";
@@ -230,7 +258,8 @@ public class UserMutationService implements UserMutationInterface {
                             transaction.getAmount(),
                             formattedDateTime,
                             ticketStatus,
-                            ticketNumber
+                            ticketNumber,
+                            ticketId
                     );
                 })
                 .collect(Collectors.toList());
