@@ -359,7 +359,8 @@ public class TicketService implements TicketInterface {
         logger.info("Saved ticket: {}", savedTicket.getTicketNumber());
         createTicketHistory(savedTicket);
 
-        checkProblem(transaction, savedTicket);
+        if(savedTicket.getTicketCategory() == TicketCategories.Transfer) checkProblem(transaction, savedTicket);
+        else smartTicketService.updateTicketAdmin(savedTicket);
 
         return TicketResponseDTO.builder()
                 .transaction_id(transaction.getId())
@@ -411,6 +412,8 @@ public class TicketService implements TicketInterface {
     @Async
     private void processTicket(Tickets tickets, String logMessage) {
         createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan dalam proses", 3L);
+        tickets.setTicketStatus(TicketStatus.DalamProses);
+        ticketsRepository.save(tickets);
         smartTicketService.updateTicketAdmin(tickets);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
