@@ -44,6 +44,7 @@ public class Admin {
     private Gender gender;
     private int age;
     private String address;
+    private int quota;
     @OneToMany(mappedBy = "admin")
     private List<TicketHistory> ticketHistory;
     @OneToMany(mappedBy = "admin")
