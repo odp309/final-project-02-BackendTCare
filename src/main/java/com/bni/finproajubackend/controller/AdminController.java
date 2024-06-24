@@ -5,6 +5,7 @@ import com.bni.finproajubackend.aspect.PermissionAspect;
 import com.bni.finproajubackend.dto.admin.AdminResponseDTO;
 import com.bni.finproajubackend.interfaces.AdminInterface;
 import com.bni.finproajubackend.interfaces.TemplateResInterface;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -18,6 +19,7 @@ import org.webjars.NotFoundException;
 
 @RestController
 @RequestMapping("/api/v1/private/admin")
+@Tag(name = "Admin", description = "Get admin profile")
 public class AdminController {
 
     @Autowired
