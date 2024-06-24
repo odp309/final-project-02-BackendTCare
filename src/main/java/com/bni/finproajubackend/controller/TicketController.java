@@ -169,7 +169,7 @@ public class TicketController {
         }
     }
 
-    @PutMapping(value = "/customer/ticket-reports/create-feedback", produces = "application/json")
+    @PatchMapping(value = "/customer/ticket-reports/create-feedback", produces = "application/json")
     public ResponseEntity<TemplateResponseDTO<Object>> createFeedback(
             @Valid @RequestBody CreateFeedbackRequestDTO requestDTO,
             @RequestParam(required = false) String ticket_number,
