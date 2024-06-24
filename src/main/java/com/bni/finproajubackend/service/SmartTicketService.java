@@ -1,7 +1,6 @@
 package com.bni.finproajubackend.service;
 
 import com.bni.finproajubackend.model.enumobject.DivisionTarget;
-import com.bni.finproajubackend.model.enumobject.TicketCategories;
 import com.bni.finproajubackend.model.ticket.TicketFeedback;
 import com.bni.finproajubackend.model.ticket.Tickets;
 import com.bni.finproajubackend.model.user.admin.Admin;
@@ -9,6 +8,7 @@ import com.bni.finproajubackend.repository.AdminRepository;
 import com.bni.finproajubackend.repository.TicketFeedbackRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class SmartTicket {
+public class SmartTicketService {
 
     @Autowired
     private AdminRepository adminRepository;
@@ -26,7 +26,8 @@ public class SmartTicket {
     @Autowired
     private TicketsRepository ticketsRepository;
 
-    public Tickets updateTicketAdmin(Tickets tickets) {
+    @Async
+    public void updateTicketAdmin(Tickets tickets) {
         List<Admin> admins = getListAdminByDivision(switch (tickets.getTicketCategory()) {
             case Transfer -> DivisionTarget.WPP;
             case TopUp -> DivisionTarget.DGO;
@@ -42,7 +43,7 @@ public class SmartTicket {
         assignedAdmin.setQuota(assignedAdmin.getQuota() + 1);
 
         adminRepository.save(assignedAdmin);
-        return ticketsRepository.save(tickets);
+        ticketsRepository.save(tickets);
     }
 
     private List<Admin> getListAdminByDivision(DivisionTarget divisionTarget) {

@@ -14,7 +14,6 @@ import jakarta.mail.MessagingException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.criteria.Predicate;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +30,6 @@ import com.bni.finproajubackend.repository.TicketsHistoryRepository;
 import com.bni.finproajubackend.repository.TicketsRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -67,6 +64,8 @@ public class TicketService implements TicketInterface {
     private NasabahRepository nasabahRepository;
     @Autowired
     private AccountRepository accountRepository;
+    @Autowired
+    private SmartTicketService smartTicketService;
 
     @Transactional
     public Tickets updateTicketStatus(Long ticketId, Authentication authentication) throws MessagingException {
@@ -390,10 +389,8 @@ public class TicketService implements TicketInterface {
 
             if (recipientSize == 0) {
                 processTicket(tickets, "IP {}, Transaction not found, Continuing ticket to division");
-                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan diproses", 3L);
             } else if (recipientSize == 1) {
                 processTicket(tickets, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
-                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan diproses", 3L);
             } else {
                 processTicket(tickets, "IP {}, Transaction found, Closing Tickets by System");
                 createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan selesai diproses", 4L);
@@ -408,7 +405,8 @@ public class TicketService implements TicketInterface {
 
     @Async
     private void processTicket(Tickets tickets, String logMessage) {
-        createSingleTicketHistory(tickets, adminRepository.findByUsername("system"), "laporan dalam proses", 3L);
+        createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan dalam proses", 3L);
+        smartTicketService.updateTicketAdmin(tickets);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
 

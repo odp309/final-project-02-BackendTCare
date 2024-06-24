@@ -15,6 +15,7 @@ import com.bni.finproajubackend.repository.*;
 import jakarta.persistence.criteria.Join;
 import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
+import org.apache.coyote.BadRequestException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
@@ -67,7 +68,7 @@ public class TicketReportsService implements TicketReportsInterface {
             @RequestParam(required = false, defaultValue = "created_at") String sort_by,
             @RequestParam(required = false, defaultValue = "asc") String order,
             Authentication authentication
-    ) throws IllegalAccessException {
+    ) throws IllegalAccessException, BadRequestException {
         return switch (user.toLowerCase()) {
             case "admin" ->
                     adminTicketReports(category, rating, status, start_date, end_date, ticket_number, created_at, division, page, limit, sort_by, order, authentication);
@@ -82,16 +83,15 @@ public class TicketReportsService implements TicketReportsInterface {
             String sort_by,
             String order,
             Authentication authentication
-    ) throws IllegalAccessException {
+    ) throws IllegalAccessException, BadRequestException {
         if (account_number == null) throw new IllegalArgumentException("Account number cannot be empty");
         Account account = accountRepository.findByAccountNumber(account_number);
         if (account == null) throw new NotFoundException("Account not found");
         if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
             throw new IllegalAccessException("User is not the owner");
 
-        order = "desc";
         sort_by = convertSortBy(sort_by);
-        Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+        Sort.Direction sortDirection = Sort.Direction.DESC;
         List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
 
         Specification<Tickets> spec = getSpec(account_number, null, null, status, null, null, null, null, null);
@@ -154,7 +154,7 @@ public class TicketReportsService implements TicketReportsInterface {
             String sort_by,
             String order,
             Authentication authentication
-    ) throws IllegalAccessException {
+    ) throws IllegalAccessException, BadRequestException {
         Admin admin = userRepository.findByUsername(authentication.getName()).getAdmin();
         if (admin == null || !admin.getRole().getRoleName().equals("admin"))
             throw new IllegalAccessException("Not Admin");
@@ -240,7 +240,15 @@ public class TicketReportsService implements TicketReportsInterface {
             String ticket_number,
             String created_at,
             String division
-    ) {
+    ) throws BadRequestException {
+
+        if (start_date != null && end_date != null) {
+            LocalDate startDate = LocalDate.parse(start_date);
+            LocalDate endDate = LocalDate.parse(end_date);
+            if (startDate.isAfter(endDate))
+                throw new BadRequestException("Invalid start date");
+        }
+
         return (root, query, builder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
