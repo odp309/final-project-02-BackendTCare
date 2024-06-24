@@ -166,6 +166,11 @@ public class TicketService implements TicketInterface {
         }
         Tickets ticket_reference = ticketsRepository.findByReferenceNumber(ticket.getTicketNumber());
 
+        TicketHistory latestHistory = ticketHistoryRepository
+                .findFirstByTicketOrderByCreatedAtDesc(ticket);
+
+        LocalDateTime reportDate = latestHistory != null ? latestHistory.getCreatedAt() : ticket.getCreatedAt();
+
         return CustomerTicketDetailsReportDTO.builder()
                 .reporter_detail(
                         CustomerTicketDetailsReportDTO.ReporterDetail.builder()
@@ -188,7 +193,7 @@ public class TicketService implements TicketInterface {
                 )
                 .report_status_detail(
                         CustomerTicketDetailsReportDTO.ReportStatusDetail.builder()
-                                .report_date(ticket.getCreatedAt())
+                                .report_date(reportDate)
                                 .ticket_number(ticket.getTicketNumber())
                                 .status(switch (ticket.getTicketStatus()) {
                                     case Diajukan -> "Diajukan";
@@ -277,16 +282,37 @@ public class TicketService implements TicketInterface {
         };
 
         LocalDateTime createdAt = transaction.getCreatedAt();
-        String year = String.format("%02d", createdAt.getYear());
+        if (transaction.getTickets().size() == 0) {
+            createdAt = LocalDateTime.now();
+        }
+
+        // Ambil 2 digit terakhir dari tahun
+        String year = String.format("%02d", createdAt.getYear() % 100);
+        // Ambil 2 digit pertama dari detik
+        String seconds = String.format("%02d", createdAt.getSecond()).substring(0, 2);
+
         String month = String.format("%02d", createdAt.getMonthValue());
         String day = String.format("%02d", createdAt.getDayOfMonth());
-        String hour = String.format("%02d", createdAt.getHour());
-        String minute = String.format("%02d", createdAt.getMinute());
-        String second = String.format("%02d", createdAt.getSecond());
+
+        // Tentukan panjang dari bagian awal ticket number
+        String partialTicketNumber = categoryCode + year + month + day + seconds;
+        int partialLength = partialTicketNumber.length();
+
+        // Panjang maksimal ID transaksi yang bisa ditambahkan
+        int remainingLength = 15 - partialLength;
         String transactionId = String.format("%010d", transaction.getId());
 
-        return categoryCode + year + month + day + hour + minute + second + transactionId;
+        // Jika panjang ID transaksi lebih besar dari sisa panjang yang dibutuhkan
+        if (transactionId.length() > remainingLength) {
+            transactionId = transactionId.substring(transactionId.length() - remainingLength);
+        } else {
+            // Tambahkan 0 di depan jika panjang ID transaksi kurang dari sisa panjang yang dibutuhkan
+            transactionId = String.format("%0" + remainingLength + "d", transaction.getId());
+        }
+
+        return partialTicketNumber + transactionId;
     }
+
 
     @Override
     public TicketResponseDTO createNewTicket(Long id, TicketRequestDTO ticketRequestDTO) throws Exception {
@@ -452,7 +478,7 @@ public class TicketService implements TicketInterface {
                             case Empat -> 4;
                             case Lima -> 5;
                         }))
-                .comment(ticket.getTicketFeedback().getComment())
+                .comment(ticket.getTicketFeedback() == null ? null : (ticket.getTicketFeedback().getComment()))
                 .build();
     }
 
@@ -506,7 +532,7 @@ public class TicketService implements TicketInterface {
             case 5 -> StarRating.Lima;
             default -> null;
         });
-        existingFeedback.setComment(requestDTO.getComment());
+        existingFeedback.setComment(requestDTO.getComment() != null ? requestDTO.getComment() : (existingFeedback.getComment() == null ? null : existingFeedback.getComment()));
         existingFeedback.setUpdatedAt(LocalDateTime.now());
 
         ticketFeedbackRepository.save(existingFeedback);

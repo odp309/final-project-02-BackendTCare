@@ -88,6 +88,7 @@ public class TicketReportsService implements TicketReportsInterface {
         if (account == null) throw new NotFoundException("Account not found");
         if (!account.getNasabah().getUser().getUsername().equals(authentication.getName()))
             throw new IllegalAccessException("User is not the owner");
+
         order = "desc";
         sort_by = convertSortBy(sort_by);
         Sort.Direction sortDirection = order.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
@@ -132,7 +133,7 @@ public class TicketReportsService implements TicketReportsInterface {
 
         return PaginationDTO.builder()
                 .data(listTicketNasabahResponseDTO)
-                .currentPage(ticketsPage.getNumber())
+                .currentPage((ticketsPage.getNumber() + 1))
                 .currentItem(ticketsPage.getNumberOfElements())
                 .totalPage(ticketsPage.getTotalPages())
                 .totalItem(ticketsPage.getTotalElements())
@@ -163,7 +164,7 @@ public class TicketReportsService implements TicketReportsInterface {
         List<Sort.Order> orders = new ArrayList<>();
         orders.add(new Sort.Order(Sort.Direction.ASC, "ticketStatus"));
         orders.add(new Sort.Order(sortDirection, sort_by));
-        Pageable pageable = PageRequest.of(page == 0 ? 0 : (page-1), limit, Sort.by(orders));
+        Pageable pageable = PageRequest.of(page == 0 ? 0 : (page - 1), limit, Sort.by(orders));
 
         Specification<Tickets> spec = getSpec(null, category, rating, status, start_date, end_date, ticket_number, created_at, division);
 
@@ -212,7 +213,7 @@ public class TicketReportsService implements TicketReportsInterface {
 
         return PaginationDTO.builder()
                 .data(ticketsResponseDTOList)
-                .currentPage(ticketsPage.getNumber())
+                .currentPage((ticketsPage.getNumber() + 1))
                 .currentItem(ticketsPage.getNumberOfElements())
                 .totalPage(ticketsPage.getTotalPages())
                 .totalItem(ticketsPage.getTotalElements())
@@ -254,17 +255,9 @@ public class TicketReportsService implements TicketReportsInterface {
             });
 
             Optional.ofNullable(rating).ifPresent(r -> {
-                Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedbacks", JoinType.LEFT);
-                if (r == 4) {
-                    predicates.add(
-                            builder.or(
-                                    builder.isNull(feedbackJoin.get("starRating")),
-                                    builder.equal(feedbackJoin.get("starRating"), StarRating.Empat)
-                            )
-                    );
-                } else {
-                    predicates.add(builder.equal(feedbackJoin.get("starRating"), StarRating.fromValue(r)));
-                }
+                Join<Tickets, TicketFeedback> feedbackJoin = root.join("ticketFeedback", JoinType.LEFT);
+                if (r == 0) predicates.add(builder.isNull(feedbackJoin.get("star_rating")));
+                else predicates.add(builder.equal(feedbackJoin.get("star_rating"), StarRating.fromValue(r)));
             });
 
             Optional.ofNullable(status).ifPresent(st -> {

@@ -79,7 +79,7 @@ public class DataLoader {
         roleRepository.save(role);
 
         String[] usernames = {"admin12", "wpp1Admin", "wpp2Admin", "wpp3Admin", "dgo1Admin", "dgo2Admin", "dgo3Admin", "cxc1Admin", "cxc2Admin", "cxc3Admin"};
-        DivisionTarget[] rolesforadmin = {null, DivisionTarget.WPP, DivisionTarget.WPP, DivisionTarget.WPP, DivisionTarget.DGO, DivisionTarget.DGO, DivisionTarget.DGO, DivisionTarget.CXC, DivisionTarget.CXC, DivisionTarget.CXC};
+        DivisionTarget[] rolesforadmin = {DivisionTarget.SYSTEM, DivisionTarget.WPP, DivisionTarget.WPP, DivisionTarget.WPP, DivisionTarget.DGO, DivisionTarget.DGO, DivisionTarget.DGO, DivisionTarget.CXC, DivisionTarget.CXC, DivisionTarget.CXC};
         String[] addresses = {"Balige", "Pontianak", "Bumi Serpong Damai", "Pandeglang", "Surabaya", "Cirebon", "Medan", "Lamongan", "Lampung", "Bandung"};
         String[] emails = {"daji18201@gmail.com", "alvin.alamien@gmail.com", "iqbal010698@gmail.com", "ratuannisag@gmail.com", "anandariskiwp@gmail.com", "himawanhidan@gmail.com", "fredrick.theodorus@gmail.com", "alfanmarzaqi@gmail.com", "fajru234@gmail.com", "milyandaaa@gmail.com"};
         String[] firstNames = {"Dimas", "Alvin", "Iqbal", "Ratu", "Kiki", "Himawan", "Fredrick", "Alfan", "Fajru", "Milyanda"};
