@@ -95,8 +95,7 @@ public class TicketReportsService implements TicketReportsInterface {
         List<Sort.Order> orders = List.of(new Sort.Order(sortDirection, sort_by));
 
         Specification<Tickets> spec = getSpec(account_number, null, null, status, null, null, null, null, null);
-
-        Pageable pageable = PageRequest.of(0, ticketsRepository.findAll().size(), Sort.by(orders));
+        Pageable pageable = PageRequest.of(0, !ticketsRepository.findAll().isEmpty() ? ticketsRepository.findAll().size() : 1, Sort.by(orders));
         Page<Tickets> ticketsPage = ticketsRepository.findAll(spec, pageable);
 
         List<TicketsNasabahResponseDTO> ticketsResponseDTOList = ticketsPage.getContent().stream()
