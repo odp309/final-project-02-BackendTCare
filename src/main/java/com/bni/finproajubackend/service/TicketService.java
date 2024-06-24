@@ -215,6 +215,11 @@ public class TicketService implements TicketInterface {
         }
         Tickets ticket_reference = ticketsRepository.findByReferenceNumber(ticket.getTicketNumber());
 
+        TicketHistory latestHistory = ticketHistoryRepository
+                .findFirstByTicketOrderByCreatedAtDesc(ticket);
+
+        LocalDateTime reportDate = latestHistory != null ? latestHistory.getCreatedAt() : ticket.getCreatedAt();
+
         return TicketDetailsReportDTO.builder()
                 .reporter_detail(
                         TicketDetailsReportDTO.ReporterDetail.builder()
@@ -240,7 +245,7 @@ public class TicketService implements TicketInterface {
                 )
                 .report_status_detail(
                         TicketDetailsReportDTO.ReportStatusDetail.builder()
-                                .report_date(ticket.getCreatedAt())
+                                .report_date(reportDate)
                                 .ticket_number(ticket.getTicketNumber())
                                 .status(switch (ticket.getTicketStatus()) {
                                     case Diajukan -> "Diajukan";
