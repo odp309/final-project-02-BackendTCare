@@ -331,6 +331,8 @@ public class DataLoader {
             case Selesai -> 5;
         };
 
+        LocalDateTime baseDate = ticket.getCreatedAt();
+
         for (int i = 0; i < counter; i++) {
             TicketHistory ticketHistory = new TicketHistory();
             ticketHistory.setTicket(ticket);
@@ -338,8 +340,10 @@ public class DataLoader {
             ticketHistory.setDescription(statuses[i]);
             ticketHistory.setDate(new Date());
             ticketHistory.setLevel(i + 1L); // Assuming level 1 for ticket creation
-            ticketHistory.setCreatedAt(generateRandomDateTime(ticket.getCreatedAt()));
-            ticketHistory.setUpdatedAt(generateRandomDateTime(ticket.getCreatedAt()));
+
+            baseDate = baseDate.plusDays(ThreadLocalRandom.current().nextInt(1, 6));
+            ticketHistory.setCreatedAt(baseDate);
+            ticketHistory.setUpdatedAt(baseDate);
 
             ticketHistoryRepository.save(ticketHistory);
         }
