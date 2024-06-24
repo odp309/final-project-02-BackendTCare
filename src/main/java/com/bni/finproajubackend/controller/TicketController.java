@@ -95,7 +95,7 @@ public class TicketController {
         } catch (NotFoundException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND)
                     .body(responseService.apiNotFound(null, e.getMessage()));
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | BadRequestException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body(responseService.apiBadRequest(null, e.getMessage()));
         } catch (IllegalAccessException e) {

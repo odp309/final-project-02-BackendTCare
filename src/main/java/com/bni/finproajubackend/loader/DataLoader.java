@@ -127,6 +127,7 @@ public class DataLoader {
         String[] niks = {"1212784693778572", "1212983547999995", "1212983547992995", "1212983547999965", "1212983547299965", "1212983547295965", "1213983547295965", "1214983547295965", "1214983547295065", "1214983547795065"};
         String[] noHPs = {"082265746357", "082256783458", "082256783478", "082256781478", "081256781478", "081356781478", "083356781478", "082356781478", "082356781448", "082356781848"};
         Gender[] genders = {Gender.Male, Gender.Male, Gender.Male, Gender.Female, Gender.Female, Gender.Male, Gender.Male, Gender.Male, Gender.Male, Gender.Female};
+        String[] accountTypes = {"Taplus", "Taplus Muda", "Tappa"};
 
         // Membuat dan menyimpan pengguna dan nasabah
         for (int i = 0; i < usernames.length; i++) {
@@ -148,9 +149,13 @@ public class DataLoader {
 
             // Membuat dan menyimpan akun untuk setiap nasabah
             for (int j = 0; j < 3; j++) {
+                Random random = new Random();
+                int randomIndex = random.nextInt(accountTypes.length);
+                String accountType = accountTypes[randomIndex];
+
                 Account account = new Account();
                 account.setNasabah(nasabah);
-                account.setType("Rekening Tabungan");
+                account.setType(accountType);
                 account.setAccountNumber("123456" + (i + 1) + j);
                 account.setBalance(1000000L);
                 account.setCreatedAt(LocalDateTime.now());
@@ -326,6 +331,8 @@ public class DataLoader {
             case Selesai -> 5;
         };
 
+        LocalDateTime baseDate = ticket.getCreatedAt();
+
         for (int i = 0; i < counter; i++) {
             TicketHistory ticketHistory = new TicketHistory();
             ticketHistory.setTicket(ticket);
@@ -333,8 +340,10 @@ public class DataLoader {
             ticketHistory.setDescription(statuses[i]);
             ticketHistory.setDate(new Date());
             ticketHistory.setLevel(i + 1L); // Assuming level 1 for ticket creation
-            ticketHistory.setCreatedAt(generateRandomDateTime(ticket.getCreatedAt()));
-            ticketHistory.setUpdatedAt(generateRandomDateTime(ticket.getCreatedAt()));
+
+            baseDate = baseDate.plusDays(ThreadLocalRandom.current().nextInt(1, 6));
+            ticketHistory.setCreatedAt(baseDate);
+            ticketHistory.setUpdatedAt(baseDate);
 
             ticketHistoryRepository.save(ticketHistory);
         }

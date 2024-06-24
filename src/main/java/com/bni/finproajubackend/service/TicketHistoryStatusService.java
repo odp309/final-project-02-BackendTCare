@@ -73,7 +73,10 @@ public List<TrackTicketStatusResponseDTO> trackTicketStatus(Long id) {
 
         TrackTicketStatusResponseDTO trackTicketStatusDTO = new TrackTicketStatusResponseDTO();
         if (relevantHistory != null) {
-            String pic = relevantHistory.getAdmin().getFirstName() + " " + relevantHistory.getAdmin().getLastName();
+            String pic = null;
+            if (relevantHistory.getAdmin() != null){
+                pic = relevantHistory.getAdmin().getFirstName() + " " + relevantHistory.getAdmin().getLastName();
+            }
             String formattedDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(relevantHistory.getDate());
 
 

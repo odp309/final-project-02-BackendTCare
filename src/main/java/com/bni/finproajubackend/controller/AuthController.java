@@ -5,6 +5,7 @@ import com.bni.finproajubackend.dto.login.LoginResponseDTO;
 import com.bni.finproajubackend.dto.refreshToken.RefreshTokenRequestDTO;
 import com.bni.finproajubackend.dto.refreshToken.RefreshTokenResponseDTO;
 import com.bni.finproajubackend.interfaces.*;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.coyote.BadRequestException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/public/auth")
+@Tag(name = "Auth", description = "Public API open to the public")
 public class AuthController {
 
     @Autowired
