@@ -5,5 +5,6 @@ import lombok.Data;
 import java.util.List;
 @Data
 public class AccountNumberDTO {
-    private String account_number;
+    private String label;
+    private String value;
 }
