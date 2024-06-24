@@ -20,7 +20,6 @@ public class SmartTicketService {
 
     @Autowired
     private AdminRepository adminRepository;
-
     @Autowired
     private TicketFeedbackRepository ticketFeedbackRepository;
     @Autowired
