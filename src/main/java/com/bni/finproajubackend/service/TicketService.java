@@ -220,6 +220,8 @@ public class TicketService implements TicketInterface {
 
         LocalDateTime reportDate = latestHistory != null ? latestHistory.getCreatedAt() : ticket.getCreatedAt();
 
+        String pic = getAdminFullName(ticket.getAdmin()) + " - " + ticket.getAdmin().getNpp();
+
         return TicketDetailsReportDTO.builder()
                 .reporter_detail(
                         TicketDetailsReportDTO.ReporterDetail.builder()
@@ -241,6 +243,7 @@ public class TicketService implements TicketInterface {
                                 })
                                 .description(ticket.getDescription())
                                 .reference_num(ticket.getReferenceNumber())
+                                .pic(pic)
                                 .build()
                 )
                 .report_status_detail(
