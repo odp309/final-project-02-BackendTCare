@@ -32,6 +32,7 @@ public class TicketDetailsReportDTO {
         private String category;
         private String description;
         private String reference_num;
+        private String pic;
     }
 
     @Data
