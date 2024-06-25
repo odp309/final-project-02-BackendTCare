@@ -147,6 +147,7 @@ public class DataLoader {
 
             nasabahRepository.save(nasabah);
 
+            Bank bank = loadBank();
             // Membuat dan menyimpan akun untuk setiap nasabah
             for (int j = 0; j < 3; j++) {
                 Random random = new Random();
@@ -165,20 +166,29 @@ public class DataLoader {
                 if (i == 0) break;
 
                 // Membuat dan menyimpan transaksi untuk setiap akun
-                Bank bank = loadBank();
-                int size = 100;
+                int size = 10;
                 for (int k = 1; k <= size; k++) {
+                    int rand = random.nextInt(i);
                     Nasabah recipient = nasabahRepository.findByUsername("dimas27");
                     if (recipient != null) {
                         Account recipient_account = accountRepository.findByNasabah(recipient);
                         Transaction transaction = loadTransaction(k, account, recipient_account, bank, "Transaction " + k, 500000L + k, "Berhasil", TransactionCategories.values()[k % TransactionCategories.values().length]);
-                        if (k % 2 == 0) {
-                            loadTickets(transaction, k + 1);
-                        }
+//                        if (k % 2 == 0) {
+//                            loadTickets(transaction, k + 1);
+//                        }
                     }
                 }
             }
         }
+        Bank bank = loadBank();
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 500020L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345621"), bank, "Transaction Berhasil", 500120L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 500230L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345632"), bank, "Transaction Berhasil", 50002350L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 5235000L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345660"), bank, "Transaction Berhasil", 3252000L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 50235000L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345670"), bank, "Transaction Berhasil", 5230230L, "Berhasil", TransactionCategories.Transfer);
     }
 
     private Bank loadBank() {
@@ -199,12 +209,12 @@ public class DataLoader {
         LocalDateTime createdAt = generateRandomDateTimeWithin30Days();
         boolean isOutgoing = new Random().nextBoolean();
 
-        Transaction transaction = createTransaction(account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, createdAt);
+        Transaction transaction = createTransaction(size, account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, createdAt);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         if (size % 2 == 0) {
-            Transaction recipientTransaction = createTransaction(recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, createdAt);
+            Transaction recipientTransaction = createTransaction(size, recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, createdAt);
             recipientTransaction.setReferenced_id(savedTransaction.getId());
 
             Transaction savedRecipientTransaction = transactionRepository.save(recipientTransaction);
@@ -216,8 +226,9 @@ public class DataLoader {
         return savedTransaction;
     }
 
-    private Transaction createTransaction(Account account, Bank bank, String detail, Long amount, Long totalAmount, String status, TransactionCategories category, Account recipientAccount, boolean isOutgoing, LocalDateTime timestamp) {
+    private Transaction createTransaction(int size, Account account, Bank bank, String detail, Long amount, Long totalAmount, String status, TransactionCategories category, Account recipientAccount, boolean isOutgoing, LocalDateTime timestamp) {
         Transaction transaction = new Transaction();
+//        if (size % 2 == 0) transaction.setId(Long.parseLong(size + account.getId() + "909"));
         transaction.setAccount(account);
         transaction.setBank(bank);
         transaction.setDetail(detail);
