@@ -32,7 +32,6 @@ public class TicketDetailsReportDTO {
         private String category;
         private String description;
         private String reference_num;
-        private String pic;
     }
 
     @Data
@@ -44,6 +43,7 @@ public class TicketDetailsReportDTO {
         private String status;
         private boolean isReopened;
         private String next_reference_num;
+        private String pic;
     }
 }
 

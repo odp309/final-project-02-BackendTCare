@@ -243,7 +243,6 @@ public class TicketService implements TicketInterface {
                                 })
                                 .description(ticket.getDescription())
                                 .reference_num(ticket.getReferenceNumber())
-                                .pic(pic)
                                 .build()
                 )
                 .report_status_detail(
@@ -257,6 +256,7 @@ public class TicketService implements TicketInterface {
                                 })
                                 .isReopened(ticket_reference != null)
                                 .next_reference_num(ticket_reference != null ? ticket_reference.getTicketNumber() : null)
+                                .pic(pic)
                                 .build()
                 )
                 .build();
