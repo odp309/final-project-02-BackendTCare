@@ -382,12 +382,16 @@ public class TicketService implements TicketInterface {
             Specification<Transaction> spec = (root, query, builder) -> {
                 List<Predicate> predicates = new ArrayList<>();
 
-                Optional.ofNullable(transaction.getId()).ifPresent(id ->
+                Optional.of(transaction.getId()).ifPresent(id ->
                         predicates.add(builder.equal(root.get("referenced_id"), id))
                 );
 
                 Optional.of(transaction.getTransaction_type() == TransactionType.In ? TransactionType.Out : TransactionType.In).ifPresent(type ->
                         predicates.add(builder.equal(root.get("transaction_type"), type))
+                );
+
+                Optional.of(transaction.getAmount()).ifPresent(amount ->
+                        predicates.add(builder.equal(root.get("amount"), amount))
                 );
 
                 return builder.and(predicates.toArray(new Predicate[0]));
@@ -399,11 +403,11 @@ public class TicketService implements TicketInterface {
             if (recipientSize == 0) {
                 processTicket(tickets, "IP {}, Transaction not found, Continuing ticket to division");
             } else if (recipientSize == 1) {
-                processTicket(tickets, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
-            } else {
-                processTicket(tickets, "IP {}, Transaction found, Closing Tickets by System");
+                finishingTicket(tickets, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
                 createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan selesai diproses", 4L);
                 createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan diterima pelapor", 5L);
+            } else {
+                processTicket(tickets, "IP {}, Transaction found, But need more check, Continuing ticket to division");
             }
 
         } catch (Exception e) {
@@ -418,6 +422,13 @@ public class TicketService implements TicketInterface {
         tickets.setTicketStatus(TicketStatus.DalamProses);
         ticketsRepository.save(tickets);
         smartTicketService.updateTicketAdmin(tickets);
+        logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
+    }
+
+    @Async
+    private void finishingTicket(Tickets tickets, String logMessage) {
+        tickets.setTicketStatus(TicketStatus.Selesai);
+        ticketsRepository.save(tickets);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
 

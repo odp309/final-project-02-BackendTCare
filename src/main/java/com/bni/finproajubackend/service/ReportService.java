@@ -149,10 +149,12 @@ public class ReportService implements ReportInterface {
                     case "dgo" -> DivisionTarget.DGO;
                     case "cxc" -> DivisionTarget.CXC;
                     case "wpp" -> DivisionTarget.WPP;
+                    case "system" -> DivisionTarget.SYSTEM;
                     default -> null;
                 };
                 logger.info("Division Triggered: {}", divisionTarget);
-                predicates.add(builder.equal(root.get("divisionTarget"), divisionTarget));
+                if (divisionTarget != DivisionTarget.SYSTEM)
+                    predicates.add(builder.equal(root.get("divisionTarget"), divisionTarget));
             }
 
             Optional.ofNullable(queryParams.get("adminid")).ifPresent(username -> {
@@ -244,7 +246,7 @@ public class ReportService implements ReportInterface {
 
     private ReportResponseDTO getSlaPerformanceReport(List<Tickets> tickets) {
         double percentage = (double) tickets.size() / ticketsRepository.count() * 100;
-        if(Double.isNaN(percentage)) percentage = 0;
+        if (Double.isNaN(percentage)) percentage = 0;
         String formattedPercentage = String.format("%.2f", percentage);
         Map<String, Object> result = Map.of("percentage_sla_performance", Double.parseDouble(formattedPercentage));
         return buildReportResponseDTO(tickets, result);
@@ -252,7 +254,7 @@ public class ReportService implements ReportInterface {
 
     private ReportResponseDTO getPercentageReport(List<Tickets> tickets) {
         double percentage = (double) tickets.size() / ticketsRepository.count() * 100;
-        if(Double.isNaN(percentage)) percentage = 0;
+        if (Double.isNaN(percentage)) percentage = 0;
         String formattedPercentage = String.format("%.2f", percentage);
         Map<String, Object> result = Map.of("percentage", Double.parseDouble(formattedPercentage));
         return buildReportResponseDTO(tickets, result);
