@@ -13,6 +13,7 @@ import com.bni.finproajubackend.model.user.nasabah.Account;
 import com.bni.finproajubackend.model.user.nasabah.Nasabah;
 import com.bni.finproajubackend.model.user.nasabah.Transaction;
 import com.bni.finproajubackend.repository.*;
+import jakarta.transaction.Transactional;
 import org.hibernate.sql.ast.tree.expression.Star;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -153,6 +154,7 @@ public class DataLoader {
                 Random random = new Random();
                 int randomIndex = random.nextInt(accountTypes.length);
                 String accountType = accountTypes[randomIndex];
+                if (i == 1) accountType = accountTypes[j];
 
                 Account account = new Account();
                 account.setNasabah(nasabah);
@@ -181,14 +183,14 @@ public class DataLoader {
             }
         }
         Bank bank = loadBank();
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 500020L, "Berhasil", TransactionCategories.Transfer);
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345621"), bank, "Transaction Berhasil", 500120L, "Berhasil", TransactionCategories.Transfer);
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 500230L, "Berhasil", TransactionCategories.Transfer);
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345632"), bank, "Transaction Berhasil", 50002350L, "Berhasil", TransactionCategories.Transfer);
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 5235000L, "Berhasil", TransactionCategories.Transfer);
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345660"), bank, "Transaction Berhasil", 3252000L, "Berhasil", TransactionCategories.Transfer);
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345620"), bank, "Transaction Berhasil", 50235000L, "Berhasil", TransactionCategories.Transfer);
-        loadTransaction(2, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345670"), bank, "Transaction Berhasil", 5230230L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(912, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345670"), bank, "Transaction Berhasil", 500020L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(914, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345670"), bank, "Transaction Berhasil", 500120L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(916, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345670"), bank, "Transaction Berhasil", 500230L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(918, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345671"), bank, "Transaction Berhasil", 50002350L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(920, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345671"), bank, "Transaction Berhasil", 5235000L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(922, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345671"), bank, "Transaction Berhasil", 3252000L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(924, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345672"), bank, "Transaction Berhasil", 50235000L, "Berhasil", TransactionCategories.Transfer);
+        loadTransaction(926, accountRepository.findByAccountNumber("12345620"), accountRepository.findByAccountNumber("12345672"), bank, "Transaction Berhasil", 5230230L, "Berhasil", TransactionCategories.Transfer);
     }
 
     private Bank loadBank() {
@@ -208,12 +210,15 @@ public class DataLoader {
     private Transaction loadTransaction(int size, Account account, Account recipientAccount, Bank bank, String detail, Long amount, String status, TransactionCategories category) {
         LocalDateTime createdAt = generateRandomDateTimeWithin30Days();
         boolean isOutgoing = new Random().nextBoolean();
+        if(size > 900) isOutgoing = true;
 
+        if (size > 10) size += 2;
         Transaction transaction = createTransaction(size, account, bank, detail, amount, isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, recipientAccount, isOutgoing, createdAt);
 
         Transaction savedTransaction = transactionRepository.save(transaction);
 
         if (size % 2 == 0) {
+            if (size > 10) size += 4;
             Transaction recipientTransaction = createTransaction(size, recipientAccount, bank, detail, amount, !isOutgoing ? account.getBalance() - amount : account.getBalance() + amount, status, category, account, !isOutgoing, createdAt);
             recipientTransaction.setReferenced_id(savedTransaction.getId());
 
@@ -226,9 +231,12 @@ public class DataLoader {
         return savedTransaction;
     }
 
+    @Transactional
     private Transaction createTransaction(int size, Account account, Bank bank, String detail, Long amount, Long totalAmount, String status, TransactionCategories category, Account recipientAccount, boolean isOutgoing, LocalDateTime timestamp) {
         Transaction transaction = new Transaction();
-//        if (size % 2 == 0) transaction.setId(Long.parseLong(size + account.getId() + "909"));
+//        if (size > 300) {
+//            transaction.setId((long) size);
+//        }
         transaction.setAccount(account);
         transaction.setBank(bank);
         transaction.setDetail(detail);

@@ -31,16 +31,20 @@ import com.bni.finproajubackend.repository.TicketsRepository;
 import com.bni.finproajubackend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.time.LocalDate;
+import java.util.concurrent.TimeUnit;
 
 @Service
 public class TicketService implements TicketInterface {
 
     private static final Logger logger = LoggerFactory.getLogger(TicketService.class);
     private static final Marker TICKETS_MARKER = MarkerFactory.getMarker("TICKETS");
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Autowired
     private TransactionRepository transactionRepository;
@@ -362,8 +366,18 @@ public class TicketService implements TicketInterface {
         logger.info("Saved ticket: {}", savedTicket.getTicketNumber());
         createTicketHistory(savedTicket);
 
-        if(savedTicket.getTicketCategory() == TicketCategories.Transfer) checkProblem(transaction, savedTicket);
-        else smartTicketService.updateTicketAdmin(savedTicket);
+        if (savedTicket.getTicketCategory() == TicketCategories.Transfer && savedTicket.getReferenceNumber() == null) {
+            checkProblem(transaction, savedTicket);
+//            scheduler.schedule(() -> {
+//                try {
+//                    checkProblem(transaction, savedTicket);
+//                } catch (Exception e) {
+//                    throw new RuntimeException("Failed to check ticket");
+//                }
+//            }, 10, TimeUnit.SECONDS);
+        } else {
+            smartTicketService.updateTicketAdmin(savedTicket);
+        }
 
         return TicketResponseDTO.builder()
                 .transaction_id(transaction.getId())
@@ -403,9 +417,8 @@ public class TicketService implements TicketInterface {
             if (recipientSize == 0) {
                 processTicket(tickets, "IP {}, Transaction not found, Continuing ticket to division");
             } else if (recipientSize == 1) {
-                finishingTicket(tickets, "IP {}, Something wrong with this Transaction, Continuing ticket to division");
-                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan selesai diproses", 4L);
-                createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan diterima pelapor", 5L);
+                finishingTicket(tickets, "IP {}, Transaction found, closing ticket");
+                createMultipleTicketHistories(tickets, 3L, 4L, 5L);
             } else {
                 processTicket(tickets, "IP {}, Transaction found, But need more check, Continuing ticket to division");
             }
@@ -418,18 +431,53 @@ public class TicketService implements TicketInterface {
 
     @Async
     private void processTicket(Tickets tickets, String logMessage) {
-        createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), "laporan dalam proses", 3L);
-        tickets.setTicketStatus(TicketStatus.DalamProses);
-        ticketsRepository.save(tickets);
+        updateTicketStatus(tickets, TicketStatus.DalamProses);
         smartTicketService.updateTicketAdmin(tickets);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
     }
 
     @Async
     private void finishingTicket(Tickets tickets, String logMessage) {
-        tickets.setTicketStatus(TicketStatus.Selesai);
-        ticketsRepository.save(tickets);
+        updateTicketStatus(tickets, TicketStatus.DalamProses);
+        updateTicketStatus(tickets, TicketStatus.Selesai);
+//        scheduler.schedule(() -> {
+//            try {
+//                updateTicketStatus(tickets, TicketStatus.Selesai);
+//            } catch (Exception e) {
+//                throw new RuntimeException("Failed to update ticket selesai");
+//            }
+//        }, 20, TimeUnit.SECONDS);
         logger.info(TICKETS_MARKER, logMessage, loggerService.getClientIp());
+    }
+
+    private void updateTicketStatus(Tickets tickets, TicketStatus status) {
+        tickets.setTicketStatus(status);
+        Tickets savedTicket = ticketsRepository.save(tickets);
+        // Send email notification
+        try {
+            emailService.sendNotification(savedTicket);
+        } catch (MessagingException e) {
+            throw new RuntimeException("Failed to send notification");
+        }
+    }
+
+    private void createMultipleTicketHistories(Tickets tickets, Long... historyIds) {
+        for (Long historyId : historyIds) {
+            createSingleTicketHistory(tickets, adminRepository.findByUsername("admin12"), getHistoryMessage(historyId), historyId);
+        }
+    }
+
+    private String getHistoryMessage(Long historyId) {
+        switch (historyId.intValue()) {
+            case 3:
+                return "laporan dalam proses";
+            case 4:
+                return "laporan selesai diproses";
+            case 5:
+                return "laporan diterima pelapor";
+            default:
+                return "laporan diperbarui";
+        }
     }
 
     @Async
@@ -462,8 +510,7 @@ public class TicketService implements TicketInterface {
     public ComplaintResponseDTO getFormComplaint(long id) throws Exception {
         logger.debug(TICKETS_MARKER, "IP {}, Form Complaint Requested", loggerService.getClientIp());
         try {
-            Transaction transaction = transactionRepository.findById(id)
-                    .orElseThrow(() -> new EntityNotFoundException("Transaction not found"));
+            Transaction transaction = transactionRepository.findById(id).get();
             logger.info(TICKETS_MARKER, "IP {}, Transaction Detail acquired for Form Complaint", loggerService.getClientIp());
             return ComplaintResponseDTO.builder()
                     .transaction_id(transaction.getId())
@@ -474,10 +521,10 @@ public class TicketService implements TicketInterface {
                     .build();
         } catch (IndexOutOfBoundsException e) {
             logger.error(TICKETS_MARKER, "IP {}, List Out of Bounds", loggerService.getClientIp(), e);
-            throw new Exception("List Tickets not found");
+            throw new IndexOutOfBoundsException("List Tickets not found");
         } catch (EntityNotFoundException e) {
-            logger.error(TICKETS_MARKER, "IP {}, Transaction Not Found", loggerService.getClientIp(), e);
-            throw new Exception("Transaction Not Found");
+            logger.error(TICKETS_MARKER, "IP {}, Transaction Not found", loggerService.getClientIp(), e);
+            throw new EntityNotFoundException("Transaction Not found");
         } catch (Exception e) {
             logger.error(TICKETS_MARKER, "IP {}, Error getting form complaint", loggerService.getClientIp(), e);
             throw new Exception("Error getting customer ticket details");
